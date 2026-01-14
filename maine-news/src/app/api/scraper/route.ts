@@ -26,12 +26,13 @@ const REGIONS = {
 const MAINE_FEEDS = [
     { url: 'https://www.maine.gov/tools/whatsnew/rss.php?id=portal-news', name: 'Maine.gov', type: 'maine' },
     { url: 'https://www.pressherald.com/feed/', name: 'Press Herald', type: 'maine' },
+    { url: 'https://www.bangordailynews.com/feed/', name: 'Bangor Daily News', type: 'maine' },
 ];
 
 const NATIONAL_FEEDS = [
     { url: 'https://moxie.foxnews.com/google-publisher/politics.xml', name: 'Fox News Politics', type: 'national' },
-    { url: 'https://feeds.a.commonwealth.com/news-politics', name: 'AP Politics (via Mirror)', type: 'national' },
-    { url: 'https://www.newsweek.com/rss', name: 'Newsweek', type: 'national' },
+    { url: 'https://www.pbs.org/newshour/feeds/rss/politics', name: 'PBS NewsHour Politics', type: 'national' },
+    { url: 'https://www.politico.com/rss/politicopicks.xml', name: 'Politico', type: 'national' },
 ];
 
 const VIDEO_FEEDS = [
@@ -189,9 +190,9 @@ async function parseRSSFeed(feedUrl: string, sourceName: string, feedType: 'main
 }
 
 async function saveToGitHub(path: string, content: string, message: string): Promise<boolean> {
-    const token = process.env.KEYSTATIC_GITHUB_TOKEN || process.env.GITHUB_TOKEN;
+    const token = process.env.KEYSTATIC_GITHUB_TOKEN;
     if (!token) {
-        console.error('[GITHUB] No token found for GitHub persistence');
+        console.error('[GITHUB] Persistence Error: KEYSTATIC_GITHUB_TOKEN is missing in Vercel Environment Variables.');
         return false;
     }
 
@@ -294,7 +295,7 @@ ${video.description}
 `;
 
         if (process.env.NODE_ENV === 'production') {
-            return await saveToGitHub(relativePath, frontmatter, `chore: add video ${slug} [skip ci]`);
+            return await saveToGitHub(`maine-news/${relativePath}`, frontmatter, `chore: add video ${slug} [skip ci]`);
         }
 
         // Ensure directory exists
@@ -348,7 +349,7 @@ ${story.region ? `\n*Region: ${story.region}*` : ''}
 `;
 
         if (process.env.NODE_ENV === 'production') {
-            return await saveToGitHub(relativePath, frontmatter, `chore: add article ${slug} [skip ci]`);
+            return await saveToGitHub(`maine-news/${relativePath}`, frontmatter, `chore: add article ${slug} [skip ci]`);
         }
 
         // Check if file already exists

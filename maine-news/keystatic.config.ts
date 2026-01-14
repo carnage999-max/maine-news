@@ -8,6 +8,7 @@ export default config({
                 owner: 'carnage999-max',
                 name: 'maine-news',
             },
+            pathPrefix: 'maine-news',
         }
         : {
             kind: 'local',
