@@ -192,54 +192,79 @@ async function parseRSSFeed(feedUrl: string, sourceName: string, feedType: 'main
     }
 }
 
-async function saveToGitHub(path: string, content: string, message: string): Promise<boolean> {
+async function commitBatchToGitHub(files: { path: string, content: string }[], message: string): Promise<number> {
     const token = process.env.KEYSTATIC_GITHUB_TOKEN;
-    if (!token) {
-        console.error('[GITHUB] Persistence Error: KEYSTATIC_GITHUB_TOKEN is missing in Vercel Environment Variables.');
-        return false;
-    }
+    if (!token || files.length === 0) return 0;
 
     const repo = 'carnage999-max/maine-news';
-    const branch = 'main';
-    const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+    const baseUrl = `https://api.github.com/repos/${repo}`;
+    const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json'
+    };
 
     try {
-        // Check if file exists to get SHA
-        const checkRes = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        // 1. Get the latest commit SHA of the main branch
+        const branchRes = await fetch(`${baseUrl}/git/refs/heads/main`, { headers });
+        const branchData = await branchRes.json();
+        const baseCommitSha = branchData.object.sha;
 
-        let sha: string | undefined;
-        if (checkRes.ok) {
-            const data = await checkRes.json();
-            sha = data.sha;
-        }
+        // 2. Get the tree SHA of that commit
+        const commitRes = await fetch(`${baseUrl}/git/commits/${baseCommitSha}`, { headers });
+        const commitData = await commitRes.json();
+        const baseTreeSha = commitData.tree.sha;
 
-        const res = await fetch(url, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
+        // 3. Create a new tree with the added files
+        // We only add new files, existing ones are kept via base_tree
+        const treeItems = files.map(file => ({
+            path: file.path,
+            mode: '100644', // normal file
+            type: 'blob',
+            content: file.content
+        }));
+
+        const treeRes = await fetch(`${baseUrl}/git/trees`, {
+            method: 'POST',
+            headers,
             body: JSON.stringify({
-                message,
-                content: Buffer.from(content).toString('base64'),
-                branch,
-                sha
+                base_tree: baseTreeSha,
+                tree: treeItems
+            })
+        });
+        const treeData = await treeRes.json();
+        const newTreeSha = treeData.sha;
+
+        // 4. Create the commit
+        const newCommitRes = await fetch(`${baseUrl}/git/commits`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+                message: `${message} [skip ci]`,
+                tree: newTreeSha,
+                parents: [baseCommitSha]
+            })
+        });
+        const newCommitData = await newCommitRes.json();
+        const newCommitSha = newCommitData.sha;
+
+        // 5. Update the branch reference
+        const refRes = await fetch(`${baseUrl}/git/refs/heads/main`, {
+            method: 'PATCH',
+            headers,
+            body: JSON.stringify({
+                sha: newCommitSha,
+                force: false
             })
         });
 
-        if (!res.ok) {
-            const err = await res.text();
-            console.error(`[GITHUB] Failed to push to ${path}:`, err);
-            return false;
-        }
+        if (!refRes.ok) throw new Error(await refRes.text());
 
-        console.log(`[GITHUB] Successfully committed ${path}`);
-        return true;
+        console.log(`[GITHUB] Successfully committed ${files.length} files in one batch.`);
+        return files.length;
     } catch (error) {
-        console.error(`[GITHUB] Error pushing ${path}:`, error);
-        return false;
+        console.error('[GITHUB] Batch commit failed:', error);
+        return 0;
     }
 }
 
@@ -273,7 +298,7 @@ async function parseVideoFeed(feedUrl: string, sourceName: string): Promise<Scra
     }
 }
 
-async function saveVideoToKeystatic(video: ScrapedVideo): Promise<boolean> {
+async function saveVideoToKeystatic(video: ScrapedVideo): Promise<{ path: string, content: string } | null> {
     try {
         const slug = sanitizeForFilename(video.title);
         const filename = `${slug}.mdoc`;
@@ -298,7 +323,7 @@ ${video.description}
 `;
 
         if (process.env.NODE_ENV === 'production') {
-            return await saveToGitHub(`maine-news/${relativePath}`, frontmatter, `chore: add video ${slug} [skip ci]`);
+            return { path: `maine-news/${relativePath}`, content: frontmatter };
         }
 
         // Ensure directory exists
@@ -312,22 +337,18 @@ ${video.description}
         // Check if file already exists
         try {
             await fs.access(filepath);
-            return false;
+            return null;
         } catch { }
 
         await fs.writeFile(filepath, frontmatter, 'utf-8');
-        return true;
+        return { path: filepath, content: frontmatter };
     } catch (error) {
-        if ((error as any).code === 'EROFS') {
-            console.warn(`[SCRAPER] Skipping write for "${video.title}" - Read-only filesystem detected (Vercel Production).`);
-            return false;
-        }
         console.error(`Failed to save video "${video.title}":`, error);
-        return false;
+        return null;
     }
 }
 
-async function saveToKeystatic(story: ScrapedStory): Promise<boolean> {
+async function saveToKeystatic(story: ScrapedStory): Promise<{ path: string, content: string } | null> {
     try {
         const slug = sanitizeForFilename(story.title);
         const filename = `${slug}.mdoc`;
@@ -352,28 +373,24 @@ ${story.region ? `\n*Region: ${story.region}*` : ''}
 `;
 
         if (process.env.NODE_ENV === 'production') {
-            return await saveToGitHub(`maine-news/${relativePath}`, frontmatter, `chore: add article ${slug} [skip ci]`);
+            return { path: `maine-news/${relativePath}`, content: frontmatter };
         }
 
         // Check if file already exists
         try {
             await fs.access(filepath);
             console.log(`Story already exists: ${slug}`);
-            return false;
+            return null;
         } catch {
             // File doesn't exist, proceed
         }
 
         await fs.writeFile(filepath, frontmatter, 'utf-8');
         console.log(`Saved story: ${slug}`);
-        return true;
+        return { path: filepath, content: frontmatter };
     } catch (error) {
-        if ((error as any).code === 'EROFS') {
-            console.warn(`[SCRAPER] Skipping write for "${story.title}" - Read-only filesystem detected.`);
-            return false;
-        }
         console.error(`Failed to save story "${story.title}":`, error);
-        return false;
+        return null;
     }
 }
 
@@ -443,13 +460,32 @@ export async function runScraper(options: { save: boolean, includeNational: bool
         let savedCount = 0;
         let savedVideoCount = 0;
         if (save) {
+            const batchFiles: { path: string, content: string }[] = [];
+
             for (const story of finalStories) {
-                const saved = await saveToKeystatic(story);
-                if (saved) savedCount++;
+                const result = await saveToKeystatic(story);
+                if (result) {
+                    if (process.env.NODE_ENV === 'production') {
+                        batchFiles.push(result);
+                    } else {
+                        savedCount++;
+                    }
+                }
             }
             for (const video of allVideos) {
-                const saved = await saveVideoToKeystatic(video);
-                if (saved) savedVideoCount++;
+                const result = await saveVideoToKeystatic(video);
+                if (result) {
+                    if (process.env.NODE_ENV === 'production') {
+                        batchFiles.push(result);
+                    } else {
+                        savedVideoCount++;
+                    }
+                }
+            }
+
+            if (process.env.NODE_ENV === 'production' && batchFiles.length > 0) {
+                const pushedCount = await commitBatchToGitHub(batchFiles, `chore: automated news update (${batchFiles.length} items)`);
+                savedCount = pushedCount; // Rough estimate for the summary
             }
         }
 
