@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-// This endpoint is called by Vercel Cron every 15 minutes
+// This endpoint is called by Vercel Cron daily
 export async function GET(request: Request) {
     // Verify this is a Vercel Cron request
     const authHeader = request.headers.get('authorization');
