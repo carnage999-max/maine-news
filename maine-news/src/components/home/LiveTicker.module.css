@@ -1,0 +1,64 @@
+.container {
+  display: flex;
+  align-items: center;
+  background-color: #1a1a1a;
+  border-bottom: 1px solid var(--border-color-dim);
+  height: 40px;
+  overflow: hidden;
+  margin-top: -2rem; /* Pull up to join hero if desired, or keep separate. */
+  margin-bottom: 2rem;
+  margin-left: -1rem;
+  width: calc(100% + 2rem);
+  position: relative;
+  z-index: 5;
+}
+
+.label {
+  background-color: var(--color-accent);
+  color: var(--color-bg);
+  padding: 0 1rem;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.tickerWrapper {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  mask-image: linear-gradient(to right, transparent, black 20px, black 95%, transparent);
+}
+
+.track {
+  display: flex;
+  white-space: nowrap;
+  animation: scroll 30s linear infinite;
+  padding-left: 20px;
+}
+
+.item {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  color: var(--color-text);
+  margin-right: 2rem;
+  text-transform: uppercase;
+}
+
+.separator {
+  color: var(--color-accent);
+  margin-left: 1rem;
+  opacity: 0.7;
+}
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}

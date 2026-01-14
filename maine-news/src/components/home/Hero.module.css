@@ -1,0 +1,101 @@
+.hero {
+  position: relative;
+  width: 100vw;
+  margin-left: -1rem; /* Break out of container padding */
+  width: calc(100% + 2rem);
+  aspect-ratio: 4 / 3; /* Changed from 3/4 to 4/3 to show more of the image */
+  max-height: 70vh;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    aspect-ratio: 21/9;
+    max-height: 600px;
+  }
+}
+
+.link {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.imageWrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.image {
+  object-fit: cover;
+  filter: blur(3px);
+  transform: scale(1.05); /* Prevent blur edge artifacts */
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.4) 100%);
+  backdrop-filter: blur(2px);
+}
+
+.content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 1.5rem 1rem;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.badges {
+  margin-bottom: 0.5rem;
+}
+
+.badge {
+  background-color: #cc0000;
+  color: white;
+  padding: 4px 8px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  border-radius: 2px;
+  letter-spacing: 0.05em;
+  animation: pulse 2s infinite;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 2.5rem;
+  line-height: 1.1;
+  color: white; /* Always white on hero */
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  margin: 0;
+}
+
+.subtitle {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
+  margin: 0;
+  max-width: 60ch;
+  display: none; /* Hide subtitle on very small mobile if needed, or keep */
+}
+
+@media (min-width: 400px) {
+  .subtitle {
+    display: block;
+  }
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}

@@ -1,0 +1,151 @@
+.articleContainer {
+  padding: 0 1rem 4rem 1rem;
+  max-width: 680px; /* Optimal reading width */
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 2rem;
+  margin-top: 1rem;
+}
+
+.headline {
+  font-family: var(--font-heading);
+  font-size: 2.5rem;
+  line-height: 1.1;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.subheadline {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  line-height: 1.4;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1.5rem;
+  font-weight: 300;
+}
+
+.metadata {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  border-top: 1px solid var(--border-color-dim);
+  border-bottom: 1px solid var(--border-color-dim);
+  padding: 0.75rem 0;
+}
+
+.author {
+  font-weight: 700;
+}
+
+.timestamp {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.body {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.body p {
+  margin-bottom: 1.5rem;
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100vw;
+  margin-left: -1rem;
+  width: calc(100% + 2rem);
+  aspect-ratio: 16/9;
+  margin-bottom: 2rem;
+}
+
+.image {
+  object-fit: cover;
+}
+
+.caption {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0.5rem;
+  padding: 0 1rem;
+  font-style: italic;
+}
+
+.actions {
+  position: fixed;
+  bottom: 80px; /* Above bottom nav */
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 40;
+}
+
+.actionButton {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  color: var(--color-bg);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+    .headline { font-size: 3.5rem; }
+    
+    .imageWrapper {
+      width: 100%;
+      margin-left: 0;
+      border-radius: 4px; /* Slight rounding if desired, or kept sharp for brutalism */
+      overflow: hidden;
+      max-height: 600px;
+    }
+    
+    .articleContainer {
+      display: grid;
+      grid-template-columns: 1fr 680px 1fr;
+      gap: 2rem;
+      max-width: 1200px;
+      padding-top: 2rem;
+    }
+  
+    .header, .body {
+      grid-column: 2;
+    }
+  
+    .imageWrapper {
+      grid-column: 1 / -1; /* Full width or contained? Spec says "Wider reading column", let's keep image wide */
+      grid-column: 2; /* Or keep it contained to reading width for editorial feel? Let's go wide -> 2 */
+    }
+  
+    .actions {
+      position: sticky;
+      top: 100px;
+      left: 0;
+      right: auto;
+      bottom: auto;
+      grid-column: 1;
+      justify-self: end;
+      padding-right: 2rem;
+      margin-top: 0;
+      flex-direction: column;
+    }
+    
+    /* Potential related articles on right (grid-column: 3) */
+  }

@@ -1,0 +1,58 @@
+.navProxy {
+  height: var(--bottom-nav-height); /* Placeholder to prevent content overlap */
+}
+
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--bottom-nav-height);
+  background-color: var(--color-bg);
+  border-top: 1px solid var(--border-color-dim);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 50;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.navItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color 0.2s ease;
+}
+
+.navItemActive {
+  color: var(--color-accent);
+}
+
+.navLabel {
+  margin-top: 4px;
+  font-size: 0.65rem;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: all 0.2s ease;
+  display: none; /* Spec says "Labels appear on active state" - can be tricky with fixed height, let's try just showing if active */
+}
+
+.navItemActive .navLabel {
+  opacity: 1;
+  transform: translateY(0);
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .bottomNav, .navProxy {
+    display: none;
+  }
+}

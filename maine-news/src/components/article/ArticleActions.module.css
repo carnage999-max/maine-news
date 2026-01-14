@@ -1,0 +1,147 @@
+.actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color-dim);
+}
+
+.actionButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color-dim);
+    border-radius: 4px;
+    color: var(--color-text);
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.actionButton:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--color-accent);
+}
+
+.actionButton.active {
+    background: var(--color-accent);
+    color: var(--color-bg);
+    border-color: var(--color-accent);
+}
+
+.buttonText {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .buttonText {
+        display: inline;
+    }
+}
+
+/* Modal Styles */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal {
+    background: var(--color-bg);
+    border: 1px solid var(--border-color-dim);
+    border-radius: 8px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color-dim);
+}
+
+.modalHeader h3 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    color: var(--color-text);
+    cursor: pointer;
+    padding: 0.25rem;
+    transition: color 0.2s;
+}
+
+.closeButton:hover {
+    color: var(--color-accent);
+}
+
+.modalBody {
+    padding: 1.5rem;
+}
+
+.articleTitle {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.linkContainer {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.linkInput {
+    flex: 1;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color-dim);
+    border-radius: 4px;
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+}
+
+.linkInput:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.copyButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--color-accent);
+    color: var(--color-bg);
+    border: none;
+    border-radius: 4px;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.copyButton:hover {
+    background: #d4a837;
+}
