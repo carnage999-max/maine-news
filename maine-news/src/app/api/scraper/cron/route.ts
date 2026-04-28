@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server';
 import { runScraper } from '../route';
 
+export const dynamic = 'force-dynamic';
+
 // This endpoint is called by Vercel Cron daily
 export async function GET(request: Request) {
-    // Verify this is a Vercel Cron request
+    const { searchParams } = new URL(request.url);
+    const authKey = searchParams.get('key');
     const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+
+    // Allow Vercel CRON_SECRET or manual SCRAPER_API_KEY
+    const isAuthorized =
+        (authHeader === `Bearer ${process.env.CRON_SECRET}`) ||
+        (authKey === process.env.SCRAPER_API_KEY);
+
+    if (!isAuthorized) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

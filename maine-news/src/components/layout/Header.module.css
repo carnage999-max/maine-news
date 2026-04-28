@@ -1,7 +1,7 @@
 .header {
   position: sticky;
-  top: 0;
-  z-index: 1000; /* Ensure Header is always on top of everything */
+  top: 32px;
+  z-index: 1000;
   background-color: var(--color-bg);
   border-bottom: 1px solid var(--border-color-dim);
   height: var(--header-height-mobile);
@@ -27,10 +27,11 @@
 .siteName {
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 0.95rem; /* Slightly smaller for mobile fit */
   letter-spacing: -0.02em;
-  margin-left: 0.75rem;
+  margin-left: 0.5rem;
   color: var(--color-text);
+  white-space: nowrap; /* Prevent wrapping */
 }
 
 /* Removed text logo styles */
@@ -44,11 +45,42 @@
   display: none; /* Hidden on mobile by default */
 }
 
-.actions {
+.headerRightSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center; /* Center content vertically */
+  height: 100%;
+}
+
+.socialLink {
+  color: rgba(255, 255, 255, 0.4);
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 1rem;
 }
+
+.socialLink:hover {
+  color: var(--color-accent);
+  transform: translateY(-2px);
+}
+
+.topActionsRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Reduce gap on mobile */
+}
+
+.socialIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.socialIconWrapper:hover {
+  opacity: 1;
+}
+
 
 .iconButton {
   background: none;
@@ -56,6 +88,31 @@
   color: var(--color-text);
   cursor: pointer;
   padding: 0.25rem;
+  display: flex;
+  align-items: center;
+}
+
+.tipButton {
+  background: transparent;
+  border: 2px solid #ff0000;
+  color: #ffffff;
+  padding: 0.4rem 0.6rem; /* Tighter padding for mobile */
+  border-radius: 4px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.7rem; /* Slightly smaller */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap; /* Prevent wrapping */
+}
+
+.tipButton:hover {
+  background: #ff0000;
+  color: #fff;
 }
 
 @media (min-width: 768px) {
@@ -72,6 +129,7 @@
     display: flex;
     gap: 2rem;
     position: absolute;
+    top: 1.5rem;
     left: 50%;
     transform: translateX(-50%);
   }
@@ -92,4 +150,32 @@
 
 .desktopNav {
   display: none;
+}
+
+.socialBar {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: var(--social-bar-height);
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.25rem 0;
+  z-index: 90;
+}
+
+.socialBarLink {
+  color: #000;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  /* Removed opacity */
+}
+
+.socialBarLink:hover {
+  opacity: 1;
+  transform: translateY(-2px);
 }

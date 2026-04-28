@@ -1,16 +1,23 @@
 import Link from 'next/link';
-import { reader } from '@/lib/reader';
+import { db } from '@/db';
+import { posts as dbPosts } from '@/db/schema';
+import { desc } from 'drizzle-orm';
 import styles from './Latest.module.css';
 
-export default async function LatestPage() {
-    const posts = await reader.collections.posts.all();
+export const dynamic = 'force-dynamic';
 
-    // Sort by date descending
-    const sortedPosts = posts.sort((a, b) => {
-        const dateA = new Date(a.entry.publishedDate || '');
-        const dateB = new Date(b.entry.publishedDate || '');
-        return dateB.getTime() - dateA.getTime();
+export default async function LatestPage() {
+    const authoredPosts = await db.query.posts.findMany({
+        orderBy: [desc(dbPosts.publishedDate)],
     });
+
+    const allPosts = authoredPosts.map(post => ({
+        slug: post.slug,
+        title: post.title,
+        category: post.category,
+        publishedDate: post.publishedDate.toISOString(),
+        author: post.author,
+    }));
 
     return (
         <main className={styles.container}>
@@ -20,14 +27,14 @@ export default async function LatestPage() {
             </header>
 
             <div className={styles.grid}>
-                {sortedPosts.map((post) => (
+                {allPosts.map((post) => (
                     <Link key={post.slug} href={`/article/${post.slug}`} className={styles.card}>
                         <div className={styles.meta}>
-                            <span className={styles.category}>{post.entry.category}</span>
-                            <span className={styles.date}>{post.entry.publishedDate?.toString()}</span>
+                            <span className={styles.category}>{post.category}</span>
+                            <span className={styles.date}>{new Date(post.publishedDate).toLocaleDateString()}</span>
                         </div>
-                        <h2 className={styles.headline}>{post.entry.title}</h2>
-                        <p className={styles.author}>By {post.entry.author}</p>
+                        <h2 className={styles.headline}>{post.title}</h2>
+                        <p className={styles.author}>By {post.author}</p>
                     </Link>
                 ))}
             </div>

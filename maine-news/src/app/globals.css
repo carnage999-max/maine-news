@@ -1,4 +1,4 @@
-/* Maine News Today - Global Styles & Design System */
+/* Maine News Now - Global Styles & Design System */
 
 :root {
   /* Design System Tokens */
@@ -13,8 +13,10 @@
   --font-body: var(--font-body-sans);
   
   /* Spacing & Layout */
-  --header-height-mobile: 60px;
-  --header-height-desktop: 80px;
+  --utility-bar-height: 32px;
+  --social-bar-height: 32px;
+  --header-height-mobile: 80px;
+  --header-height-desktop: 100px;
   --bottom-nav-height: 60px;
   
   /* Borders */
@@ -28,15 +30,17 @@
   margin: 0;
 }
 
-html,
+html {
+    overflow-x: hidden;
+}
+
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-body), sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
 /* Typography Defaults */

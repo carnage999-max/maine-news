@@ -1,0 +1,275 @@
+.footer {
+    background-color: #050505;
+    border-top: 1px solid var(--border-color-dim);
+    padding: 4rem 1rem 2rem 1rem;
+    margin-top: 4rem;
+    color: var(--color-text);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.brand {
+    text-align: center;
+}
+
+.logo {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+    color: #ffffff;
+}
+
+.tagline {
+    font-size: 0.8rem;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2rem;
+}
+
+.socialLinks {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    opacity: 0.8;
+}
+
+/* ... */
+
+.socialLinks a {
+    color: #ffffff;
+    transition: all 0.3s ease;
+}
+
+.socialLinks a:hover {
+    color: var(--color-accent);
+    transform: translateY(-3px);
+}
+
+.libertySocialIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+}
+
+.libertySocialIcon:hover {
+    opacity: 1;
+    transform: translateY(-3px);
+}
+
+.links {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    width: 100%;
+    align-items: center;
+}
+
+.footerCta {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.minuteCta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem 2rem;
+    border-radius: 999px;
+    border: 1px solid rgba(191, 155, 48, 0.6);
+    background: rgba(191, 155, 48, 0.08);
+    color: var(--color-text);
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 18px rgba(191, 155, 48, 0.35);
+    animation: minuteGlow 2.6s ease-in-out infinite;
+}
+
+.minuteCta:hover {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 26px rgba(191, 155, 48, 0.6);
+    transform: translateY(-2px);
+}
+
+.minuteLogo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.minuteLogoImage {
+    width: auto;
+    height: 48px;
+    object-fit: contain;
+}
+
+.minuteCtaText {
+    color: var(--color-text);
+}
+
+.linkGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    width: 100%;
+}
+
+.linkGroup h3 {
+    font-size: 0.9rem;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.linkGroup a {
+    font-size: 0.9rem;
+    color: #ffffff;
+    transition: color 0.2s ease;
+    opacity: 0.7;
+}
+
+.linkGroup a:hover {
+    color: var(--color-accent);
+}
+
+.appLinksGroup {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 0.5rem;
+}
+
+.storeBadge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #000;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color-dim);
+    transition: all 0.2s ease;
+    flex: 0 0 auto;
+}
+
+.storeBadge:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.badgeIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.badgeText {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.1;
+}
+
+.badgeSmall {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badgeLarge {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    font-family: var(--font-heading);
+    letter-spacing: 0.5px;
+}
+
+.bottomBar {
+    border-top: 1px solid var(--border-color-dim);
+    padding-top: 2rem;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #fff;
+}
+
+@media (min-width: 768px) {
+    .container {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .brand {
+        text-align: left;
+        flex: 0 0 auto;
+    }
+
+    .footerCta {
+        justify-content: flex-start;
+        align-self: flex-start;
+        padding-top: 1.25rem;
+        min-width: 200px;
+    }
+
+    .socialLinks {
+        justify-content: flex-start;
+    }
+
+    .links {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(150px, 1fr));
+        gap: 2rem;
+        justify-items: start;
+        width: auto;
+        flex: 1;
+    }
+
+    .linkGroup {
+        align-items: flex-start;
+    }
+
+    .appLinksGroup {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+    }
+
+    .bottomBar {
+        width: 100%;
+        margin-top: 2rem;
+    }
+}
+
+@keyframes minuteGlow {
+    0%, 100% {
+        box-shadow: 0 0 12px rgba(191, 155, 48, 0.25);
+    }
+    50% {
+        box-shadow: 0 0 22px rgba(191, 155, 48, 0.5);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .minuteCta {
+        animation: none;
+    }
+}

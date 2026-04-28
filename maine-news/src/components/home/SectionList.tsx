@@ -6,6 +6,9 @@ interface Story {
     title: string;
     image?: string;
     slug: string;
+    publishedDate: string;
+    category?: string;
+    isNational?: boolean;
 }
 
 interface SectionProps {
@@ -21,12 +24,15 @@ export default function SectionList({ title, stories }: SectionProps) {
                 <div className={styles.divider} />
             </div>
             <div className={styles.grid}>
-                {stories.map((story, index) => (
+                {stories.map((story) => (
                     <StoryCard
                         key={story.id}
                         title={story.title}
                         image={story.image}
                         slug={story.slug}
+                        publishedDate={story.publishedDate}
+                        category={story.category}
+                        isNational={story.isNational}
                     />
                 ))}
             </div>

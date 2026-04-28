@@ -39,6 +39,31 @@
   font-weight: 700;
 }
 
+.nationalBadge {
+    display: inline-block;
+    padding: 2px 6px;
+    background-color: #1e3a8a;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metaRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.date {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 400;
+}
+
 .title {
   font-size: 1.1rem;
   line-height: 1.3;

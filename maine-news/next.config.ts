@@ -19,7 +19,12 @@ const nextConfig: NextConfig = {
         ]
       }
     ]
-  }
+  },
+  // @ts-ignore
+  outputFileTracingIncludes: {
+    '/': ['./src/content/**/*'],
+    '/article/**/*': ['./src/content/**/*'],
+  },
 };
 
 export default nextConfig;

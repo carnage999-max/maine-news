@@ -5,13 +5,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './Hero.module.css';
+import { formatTimeAgo } from '@/utils/formatDate';
 
 interface HeroPost {
     title: string;
     slug: string;
     image?: string;
     category: string;
+    isNational: boolean;
     author: string;
+    publishedDate: string;
 }
 
 interface HeroProps {
@@ -33,7 +36,7 @@ export default function Hero({ posts }: HeroProps) {
     useEffect(() => {
         if (!posts || posts.length <= 1 || isPaused) return;
 
-        const timer = setInterval(nextSlide, 3500); // 3.5 seconds for a premium feel
+        const timer = setInterval(nextSlide, 5000); // 5 seconds for a more relaxed pace
 
         return () => clearInterval(timer);
     }, [posts, isPaused, nextSlide]);
@@ -44,7 +47,7 @@ export default function Hero({ posts }: HeroProps) {
                 <div className={styles.imageWrapper}>
                     <Image
                         src="/maine-news-longer-img.jpeg"
-                        alt="Maine News Today"
+                        alt="Maine News Now"
                         fill
                         className={styles.image}
                         priority
@@ -52,7 +55,7 @@ export default function Hero({ posts }: HeroProps) {
                     <div className={styles.overlay} />
                 </div>
                 <div className={styles.content}>
-                    <h1 className={styles.title}>Maine News Today</h1>
+                    <h1 className={styles.title}>Maine News Now</h1>
                     <p className={styles.subtitle}>Unbiased. Unafraid. Unfiltered.</p>
                 </div>
             </section>
@@ -110,10 +113,13 @@ export default function Hero({ posts }: HeroProps) {
 
                 <div className={styles.content}>
                     <div className={styles.badges}>
+                        {currentPost.isNational && <span className={`${styles.badge} ${styles.nationalBadge}`}>NATIONAL</span>}
                         <span className={styles.badge}>{currentPost.category}</span>
                     </div>
                     <h1 className={styles.title}>{currentPost.title}</h1>
-                    <p className={styles.subtitle}>By {currentPost.author} • Unbiased. Unafraid. Unfiltered.</p>
+                    <p className={styles.subtitle}>
+                        By {currentPost.author} • {formatTimeAgo(currentPost.publishedDate)} • Unbiased. Unafraid. Unfiltered.
+                    </p>
 
                     <div className={styles.indicators}>
                         {posts.map((_, index) => (

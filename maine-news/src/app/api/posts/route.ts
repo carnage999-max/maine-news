@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
-import { reader } from '@/lib/reader';
+import { db } from '@/db';
+import { posts as dbPosts } from '@/db/schema';
+import { desc } from 'drizzle-orm';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
     try {
@@ -7,38 +11,42 @@ export async function GET(request: Request) {
         const slug = searchParams.get('slug');
 
         if (slug) {
-            const post = await reader.collections.posts.read(slug);
-            if (!post) {
-                return NextResponse.json({ error: 'Post not found' }, { status: 404 });
-            }
-            return NextResponse.json({
-                ...post,
-                slug,
-                content: (await post.content()).node
+            // Priority: Database
+            const dbPost = await db.query.posts.findFirst({
+                where: (posts, { eq }) => eq(posts.slug, slug),
             });
+
+            if (dbPost) {
+                return NextResponse.json({
+                    ...dbPost,
+                    publishedDate: dbPost.publishedDate.toISOString(),
+                    createdAt: dbPost.createdAt.toISOString(),
+                });
+            }
+
+            return NextResponse.json({ error: 'Post not found' }, { status: 404 });
         }
 
-        const posts = await reader.collections.posts.all();
-
-        const formattedPosts = posts.map(post => ({
-            id: post.slug,
-            title: post.entry.title,
-            slug: post.slug,
-            image: post.entry.image,
-            category: post.entry.category,
-            publishedDate: post.entry.publishedDate,
-            author: post.entry.author,
-        }));
-
-        // Sort by date descending
-        formattedPosts.sort((a, b) => {
-            const dateA = new Date(a.publishedDate || '').getTime();
-            const dateB = new Date(b.publishedDate || '').getTime();
-            return dateB - dateA;
+        // Fetch all for list/search
+        const authoredPosts = await db.query.posts.findMany({
+            orderBy: [desc(dbPosts.publishedDate)],
         });
 
-        return NextResponse.json(formattedPosts);
+        const formattedPosts = authoredPosts.map(post => ({
+            id: post.id,
+            title: post.title,
+            slug: post.slug,
+            image: post.image || undefined,
+            category: post.category,
+            isNational: post.isNational || false,
+            publishedDate: post.publishedDate.toISOString(),
+            author: post.author,
+            isOriginal: post.isOriginal
+        }));
+
+        return NextResponse.json({ posts: formattedPosts });
     } catch (error) {
+        console.error('API Error:', error);
         return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 });
     }
 }

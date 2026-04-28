@@ -1,7 +1,3 @@
-.navProxy {
-  height: var(--bottom-nav-height); /* Placeholder to prevent content overlap */
-}
-
 .bottomNav {
   position: fixed;
   bottom: 0;
@@ -15,6 +11,20 @@
   align-items: center;
   z-index: 50;
   padding-bottom: env(safe-area-inset-bottom);
+  transition: transform 0.3s ease-in-out;
+}
+
+.bottomNav.hidden {
+  transform: translateY(100%);
+}
+
+.navProxy {
+  height: var(--bottom-nav-height);
+  transition: height 0.3s ease-in-out;
+}
+
+.navProxy.hidden {
+  height: 0;
 }
 
 .navItem {
@@ -49,6 +59,36 @@
   opacity: 1;
   transform: translateY(0);
   display: block;
+}
+
+.minuteLogoWrapper {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000;
+}
+
+.minuteLogoActive {
+  border-color: var(--color-accent);
+  transform: scale(1.15) translateY(-2px);
+  box-shadow: 0 0 10px rgba(191, 155, 48, 0.3);
+}
+
+.minuteLogo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.minuteLink .navLabel {
+    font-size: 0.6rem;
+    margin-top: 2px;
 }
 
 @media (min-width: 768px) {
