@@ -4,19 +4,41 @@ import { uploadToS3 } from '@/lib/s3';
 
 export const dynamic = 'force-dynamic';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: Request) {
     try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
         const formData = await request.formData();
         const title = formData.get('title') as string;
         const name = formData.get('name') as string;
         const email = formData.get('email') as string;
         const content = formData.get('content') as string;
         const urgency = formData.get('urgency') as string;
+        const turnstileToken = formData.get('turnstileToken') as string;
 
         if (!content || !email) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        }
+
+        // Verify Turnstile token
+        if (!turnstileToken) {
+            return NextResponse.json({ error: 'Bot verification required' }, { status: 400 });
+        }
+
+        const turnstileResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                secret: process.env.TURNSTILE_SECRET_KEY!,
+                response: turnstileToken,
+            }),
+        });
+
+        const turnstileResult = await turnstileResponse.json();
+
+        if (!turnstileResult.success) {
+            return NextResponse.json({ error: 'Bot verification failed' }, { status: 400 });
         }
 
         // Handle File Uploads

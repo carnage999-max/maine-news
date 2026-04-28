@@ -63,6 +63,11 @@
     box-shadow: 0 0 0 2px rgba(191, 155, 48, 0.2);
 }
 
+/* Turnstile widget styling */
+.inputGroup iframe {
+    border-radius: 6px;
+}
+
 .row {
     display: grid;
     grid-template-columns: 1fr 1fr;

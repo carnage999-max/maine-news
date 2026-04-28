@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Turnstile } from '@marsidev/react-turnstile';
 import styles from './SubmitStoryForm.module.css';
 
 export default function SubmitStoryForm() {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [files, setFiles] = useState<File[]>([]);
+    const [turnstileToken, setTurnstileToken] = useState<string>('');
     const [formData, setFormData] = useState({
         title: '',
         name: '',
@@ -26,6 +28,7 @@ export default function SubmitStoryForm() {
             data.append('email', formData.email);
             data.append('content', formData.content);
             data.append('urgency', formData.urgency);
+            data.append('turnstileToken', turnstileToken);
 
             files.forEach((file, index) => {
                 data.append(`file-${index}`, file);
@@ -152,7 +155,16 @@ export default function SubmitStoryForm() {
                 </div>
             )}
 
-            <button type="submit" className={styles.submitButton} disabled={status === 'loading'}>
+            <div className={styles.inputGroup}>
+                <Turnstile
+                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                    onSuccess={setTurnstileToken}
+                    onError={() => setTurnstileToken('')}
+                    onExpire={() => setTurnstileToken('')}
+                />
+            </div>
+
+            <button type="submit" className={styles.submitButton} disabled={status === 'loading' || !turnstileToken}>
                 {status === 'loading' ? (
                     <>
                         <Loader2 size={20} className={styles.spinner} />
