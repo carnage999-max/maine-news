@@ -7,7 +7,7 @@ export default function PrivacyPage() {
             <h1 className={styles.title}>Global Privacy Policy</h1>
             <div className={styles.content}>
                 <p><strong>Gold Standard Edition</strong></p>
-                <p>Last Updated: January 14, 2026</p>
+                <p>Last Updated: May 12, 2026</p>
 
                 <section>
                     <h2>Introduction</h2>
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
 
                 <section>
                     <h2>5. Disclosure and Data Sharing</h2>
-                    <p>We do not sell personal data. We share information only with trusted service providers, payment processors, affiliates, analytics vendors, and legal authorities when required by law. Each third‑party partner is contractually obligated to maintain equivalent data protection standards.</p>
+                    <p>We do not sell personal data. We share information only with trusted service providers, payment processors, affiliates, analytics vendors, advertising partners, and legal authorities when required by law. Each third‑party partner is expected to maintain appropriate data protection standards.</p>
                 </section>
 
                 <section>
@@ -66,21 +66,31 @@ export default function PrivacyPage() {
 
                 <section>
                     <h2>11. Cookies and Tracking Technologies</h2>
-                    <p>We use cookies, web beacons, and similar tools for site functionality, analytics, and marketing. Users can control cookie preferences via browser settings or our Cookie Management Tool.</p>
+                    <p>We use cookies, web beacons, pixels, device identifiers, IP addresses, and similar technologies for site functionality, analytics, advertising, fraud prevention, security, and performance measurement. Users can control cookie preferences through browser settings, device settings, or any cookie consent tools we make available.</p>
+                    <p>Some browsers and devices allow users to block, delete, or limit cookies and similar technologies. If you block certain cookies, parts of the Services may not function as intended, and advertising may still appear but may be less relevant.</p>
                 </section>
 
                 <section>
-                    <h2>12. Cross‑Border Compliance</h2>
+                    <h2>12. Advertising, Google AdSense, and Third-Party Ad Partners</h2>
+                    <p>We may display advertisements on the Services, including ads served by Google AdSense and other third-party advertising partners. These partners may use cookies, web beacons, IP addresses, device identifiers, browser information, approximate location, interactions with ads, and other usage information to serve ads, limit repeated ads, measure ad performance, prevent fraud, and improve advertising systems.</p>
+                    <p>Google, as a third-party vendor, uses cookies to serve ads on our Services. Google&apos;s use of advertising cookies enables it and its partners to serve ads based on a user&apos;s visit to our Services and other websites or apps. Third-party vendors and ad networks may also use cookies or similar technologies to serve ads on our Services.</p>
+                    <p>Advertising may be personalized or non-personalized depending on your location, consent choices, browser or device settings, and applicable law. Personalized advertising may use information about your visits to this and other sites or apps to help show ads that are more relevant to your interests.</p>
+                    <p>You can learn more about how Google uses information from sites and apps that use Google services at <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">Google&apos;s partner sites policy</a>. You can manage Google ad personalization at <a href="https://myadcenter.google.com/" target="_blank" rel="noopener noreferrer">My Ad Center</a> and opt out of some third-party interest-based advertising through industry tools such as the <a href="https://optout.networkadvertising.org/" target="_blank" rel="noopener noreferrer">Network Advertising Initiative</a> or <a href="https://optout.aboutads.info/" target="_blank" rel="noopener noreferrer">Digital Advertising Alliance</a>.</p>
+                    <p>For users in jurisdictions where consent is required, including the European Economic Area, the United Kingdom, and Switzerland, we will seek consent for the use of cookies or local storage and for the collection, sharing, and use of personal data for ads personalization where required by law.</p>
+                </section>
+
+                <section>
+                    <h2>13. Cross‑Border Compliance</h2>
                     <p>This Policy incorporates global privacy principles such as lawfulness, fairness, transparency, purpose limitation, data minimization, accuracy, integrity, and accountability. These principles apply uniformly across all operations and subsidiaries.</p>
                 </section>
 
                 <section>
-                    <h2>13. Data Protection Officer and Contact</h2>
+                    <h2>14. Data Protection Officer and Contact</h2>
                     <p>We maintain a designated Data Protection Officer (“DPO”) to oversee compliance. Users may exercise their rights or submit complaints via email at privacy@mainenewstoday.com or by mail to our registered office in Florida, USA.</p>
                 </section>
 
                 <section>
-                    <h2>14. Updates to This Policy</h2>
+                    <h2>15. Updates to This Policy</h2>
                     <p>We may update this Policy to reflect legal, technical, or business developments. The latest version will always be available on our website, with a new &apos;Last Updated&apos; date. Continued use of our Services constitutes acceptance of any modifications.</p>
                 </section>
 
