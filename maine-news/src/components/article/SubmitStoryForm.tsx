@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { Turnstile } from '@marsidev/react-turnstile';
 import styles from './SubmitStoryForm.module.css';
@@ -9,6 +9,8 @@ export default function SubmitStoryForm() {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [files, setFiles] = useState<File[]>([]);
     const [turnstileToken, setTurnstileToken] = useState<string>('');
+    const [turnstileError, setTurnstileError] = useState<string>('');
+    const turnstileRef = useRef<any>(null);
     const [formData, setFormData] = useState({
         title: '',
         name: '',
@@ -156,12 +158,34 @@ export default function SubmitStoryForm() {
             )}
 
             <div className={styles.inputGroup}>
-                <Turnstile
-                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-                    onSuccess={setTurnstileToken}
-                    onError={() => setTurnstileToken('')}
-                    onExpire={() => setTurnstileToken('')}
-                />
+                <label>Bot Verification</label>
+                {turnstileError && (
+                    <div className={styles.errorMessage} style={{ marginBottom: '1rem' }}>
+                        <AlertCircle size={20} />
+                        <span>{turnstileError}</span>
+                    </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'center', minHeight: '78px' }}>
+                    <Turnstile
+                        ref={turnstileRef}
+                        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''}
+                        onSuccess={(token) => {
+                            console.log('Turnstile success:', token);
+                            setTurnstileToken(token);
+                            setTurnstileError('');
+                        }}
+                        onError={(error) => {
+                            console.error('Turnstile error:', error);
+                            setTurnstileToken('');
+                            setTurnstileError('Bot verification failed. Please try again.');
+                        }}
+                        onExpire={() => {
+                            console.warn('Turnstile token expired');
+                            setTurnstileToken('');
+                            setTurnstileError('Verification expired. Please verify again.');
+                        }}
+                    />
+                </div>
             </div>
 
             <button type="submit" className={styles.submitButton} disabled={status === 'loading' || !turnstileToken}>
