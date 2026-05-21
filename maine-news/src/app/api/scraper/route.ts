@@ -11,6 +11,22 @@ export const dynamic = 'force-dynamic';
 const parser = new Parser();
 const turndown = new TurndownService();
 
+// Helper to retry fetch on transient failures
+async function fetchWithRetry(url: string, init?: RequestInit, retries = 3, delayMs = 1000): Promise<Response> {
+  let attempt = 0;
+  while (true) {
+    try {
+      return await fetch(url, init);
+    } catch (err) {
+      attempt++;
+      if (attempt > retries) throw err;
+      console.warn(`Fetch attempt ${attempt} failed for ${url}. Retrying in ${delayMs}ms...`);
+      await new Promise(res => setTimeout(res, delayMs));
+    }
+  }
+}
+
+
 // Maine towns/cities database for geographic filtering
 const MAINE_LOCATIONS = [
     'Portland', 'Lewiston', 'Bangor', 'South Portland', 'Auburn', 'Biddeford',
@@ -248,16 +264,16 @@ function extractStoryImage(item: Record<string, any>, rawHtml: string, baseUrl?:
 async function parseRSSFeed(feedUrl: string, sourceName: string, feedType: 'maine' | 'national' | 'health'): Promise<ScrapedStory[]> {
     try {
         // Use fetch with a browser-like User-Agent to avoid bot-blocking 404s
-        const res = await fetch(feedUrl, {
+        const res = await fetchWithRetry(feedUrl, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml,application/rss+xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
                 'Accept-Language': 'en-US,en;q=0.9',
                 'Cache-Control': 'no-cache',
                 'Pragma': 'no-cache',
-                'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+                'Sec-Ch-Ua': "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"",
                 'Sec-Ch-Ua-Mobile': '?0',
-                'Sec-Ch-Ua-Platform': '"Windows"',
+                'Sec-Ch-Ua-Platform': "\"Windows\"",
                 'Sec-Fetch-Dest': 'document',
                 'Sec-Fetch-Mode': 'navigate',
                 'Sec-Fetch-Site': 'none',
@@ -484,7 +500,7 @@ async function commitBatchToGitHub(files: { path: string, content: string }[], m
 
 async function parseVideoFeed(feedUrl: string, sourceName: string): Promise<ScrapedVideo[]> {
     try {
-        const res = await fetch(feedUrl, {
+        const res = await fetchWithRetry(feedUrl, {
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
         });
 
