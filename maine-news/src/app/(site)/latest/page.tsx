@@ -9,6 +9,13 @@ export const dynamic = 'force-dynamic';
 export default async function LatestPage() {
     const authoredPosts = await db.query.posts.findMany({
         orderBy: [desc(dbPosts.publishedDate)],
+        columns: {
+            slug: true,
+            title: true,
+            category: true,
+            publishedDate: true,
+            author: true,
+        }
     });
 
     const allPosts = authoredPosts.map(post => ({

@@ -10,6 +10,17 @@ export async function GET() {
     try {
         const allPosts = await db.query.posts.findMany({
             orderBy: [desc(posts.publishedDate)],
+            columns: {
+                id: true,
+                title: true,
+                slug: true,
+                image: true,
+                category: true,
+                author: true,
+                publishedDate: true,
+                isOriginal: true,
+                isNational: true,
+            }
         });
         return NextResponse.json(allPosts);
     } catch (error) {

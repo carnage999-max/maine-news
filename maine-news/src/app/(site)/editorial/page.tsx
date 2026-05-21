@@ -10,6 +10,12 @@ export default async function EditorialPage() {
     const authoredPosts = await db.query.posts.findMany({
         where: eq(dbPosts.category, 'editorial'),
         orderBy: [desc(dbPosts.publishedDate)],
+        columns: {
+            slug: true,
+            title: true,
+            author: true,
+            publishedDate: true,
+        }
     });
 
     const formattedAuthored = authoredPosts.map(post => ({

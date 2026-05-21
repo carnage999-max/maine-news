@@ -1,7 +1,8 @@
 import { db } from '@/db';
 import { lotteryResults, maineMinute, posts as dbPosts } from '@/db/schema';
 import { findMaineLocation, hasMaineLocation, isAllowedSource, scoreStory, stripContent } from '@/lib/maineMinute';
-import { desc, eq, gte } from 'drizzle-orm';
+import { desc, eq, gte, inArray } from 'drizzle-orm';
+import { cache } from 'react';
 
 export interface MinuteLink {
     title: string;
@@ -142,6 +143,16 @@ async function loadAutoStories(date: string): Promise<MinuteStory[]> {
     const dbResults = await db.query.posts.findMany({
         where: gte(dbPosts.publishedDate, rangeStart),
         orderBy: [desc(dbPosts.publishedDate)],
+        columns: {
+            title: true,
+            slug: true,
+            category: true,
+            publishedDate: true,
+            content: true,
+            sourceUrl: true,
+            isOriginal: true,
+            isNational: true,
+        }
     });
 
     const merged = new Map<string, MinuteStory>();
@@ -177,7 +188,33 @@ async function loadManualStories(date: string) {
 
     if (!entry) return null;
 
-    const stories = await Promise.all((entry.stories as any[]).map(async (story: any) => {
+    const entryStories = entry.stories as any[];
+    const slugs = entryStories.map((story: any) => story.postSlug).filter(Boolean);
+
+    let dbPostsList: any[] = [];
+    if (slugs.length > 0) {
+        try {
+            dbPostsList = await db.query.posts.findMany({
+                where: inArray(dbPosts.slug, slugs),
+                columns: {
+                    title: true,
+                    slug: true,
+                    category: true,
+                    content: true,
+                    publishedDate: true,
+                    sourceUrl: true,
+                    isOriginal: true,
+                    isNational: true,
+                }
+            });
+        } catch (error) {
+            console.error('Failed to fetch manual stories in batch:', error);
+        }
+    }
+
+    const postsMap = new Map<string, any>(dbPostsList.map(post => [post.slug, post]));
+
+    const stories = entryStories.map((story: any) => {
         let title = 'Untitled Story';
         let category = 'local';
         let content = '';
@@ -186,26 +223,20 @@ async function loadManualStories(date: string) {
         let isOriginal: boolean | null = null;
         let isNational: boolean | null = null;
 
-        try {
-            const dbPost = await db.query.posts.findFirst({
-                where: eq(dbPosts.slug, story.postSlug)
-            });
-            if (dbPost) {
-                title = dbPost.title;
-                category = dbPost.category;
-                content = dbPost.content || '';
-                publishedDate = dbPost.publishedDate;
-                sourceUrl = dbPost.sourceUrl;
-                isOriginal = dbPost.isOriginal;
-                isNational = dbPost.isNational;
-            } else {
-                title = story.postSlug || title;
-                content = story.summary || '';
-                isOriginal = true;
-                isNational = false;
-            }
-        } catch (error) {
-            console.warn('Manual Minute story lookup failed:', error);
+        const dbPost = postsMap.get(story.postSlug);
+        if (dbPost) {
+            title = dbPost.title;
+            category = dbPost.category;
+            content = dbPost.content || '';
+            publishedDate = dbPost.publishedDate;
+            sourceUrl = dbPost.sourceUrl;
+            isOriginal = dbPost.isOriginal;
+            isNational = dbPost.isNational;
+        } else {
+            title = story.postSlug || title;
+            content = story.summary || '';
+            isOriginal = true;
+            isNational = false;
         }
 
         return {
@@ -219,7 +250,7 @@ async function loadManualStories(date: string) {
             isNational,
             summary: story.summary,
         } as MinuteStory;
-    }));
+    });
 
     const filteredStories = stories.filter(isMaineMinuteStory);
     filteredStories.forEach(story => {
@@ -253,7 +284,7 @@ async function loadLottery(): Promise<MinuteLottery[]> {
         }));
 }
 
-export async function buildMaineMinuteReport(date?: string): Promise<MaineMinuteReport> {
+export const buildMaineMinuteReport = cache(async (date?: string): Promise<MaineMinuteReport> => {
     const reportDate = date || getEasternDateString();
     const manual = await loadManualStories(reportDate);
     const stories = manual ? manual.stories : await loadAutoStories(reportDate);
@@ -299,4 +330,4 @@ export async function buildMaineMinuteReport(date?: string): Promise<MaineMinute
         timestamp: formatTimestamp(new Date()),
         isManual: !!manual
     };
-}
+});

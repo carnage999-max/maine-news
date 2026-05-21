@@ -12,6 +12,15 @@ export const dynamic = 'force-dynamic';
 export default async function PostsListPage() {
     const allPosts = await db.query.posts.findMany({
         orderBy: [desc(posts.publishedDate)],
+        columns: {
+            id: true,
+            title: true,
+            image: true,
+            category: true,
+            author: true,
+            publishedDate: true,
+            slug: true,
+        }
     });
 
     return (

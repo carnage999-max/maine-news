@@ -28,6 +28,13 @@ export default async function EditMaineMinutePage({ params }: EditMaineMinutePag
     // Fetch all available posts to choose from
     const authoredPosts = await db.query.posts.findMany({
         orderBy: [desc(dbPosts.publishedDate)],
+        columns: {
+            id: true,
+            title: true,
+            slug: true,
+            publishedDate: true,
+            category: true,
+        }
     });
 
     const allPosts = authoredPosts.map(post => ({

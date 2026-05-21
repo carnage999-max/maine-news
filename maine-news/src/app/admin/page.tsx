@@ -16,6 +16,14 @@ export default async function AdminDashboard() {
     const recentPosts = await db.query.posts.findMany({
         limit: 5,
         orderBy: [desc(posts.createdAt)],
+        columns: {
+            id: true,
+            title: true,
+            image: true,
+            createdAt: true,
+            category: true,
+            slug: true,
+        }
     });
 
     return (

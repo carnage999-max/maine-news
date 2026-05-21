@@ -30,6 +30,17 @@ export async function GET(request: Request) {
         // Fetch all for list/search
         const authoredPosts = await db.query.posts.findMany({
             orderBy: [desc(dbPosts.publishedDate)],
+            columns: {
+                id: true,
+                title: true,
+                slug: true,
+                image: true,
+                category: true,
+                isNational: true,
+                publishedDate: true,
+                author: true,
+                isOriginal: true,
+            }
         });
 
         const formattedPosts = authoredPosts.map(post => ({

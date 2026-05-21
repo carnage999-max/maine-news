@@ -10,6 +10,12 @@ export default async function OpinionPage() {
     const authoredPosts = await db.query.posts.findMany({
         where: eq(dbPosts.category, 'opinion'),
         orderBy: [desc(dbPosts.publishedDate)],
+        columns: {
+            slug: true,
+            title: true,
+            author: true,
+            publishedDate: true,
+        }
     });
 
     const allOpinionPosts = authoredPosts.map(post => ({

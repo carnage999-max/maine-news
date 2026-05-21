@@ -7,6 +7,7 @@ import { db } from '@/db';
 import { posts as dbPosts } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { EDITORIAL_DISCLAIMER_PARAGRAPHS } from '@/lib/editorialDisclaimer';
+import { cache } from 'react';
 
 interface ArticlePageProps {
     params: Promise<{ slug: string }>;
@@ -14,15 +15,19 @@ interface ArticlePageProps {
 
 export const dynamic = 'force-dynamic';
 
+const getPostBySlug = cache(async (slug: string) => {
+    return await db.query.posts.findFirst({
+        where: eq(dbPosts.slug, slug),
+    });
+});
+
 export async function generateMetadata({ params }: ArticlePageProps) {
     const { slug } = await params;
 
     // Check DB first (with error handling)
     let dbPost = null;
     try {
-        dbPost = await db.query.posts.findFirst({
-            where: eq(dbPosts.slug, slug),
-        });
+        dbPost = await getPostBySlug(slug);
     } catch (error) {
         console.error('Database connection failed in metadata generation:', error);
     }
@@ -49,9 +54,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     // 1. Try fetching from Database (with error handling)
     let dbPost = null;
     try {
-        dbPost = await db.query.posts.findFirst({
-            where: eq(dbPosts.slug, slug),
-        });
+        dbPost = await getPostBySlug(slug);
     } catch (error) {
         console.error('Database query failed, falling back to Keystatic:', error);
     }
