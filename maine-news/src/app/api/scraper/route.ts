@@ -12,18 +12,41 @@ const parser = new Parser();
 const turndown = new TurndownService();
 
 // Helper to retry fetch on transient failures
-async function fetchWithRetry(url: string, init?: RequestInit, retries = 3, delayMs = 1000): Promise<Response> {
-  let attempt = 0;
-  while (true) {
-    try {
-      return await fetch(url, init);
-    } catch (err) {
-      attempt++;
-      if (attempt > retries) throw err;
-      console.warn(`Fetch attempt ${attempt} failed for ${url}. Retrying in ${delayMs}ms...`);
-      await new Promise(res => setTimeout(res, delayMs));
+async function fetchWithRetry(
+    url: string,
+    init?: RequestInit,
+    retries = 3,
+    delayMs = 1000,
+    timeoutMs = 15000
+): Promise<Response> {
+    let attempt = 0;
+    while (true) {
+        try {
+            const response = await fetch(url, {
+                ...init,
+                signal: AbortSignal.timeout(timeoutMs),
+            });
+
+            if (response.ok) {
+                return response;
+            }
+
+            const shouldRetry = response.status >= 500 || response.status === 429;
+            attempt++;
+
+            if (!shouldRetry || attempt > retries) {
+                return response;
+            }
+
+            console.warn(`Fetch attempt ${attempt} returned ${response.status} for ${url}. Retrying in ${delayMs}ms...`);
+        } catch (err) {
+            attempt++;
+            if (attempt > retries) throw err;
+            console.warn(`Fetch attempt ${attempt} failed for ${url}. Retrying in ${delayMs}ms...`);
+        }
+
+        await new Promise(res => setTimeout(res, delayMs));
     }
-  }
 }
 
 
@@ -746,20 +769,15 @@ export async function runScraper(options: { save: boolean, includeNational: bool
     const { save, includeNational } = options;
 
     try {
-        const allStories: ScrapedStory[] = [];
-        const allVideos: ScrapedVideo[] = [];
+        const storyResults = await Promise.all(
+            ALL_FEEDS.map(feed => parseRSSFeed(feed.url, feed.name, feed.type as 'maine' | 'national' | 'health'))
+        );
+        const videoResults = await Promise.all(
+            VIDEO_FEEDS.map(feed => parseVideoFeed(feed.url, feed.name))
+        );
 
-        // Fetch from all RSS feeds
-        for (const feed of ALL_FEEDS) {
-            const stories = await parseRSSFeed(feed.url, feed.name, feed.type as 'maine' | 'national' | 'health');
-            allStories.push(...stories);
-        }
-
-        // Fetch from Video feeds
-        for (const feed of VIDEO_FEEDS) {
-            const videos = await parseVideoFeed(feed.url, feed.name);
-            allVideos.push(...videos);
-        }
+        const allStories = storyResults.flat();
+        const allVideos = videoResults.flat();
 
         // Separate Maine and National stories
         const maineStories = allStories.filter(story => {

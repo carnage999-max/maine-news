@@ -13,7 +13,7 @@ interface ArticlePageProps {
     params: Promise<{ slug: string }>;
 }
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 const getPostBySlug = cache(async (slug: string) => {
     return await db.query.posts.findFirst({

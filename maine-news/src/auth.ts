@@ -1,3 +1,4 @@
+import { getServerSession } from "next-auth";
 import GitHub from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
 import type { NextAuthOptions } from "next-auth";
@@ -25,17 +26,11 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   secret: process.env.AUTH_SECRET!,
-  callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
-      const isOnAdmin = nextUrl.pathname.startsWith("/admin");
-      if (isOnAdmin) {
-        return isLoggedIn;
-      }
-      return true;
-    }
-  },
   pages: {
     signIn: "/admin/login"
   }
 };
+
+export function auth() {
+  return getServerSession(authOptions);
+}

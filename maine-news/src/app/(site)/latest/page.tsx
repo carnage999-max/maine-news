@@ -4,7 +4,7 @@ import { posts as dbPosts } from '@/db/schema';
 import { desc } from 'drizzle-orm';
 import styles from './Latest.module.css';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export default async function LatestPage() {
     const authoredPosts = await db.query.posts.findMany({

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: 'The latest news, politics, and stories from across the great state of Maine.',
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export default async function Home() {
   const authoredPosts = await db.query.posts.findMany({
