@@ -465,5 +465,5 @@ function formatDateTime(value: string) {
 }
 
 function siteSnippet(origin: string) {
-  return `<script async src="${origin}/embed.js" data-site="maine-news" data-max-slots="4" data-allowed-paths="/article/*,/latest/*" data-blocked-paths="/admin/*"></script>`;
+  return `<script async src="${origin}/widget.js" data-site="maine-news" data-max-slots="4" data-allowed-paths="/article/*,/latest/*" data-blocked-paths="/admin/*"></script>`;
 }

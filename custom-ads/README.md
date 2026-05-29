@@ -55,7 +55,7 @@ Visit `/login` and sign in with `CUSTOM_ADS_ADMIN_USERNAME` and `CUSTOM_ADS_ADMI
 Add this to a site:
 
 ```html
-<script async src="https://ads.example.com/embed.js" data-site="maine-news"></script>
+<script async src="https://ads.example.com/widget.js" data-site="maine-news"></script>
 ```
 
 Optional controls:
@@ -63,7 +63,7 @@ Optional controls:
 ```html
 <script
   async
-  src="https://ads.example.com/embed.js"
+  src="https://ads.example.com/widget.js"
   data-site="maine-news"
   data-max-slots="4"
   data-allowed-paths="/article/*,/latest/*"
