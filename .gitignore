@@ -2,6 +2,11 @@
 mobileappspec.txt
 projectSpec.txt
 
+# Local agent tooling
+.agents/
+.codex/
+skills-lock.json
+
 # Secure Data
 secure-tips/
 

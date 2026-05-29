@@ -14,6 +14,11 @@ export const metadata: Metadata = {
     description: "Editorial Minimalism with Live Intelligence.",
 };
 
+const customAdsUrl = process.env.NEXT_PUBLIC_CUSTOM_ADS_URL;
+const customAdsMaxSlots = process.env.NEXT_PUBLIC_CUSTOM_ADS_MAX_SLOTS || "4";
+const customAdsAllowedPaths = process.env.NEXT_PUBLIC_CUSTOM_ADS_ALLOWED_PATHS || "";
+const customAdsBlockedPaths = process.env.NEXT_PUBLIC_CUSTOM_ADS_BLOCKED_PATHS || "";
+
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -29,6 +34,17 @@ export default function RootLayout({
                     crossOrigin="anonymous"
                     strategy="afterInteractive"
                 />
+                {customAdsUrl ? (
+                    <Script
+                        async
+                        src={`${customAdsUrl.replace(/\/$/, "")}/embed.js`}
+                        data-site="maine-news"
+                        data-max-slots={customAdsMaxSlots}
+                        data-allowed-paths={customAdsAllowedPaths}
+                        data-blocked-paths={customAdsBlockedPaths}
+                        strategy="afterInteractive"
+                    />
+                ) : null}
             </body>
         </html>
     );
