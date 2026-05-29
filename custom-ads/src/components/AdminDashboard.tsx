@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { ManagedAd, SiteAnalytics } from "@/lib/types";
+import { ManagedAd } from "@/lib/types";
 
 const placementOptions = [
   { value: "auto", label: "Any automatic slot" },
@@ -48,13 +49,12 @@ const fieldHelp = {
 
 export default function AdminDashboard({
   initialAds,
-  initialSites
+  initialSiteCount
 }: {
   initialAds: ManagedAd[];
-  initialSites: SiteAnalytics[];
+  initialSiteCount: number;
 }) {
   const [ads, setAds] = useState(initialAds);
-  const [sites] = useState(initialSites);
   const [selectedId, setSelectedId] = useState<string | null>(initialAds[0]?.id || null);
   const [form, setForm] = useState<FormState>(() => adToForm(initialAds[0]));
   const [mediaFile, setMediaFile] = useState<File | null>(null);
@@ -210,6 +210,9 @@ export default function AdminDashboard({
             <code>{siteSnippet(origin)}</code>
           </div>
           <div className="topbarActions">
+            <Link className="button buttonSubtle" href="/admin/sites">
+              Connected sites
+            </Link>
             {message ? <span className="message">{message}</span> : null}
             <form action="/api/auth/logout" method="post">
               <button className="button buttonSubtle" type="submit">
@@ -349,33 +352,14 @@ export default function AdminDashboard({
 
             <div className="logicBox">
               <h3>Connected sites</h3>
-              {sites.length === 0 ? (
-                <p>No embed integrations have checked in yet.</p>
-              ) : (
-                <div className="siteStatsList">
-                  {sites.map((site) => (
-                    <article key={`${site.siteKey}:${site.origin || "direct"}`} className="siteStatCard">
-                      <div className="siteStatHeader">
-                        <strong>{site.siteKey}</strong>
-                        <span>{site.origin || "origin unavailable"}</span>
-                      </div>
-                      <dl className="siteStatGrid">
-                        <SiteStat label="Deliveries" value={compact(site.deliveryRequests)} />
-                        <SiteStat label="Impressions" value={compact(site.impressions)} />
-                        <SiteStat label="Clicks" value={compact(site.clicks)} />
-                        <SiteStat label="Slots" value={String(site.lastMaxSlots)} />
-                      </dl>
-                      <p className="siteStatMeta">
-                        Last page: <code>{site.lastPage}</code>
-                      </p>
-                      <p className="siteStatMeta">
-                        Seen: {formatDateTime(site.firstSeenAt)} to {formatDateTime(site.lastSeenAt)}
-                      </p>
-                      {site.referrerHost ? <p className="siteStatMeta">Referrer host: {site.referrerHost}</p> : null}
-                    </article>
-                  ))}
-                </div>
-              )}
+              <p>
+                {initialSiteCount === 0
+                  ? "No embed integrations have checked in yet."
+                  : `${initialSiteCount} connected site${initialSiteCount === 1 ? "" : "s"} recorded so far.`}
+              </p>
+              <Link className="button buttonSubtle buttonBlock" href="/admin/sites">
+                Open connected sites
+              </Link>
             </div>
           </aside>
         </div>
@@ -422,15 +406,6 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function SiteStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="siteStat">
-      <dt>{label}</dt>
-      <dd>{value}</dd>
-    </div>
-  );
-}
-
 function adToForm(ad?: ManagedAd): FormState {
   if (!ad) return emptyForm;
 
@@ -452,16 +427,6 @@ function adToForm(ad?: ManagedAd): FormState {
 
 function compact(value: number) {
   return new Intl.NumberFormat("en", { notation: "compact" }).format(value);
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  }).format(new Date(value));
 }
 
 function siteSnippet(origin: string) {

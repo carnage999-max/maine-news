@@ -336,8 +336,8 @@ button {
   gap: 8px;
 }
 
-.field span,
-.fieldsetLabel {
+.fieldLabel > span:first-child,
+.fieldsetLabel .fieldLabel > span:first-child {
   font-size: 13px;
   font-weight: 700;
   color: color-mix(in oklch, var(--ink) 72%, var(--muted));
@@ -375,7 +375,7 @@ button {
   border-radius: 10px;
   border: 1px solid var(--line);
   background: var(--ink);
-  color: var(--panel);
+  color: oklch(0.98 0 0);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.45;
@@ -468,6 +468,12 @@ button {
   background: var(--panel);
   border-color: var(--line);
   color: var(--ink);
+}
+
+.buttonBlock {
+  width: 100%;
+  justify-content: center;
+  text-align: center;
 }
 
 .previewCard {
@@ -619,6 +625,111 @@ button {
   padding: 10px 12px;
 }
 
+.sitesShell {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.sitesTopbar {
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  padding: 24px 28px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.sitesTopbarTitle {
+  display: grid;
+  gap: 8px;
+}
+
+.sitesTopbarTitle h1 {
+  margin: 0;
+  font-size: 32px;
+  letter-spacing: -0.02em;
+}
+
+.sitesTopbarTitle p:last-child {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+  max-width: 720px;
+}
+
+.sitesPanel {
+  padding: 28px;
+}
+
+.sitesEmpty {
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  padding: 24px;
+  display: grid;
+  gap: 6px;
+}
+
+.sitesEmpty span {
+  color: var(--muted);
+}
+
+.sitesTableWrap {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: auto;
+}
+
+.sitesTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 960px;
+}
+
+.sitesTable th,
+.sitesTable td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  font-size: 14px;
+}
+
+.sitesTable thead th {
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+  z-index: 1;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.sitesTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.sitesCellStack {
+  display: grid;
+  gap: 4px;
+}
+
+.sitesCellStack span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sitesTable code {
+  color: var(--ink);
+  font-size: 12px;
+}
+
 .loginShell {
   min-height: 100dvh;
   display: grid;
@@ -722,6 +833,7 @@ button {
     max-width: calc(100vw - 36px);
   }
 
+  .sitesTopbar,
   .contentGrid,
   .sidebar {
     padding: 18px;
@@ -742,7 +854,8 @@ button {
   .actions,
   .brandBlock,
   .sectionTitle,
-  .topbarActions {
+  .topbarActions,
+  .sitesTopbar {
     flex-direction: column;
     align-items: stretch;
   }
