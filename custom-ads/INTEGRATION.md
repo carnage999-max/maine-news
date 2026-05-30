@@ -113,7 +113,8 @@ NEXT_PUBLIC_CUSTOM_ADS_BLOCKED_PATHS="/admin/*,/privacy/*,/terms/*"
 Notes:
 
 - `CUSTOM_ADS_SERVICE_URL` is the upstream Ads by Se7enInc service URL used by the local proxy routes.
-- `NEXT_PUBLIC_CUSTOM_ADS_URL` is optional in the client site. In the Maine News integration, it is used only as a feature flag for whether to render the loader script at all.
+- `NEXT_PUBLIC_CUSTOM_ADS_URL` should use the same base URL value as `CUSTOM_ADS_SERVICE_URL`.
+- In the Maine News integration, `NEXT_PUBLIC_CUSTOM_ADS_URL` is used only as a feature flag for whether to render the loader script at all, while `CUSTOM_ADS_SERVICE_URL` is used by the server-side proxy routes.
 - `NEXT_PUBLIC_CUSTOM_ADS_MAX_SLOTS` is the visible cap per page.
 - `NEXT_PUBLIC_CUSTOM_ADS_ALLOWED_PATHS` and `NEXT_PUBLIC_CUSTOM_ADS_BLOCKED_PATHS` are optional and integration-specific.
 

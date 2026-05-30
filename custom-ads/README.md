@@ -83,6 +83,8 @@ If no slots exist, the script injects top, inline, feed, bottom, and mobile stic
 
 For the standard first-party proxy pattern used to reduce client-side blocking, see [INTEGRATION.md](./INTEGRATION.md).
 
+For client sites using the first-party proxy pattern, `NEXT_PUBLIC_CUSTOM_ADS_URL` and `CUSTOM_ADS_SERVICE_URL` should be set to the same ads-service base URL. The public env controls whether the loader is mounted; the server env is what the proxy routes call.
+
 ## Production notes
 
 This version does not require S3. Media is stored as base64 in Neon and exposed through cacheable media URLs. That keeps the client payload small compared with sending raw base64 in `/api/delivery`, and it lets browsers/CDNs cache media normally.
