@@ -37,7 +37,8 @@ export default function RootLayout({
                 {customAdsUrl ? (
                     <Script
                         async
-                        src={`${customAdsUrl.replace(/\/$/, "")}/widget.js`}
+                        src="/reader-tools/loader.js"
+                        data-base-url="/reader-tools"
                         data-site="maine-news"
                         data-max-slots={customAdsMaxSlots}
                         data-allowed-paths={customAdsAllowedPaths}

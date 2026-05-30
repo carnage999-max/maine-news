@@ -81,6 +81,8 @@ Manual slots are optional. If present, the script uses them:
 
 If no slots exist, the script injects top, inline, feed, bottom, and mobile sticky positions where the page structure allows.
 
+For the standard first-party proxy pattern used to reduce client-side blocking, see [INTEGRATION.md](./INTEGRATION.md).
+
 ## Production notes
 
 This version does not require S3. Media is stored as base64 in Neon and exposed through cacheable media URLs. That keeps the client payload small compared with sending raw base64 in `/api/delivery`, and it lets browsers/CDNs cache media normally.

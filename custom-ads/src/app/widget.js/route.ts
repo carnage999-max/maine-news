@@ -8,13 +8,24 @@ const client = String.raw`
   if (!script || script.__customAdsLoaded) return;
   script.__customAdsLoaded = true;
 
-  var baseUrl = new URL(script.src).origin;
+  var baseUrl = normalizeBase(script.getAttribute("data-base-url")) || new URL(script.src).origin;
   var site = script.getAttribute("data-site") || location.hostname;
   var maxSlots = Number(script.getAttribute("data-max-slots") || "4");
   var allowedPaths = script.getAttribute("data-allowed-paths") || "";
   var blockedPaths = script.getAttribute("data-blocked-paths") || "";
   var page = location.pathname + location.search;
   var renderedIds = [];
+
+  function normalizeBase(value) {
+    if (!value) return "";
+    var normalized = String(value).trim();
+    if (!normalized) return "";
+    return normalized.replace(/\/$/, "");
+  }
+
+  function joinUrl(path) {
+    return baseUrl + path;
+  }
 
   function addStyles() {
     if (document.getElementById("custom-ads-style")) return;
@@ -98,10 +109,10 @@ const client = String.raw`
   function report(adId, eventName) {
     var payload = JSON.stringify({ adId: adId, event: eventName, site: site, page: page });
     if (navigator.sendBeacon) {
-      navigator.sendBeacon(baseUrl + "/api/events", new Blob([payload], { type: "application/json" }));
+      navigator.sendBeacon(joinUrl("/events"), new Blob([payload], { type: "application/json" }));
       return;
     }
-    fetch(baseUrl + "/api/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: payload, keepalive: true }).catch(function () {});
+    fetch(joinUrl("/events"), { method: "POST", headers: { "Content-Type": "application/json" }, body: payload, keepalive: true }).catch(function () {});
   }
 
   function render(slot, ad) {
@@ -116,7 +127,7 @@ const client = String.raw`
     media.className = "custom-ad-media";
     if (ad.mediaType === "video") {
       var video = document.createElement("video");
-      video.src = ad.mediaUrl.indexOf("http") === 0 ? ad.mediaUrl : baseUrl + ad.mediaUrl;
+      video.src = ad.mediaUrl.indexOf("http") === 0 ? ad.mediaUrl : joinUrl(ad.mediaUrl);
       video.muted = true;
       video.loop = true;
       video.playsInline = true;
@@ -124,7 +135,7 @@ const client = String.raw`
       media.appendChild(video);
     } else {
       var image = document.createElement("img");
-      image.src = ad.mediaUrl.indexOf("http") === 0 ? ad.mediaUrl : baseUrl + ad.mediaUrl;
+      image.src = ad.mediaUrl.indexOf("http") === 0 ? ad.mediaUrl : joinUrl(ad.mediaUrl);
       image.alt = ad.altText || ad.title;
       image.loading = "lazy";
       media.appendChild(image);
@@ -179,7 +190,7 @@ const client = String.raw`
 
     if (!placements.length) return;
 
-    var url = baseUrl + "/api/delivery?site=" + encodeURIComponent(site) + "&page=" + encodeURIComponent(page) + "&placements=" + encodeURIComponent(placements.join(",")) + "&exclude=" + encodeURIComponent(renderedIds.join(",")) + "&maxSlots=" + encodeURIComponent(String(maxSlots)) + "&allowedPaths=" + encodeURIComponent(allowedPaths) + "&blockedPaths=" + encodeURIComponent(blockedPaths);
+    var url = joinUrl("/delivery?site=" + encodeURIComponent(site) + "&page=" + encodeURIComponent(page) + "&placements=" + encodeURIComponent(placements.join(",")) + "&exclude=" + encodeURIComponent(renderedIds.join(",")) + "&maxSlots=" + encodeURIComponent(String(maxSlots)) + "&allowedPaths=" + encodeURIComponent(allowedPaths) + "&blockedPaths=" + encodeURIComponent(blockedPaths));
 
     fetch(url)
       .then(function (response) { return response.json(); })
