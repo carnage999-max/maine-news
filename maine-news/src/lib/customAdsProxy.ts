@@ -12,6 +12,16 @@ export function customAdsAssetUrl(path: string) {
   return `${customAdsServiceUrl()}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+export function sanitizeProxyHeaders(source: Headers) {
+  const headers = new Headers(source);
+
+  headers.delete("content-encoding");
+  headers.delete("content-length");
+  headers.delete("transfer-encoding");
+
+  return headers;
+}
+
 export async function proxyCustomAdsRequest(
   request: Request,
   targetPath: string,
@@ -19,11 +29,7 @@ export async function proxyCustomAdsRequest(
 ) {
   const upstream = customAdsAssetUrl(targetPath);
   const upstreamResponse = await fetch(upstream, init);
-  const headers = new Headers(upstreamResponse.headers);
-
-  headers.delete("content-encoding");
-  headers.delete("content-length");
-  headers.delete("transfer-encoding");
+  const headers = sanitizeProxyHeaders(upstreamResponse.headers);
 
   return new Response(upstreamResponse.body, {
     status: upstreamResponse.status,

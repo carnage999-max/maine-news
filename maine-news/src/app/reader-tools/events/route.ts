@@ -1,4 +1,4 @@
-import { customAdsAssetUrl } from "@/lib/customAdsProxy";
+import { customAdsAssetUrl, sanitizeProxyHeaders } from "@/lib/customAdsProxy";
 
 export const dynamic = "force-dynamic";
 
@@ -21,10 +21,12 @@ export async function POST(request: Request) {
     body
   });
 
+  const headers = sanitizeProxyHeaders(response.headers);
+
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
-    headers: response.headers
+    headers
   });
 }
 
@@ -34,9 +36,11 @@ export async function OPTIONS(request: Request) {
     headers: eventHeaders(request)
   });
 
+  const headers = sanitizeProxyHeaders(response.headers);
+
   return new Response(null, {
     status: response.status,
     statusText: response.statusText,
-    headers: response.headers
+    headers
   });
 }

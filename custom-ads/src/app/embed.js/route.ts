@@ -16,6 +16,12 @@ const client = String.raw`
   var page = location.pathname + location.search;
   var renderedIds = [];
 
+  function resolveMediaUrl(path) {
+    if (!path) return "";
+    if (path.indexOf("http") === 0) return path;
+    return baseUrl + (path.charAt(0) === "/" ? path : "/" + path);
+  }
+
   function addStyles() {
     if (document.getElementById("custom-ads-style")) return;
     var style = document.createElement("style");
@@ -116,7 +122,7 @@ const client = String.raw`
     media.className = "custom-ad-media";
     if (ad.mediaType === "video") {
       var video = document.createElement("video");
-      video.src = ad.mediaUrl.indexOf("http") === 0 ? ad.mediaUrl : baseUrl + ad.mediaUrl;
+      video.src = resolveMediaUrl(ad.mediaUrl);
       video.muted = true;
       video.loop = true;
       video.playsInline = true;
@@ -124,7 +130,7 @@ const client = String.raw`
       media.appendChild(video);
     } else {
       var image = document.createElement("img");
-      image.src = ad.mediaUrl.indexOf("http") === 0 ? ad.mediaUrl : baseUrl + ad.mediaUrl;
+      image.src = resolveMediaUrl(ad.mediaUrl);
       image.alt = ad.altText || ad.title;
       image.loading = "lazy";
       media.appendChild(image);
