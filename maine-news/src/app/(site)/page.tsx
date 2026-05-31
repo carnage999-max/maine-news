@@ -3,10 +3,11 @@ import { Metadata } from 'next';
 import { db } from '@/db';
 import { posts as dbPosts } from '@/db/schema';
 import { desc } from 'drizzle-orm';
+import { getMaineDateString, getWeatherReport } from '@/lib/weather';
 
 export const metadata: Metadata = {
-  title: 'Home | Maine News Now',
-  description: 'The latest news, politics, and stories from across the great state of Maine.',
+  title: 'Maine News Now | Local Maine News, Weather, Politics & Breaking Stories',
+  description: 'Maine News Now delivers local Maine news, weather, politics, crime, sports, business, opinion, and breaking stories across Maine.',
 };
 
 export const revalidate = 300;
@@ -36,13 +37,34 @@ export default async function Home() {
     isNational: post.isNational || false,
     publishedDate: post.publishedDate.toISOString(),
     author: post.author,
-    isOriginal: post.isOriginal
+    isOriginal: post.isOriginal,
   }));
+
+  let weather = null;
+
+  try {
+    const report = await getWeatherReport(getMaineDateString(), 1800);
+    const primaryRegion = report.regions.find(region => region.id === 'central') || report.regions[0];
+
+    if (primaryRegion) {
+      weather = {
+        location: primaryRegion.location,
+        temperature: primaryRegion.today?.temperature,
+        temperatureUnit: primaryRegion.today?.temperatureUnit,
+        condition: primaryRegion.today?.shortForecast || 'Forecast unavailable',
+        outlook: primaryRegion.outlook.slice(0, 4),
+        alertsCount: report.alerts.length,
+      };
+    }
+  } catch (error) {
+    console.error('Failed to load homepage weather summary:', error);
+  }
 
   return (
     <div>
       <HomeFeed
         initialPosts={formattedPosts}
+        weather={weather}
       />
     </div>
   );

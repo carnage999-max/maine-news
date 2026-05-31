@@ -1,6 +1,12 @@
 import React from 'react';
 import Image from 'next/image';
-import styles from '../privacy/Policy.module.css';
+import { Metadata } from 'next';
+import styles from '../privacy-policy/Policy.module.css';
+
+export const metadata: Metadata = {
+    title: 'About Maine News Now',
+    description: 'Learn about Maine News Now, a digital news platform delivering timely local stories, weather, politics, and updates across Maine.',
+};
 
 export default function AboutPage() {
     return (
@@ -15,12 +21,19 @@ export default function AboutPage() {
                         height={200}
                         style={{ borderRadius: '50%', marginBottom: '1.5rem', objectFit: 'cover', border: '3px solid var(--color-accent)' }}
                     />
-                    <p style={{ fontSize: '1.2rem', maxWidth: '800px' }}>
+                    <p style={{ fontSize: '1.2rem', maxWidth: '800px', marginBottom: '1.5rem' }}>
                         Founded by <strong>Nathan Reardon</strong> in 2025 because he was tired of local newspapers bias reporting.
                     </p>
                 </div>
 
                 <p><strong>Unbiased. Unafraid. Unfiltered.</strong></p>
+
+                <section style={{ marginTop: '2rem' }}>
+                    <h2>Our Platform</h2>
+                    <p>
+                        Maine News Now is a digital news platform focused on delivering timely stories and updates from across Maine. We cover local news, weather, politics, public safety, business, sports, opinion, and community stories for readers who want a simple way to follow what is happening in Maine.
+                    </p>
+                </section>
 
                 <section>
                     <h2>Our Mission</h2>

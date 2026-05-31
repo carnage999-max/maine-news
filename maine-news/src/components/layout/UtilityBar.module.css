@@ -1,11 +1,11 @@
 .utilityBar {
-    background-color: #000;
-    color: #fff;
+    background-color: #040506;
+    color: var(--color-text);
     height: 32px;
-    border-bottom: 1px solid #333;
-    font-size: 10px;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.68rem;
     font-family: var(--font-body-sans);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     font-weight: 600;
     display: flex;
     align-items: center;
@@ -15,107 +15,89 @@
 }
 
 .container {
-    max-width: 1400px;
+    max-width: var(--container-width);
     width: 100%;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 1.25rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
 }
 
-.left {
+.infoCluster {
     display: flex;
     align-items: center;
-    white-space: nowrap;
-}
-
-.right {
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-}
-
-.icon {
-    margin-right: 8px;
-    color: var(--color-accent);
-}
-
-.lottoLabel {
-    color: var(--color-accent);
-    margin-right: 15px;
-    font-weight: 800;
-}
-
-.center {
-    flex: 1;
-    display: flex;
-    justify-content: center;
+    gap: 0.75rem;
+    min-width: 0;
     overflow: hidden;
 }
 
-.lottoItem {
+.icon {
+    color: var(--color-highlight);
+}
+
+.infoItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+    color: var(--color-text-dim);
+}
+
+.separator {
+    width: 1px;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.actions {
     display: flex;
     align-items: center;
-    animation: slideInRight 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    gap: 1rem;
+    white-space: nowrap;
 }
 
-@keyframes slideInRight {
-    from { opacity: 0; transform: translateX(20px); }
-    to { opacity: 1; transform: translateX(0); }
+.navLink {
+    color: var(--color-text-dim);
+    font-size: 0.72rem;
 }
 
-.gameName {
-    color: #fff;
-    margin-right: 10px;
-    opacity: 0.9;
+.navLink:hover {
+    color: var(--color-text);
 }
 
-.numbers {
-    display: flex;
-    gap: 4px;
-    margin: 0 5px;
-}
-
-.number {
-    background: #222;
-    color: #fff;
-    width: 20px;
-    height: 20px;
-    display: flex;
+.tipButton {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    font-size: 9px;
-    border: 1px solid #444;
-}
-
-.number.extra {
+    min-height: 24px;
+    padding: 0 0.9rem;
+    border-radius: 6px;
     background: var(--color-accent);
-    color: #000;
-    border-color: var(--color-accent);
-}
-
-.jackpot {
-    color: var(--color-accent);
-    margin-left: 12px;
+    color: #fff;
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
     font-weight: 700;
-}
-
-.date {
-    opacity: 0.5;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
 @media (max-width: 768px) {
-    .right, .lottoLabel {
+    .actions {
         display: none;
-    }
-    
-    .left {
-        margin-right: 10px;
     }
 
     .container {
-        padding: 0 10px;
+        padding: 0 0.9rem;
+    }
+
+    .infoCluster {
+        gap: 0.5rem;
+    }
+
+    .separator:last-of-type,
+    .infoItem:last-child {
+        display: none;
     }
 }

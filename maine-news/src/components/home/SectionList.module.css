@@ -4,50 +4,41 @@
 
 .header {
   margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .title {
+  margin: 0;
   font-family: var(--font-heading);
-  font-size: 1.5rem;
-  color: var(--color-accent);
+  font-size: 1.15rem;
+  color: var(--color-text);
   text-transform: uppercase;
-  margin-bottom: 0.5rem;
+  letter-spacing: 0.08em;
 }
 
 .divider {
   height: 1px;
-  background-color: var(--color-accent);
-  width: 100%;
-  opacity: 0.5;
+  background: linear-gradient(90deg, rgba(239, 43, 45, 0.9), rgba(255, 255, 255, 0.08));
+  flex: 1;
 }
 
 .grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 1rem;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 720px) {
   .grid {
-    display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
+    gap: 1rem;
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1200px) {
   .grid {
-    grid-template-columns: repeat(12, 1fr);
-  }
-  
-  /* Span logic for grid items - can benefit from :nth-child or dedicated classes */
-  .grid > * {
-    grid-column: span 3;
-  }
-  
-  /* Make the first item larger if it's top stories */
-  .section:first-of-type .grid > *:first-child {
-    grid-column: span 6;
-    grid-row: span 2;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }

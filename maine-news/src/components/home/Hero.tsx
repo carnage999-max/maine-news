@@ -55,7 +55,7 @@ export default function Hero({ posts }: HeroProps) {
                     <div className={styles.overlay} />
                 </div>
                 <div className={styles.content}>
-                    <h1 className={styles.title}>Maine News Now</h1>
+                    <h2 className={styles.title}>Maine News Now</h2>
                     <p className={styles.subtitle}>Unbiased. Unafraid. Unfiltered.</p>
                 </div>
             </section>
@@ -116,7 +116,7 @@ export default function Hero({ posts }: HeroProps) {
                         {currentPost.isNational && <span className={`${styles.badge} ${styles.nationalBadge}`}>NATIONAL</span>}
                         <span className={styles.badge}>{currentPost.category}</span>
                     </div>
-                    <h1 className={styles.title}>{currentPost.title}</h1>
+                    <h2 className={styles.title}>{currentPost.title}</h2>
                     <p className={styles.subtitle}>
                         By {currentPost.author} • {formatTimeAgo(currentPost.publishedDate)} • Unbiased. Unafraid. Unfiltered.
                     </p>

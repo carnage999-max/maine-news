@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Clock, Grid, Search, MessageSquarePlus } from 'lucide-react';
+import { Home, Newspaper, Grid2x2, Search, MessageSquarePlus } from 'lucide-react';
 import styles from './BottomNav.module.css';
 
 export default function BottomNav() {
@@ -11,10 +11,10 @@ export default function BottomNav() {
 
     const navItems = [
         { label: 'Home', href: '/', icon: Home },
-        { label: 'Latest', href: '/latest', icon: Clock },
-        { label: 'Submit', href: '/submit', icon: MessageSquarePlus },
-        { label: 'Sections', href: '/sections', icon: Grid },
-        { label: 'Minute', href: '/the-maine-minute', isMinute: true },
+        { label: 'Sections', href: '/sections', icon: Grid2x2 },
+        { label: 'Latest', href: '/latest', icon: Newspaper },
+        { label: 'Tips', href: '/submit', icon: MessageSquarePlus },
+        { label: 'Search', href: '/search', icon: Search },
     ];
 
     const [visible, setVisible] = useState(true);
@@ -44,21 +44,10 @@ export default function BottomNav() {
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`${styles.navItem} ${isActive ? styles.navItemActive : ''} ${item.isMinute ? styles.minuteLink : ''}`}
+                            className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
                         >
-                            {item.isMinute ? (
-                                <div className={`${styles.minuteLogoWrapper} ${isActive ? styles.minuteLogoActive : ''}`}>
-                                    <img
-                                        src="/maine-minutes.png"
-                                        alt="Minute"
-                                        className={styles.minuteLogo}
-                                    />
-                                </div>
-                            ) : (
-                                item.icon && <item.icon size={20} strokeWidth={isActive ? 2 : 1.5} />
-                            )}
-                            {isActive && !item.isMinute && <span className={styles.navLabel}>{item.label}</span>}
-                            {item.isMinute && <span className={styles.navLabel}>{item.label}</span>}
+                            {item.icon && <item.icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />}
+                            <span className={styles.navLabel}>{item.label}</span>
                         </Link>
                     );
                 })}

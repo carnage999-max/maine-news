@@ -2,66 +2,75 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CloudSun, Ticket } from 'lucide-react';
+import { CloudSun } from 'lucide-react';
 import styles from './UtilityBar.module.css';
-import { getLatestLotteryResults, LotteryResult } from '@/lib/lottery';
+
+interface UtilityWeather {
+    location: string;
+    temperature?: number;
+    temperatureUnit?: string;
+}
 
 export default function UtilityBar() {
-    const [lottery, setLottery] = useState<LotteryResult[]>([]);
-    const [currentIndex, setCurrentIndex] = useState(0);
+    const [weather, setWeather] = useState<UtilityWeather | null>(null);
 
     useEffect(() => {
-        const fetchLotto = async () => {
-            const data = await getLatestLotteryResults();
-            setLottery(data);
+        let active = true;
+
+        async function loadWeather() {
+            try {
+                const response = await fetch('/api/weather', { cache: 'no-store' });
+                if (!response.ok) return;
+                const report = await response.json();
+                const centralRegion = report?.regions?.find((region: { id: string }) => region.id === 'central') || report?.regions?.[0];
+
+                if (!active || !centralRegion) return;
+
+                setWeather({
+                    location: centralRegion.location || 'Bangor, ME',
+                    temperature: centralRegion.today?.temperature,
+                    temperatureUnit: centralRegion.today?.temperatureUnit,
+                });
+            } catch (error) {
+                console.error('Failed to load utility weather', error);
+            }
+        }
+
+        loadWeather();
+
+        return () => {
+            active = false;
         };
-        fetchLotto();
+    }, []);
 
-        const timer = setInterval(() => {
-            setCurrentIndex((prev) => (prev + 1) % (lottery.length || 1));
-        }, 5000);
-
-        return () => clearInterval(timer);
-    }, [lottery.length]);
-
-    const activeLotto = lottery[currentIndex];
+    const dateLabel = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    }).format(new Date());
 
     return (
         <div className={styles.utilityBar}>
             <div className={styles.container}>
-                <div className={styles.left}>
-                    <Ticket size={14} className={styles.icon} />
-                    <span className={styles.lottoLabel}>MAINE LOTTERY:</span>
-                </div>
-
-                <div className={styles.center}>
-                    {activeLotto && (
-                        <div className={styles.lottoItem} key={activeLotto.game}>
-                            <span className={styles.gameName}>{activeLotto.game.toUpperCase()}</span>
-                            <div className={styles.numbers}>
-                                {activeLotto.numbers.map((n, i) => (
-                                    <span key={i} className={styles.number}>{n}</span>
-                                ))}
-                                {activeLotto.extra && (
-                                    <span className={`${styles.number} ${styles.extra}`}>{activeLotto.extra}</span>
-                                )}
-                            </div>
-                            {activeLotto.jackpot && (
-                                <span className={styles.jackpot}>{activeLotto.jackpot}</span>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                <div className={styles.right}>
-                    <span className={styles.date}>
-                        {new Date().toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                        }).toUpperCase()}
+                <div className={styles.infoCluster}>
+                    <span className={styles.infoItem}>{dateLabel}</span>
+                    <span className={styles.separator} />
+                    <span className={styles.infoItem}>
+                        <CloudSun size={14} className={styles.icon} />
+                        {weather?.temperature ? `${weather.temperature}${weather.temperatureUnit || 'F'}` : 'Weather'}
                     </span>
+                    <span className={styles.separator} />
+                    <span className={styles.infoItem}>{weather?.location || 'Bangor, ME'}</span>
+                </div>
+
+                <div className={styles.actions}>
+                    <Link href="/about" className={styles.navLink}>About Us</Link>
+                    <Link href="/advertise" className={styles.navLink}>Advertise</Link>
+                    <Link href="/submit" className={styles.navLink}>Submit News Tip</Link>
+                    <Link href="/contact" className={styles.navLink}>Contact</Link>
+                    <Link href="/submit" className={styles.tipButton}>Send News Tip</Link>
                 </div>
             </div>
         </div>

@@ -1,5 +1,11 @@
 import React from 'react';
+import { Metadata } from 'next';
 import styles from './Policy.module.css';
+
+export const metadata: Metadata = {
+    title: 'Terms of Service',
+    description: 'Read the Terms of Service for Maine News Now, outlining the terms of use for our online services.',
+};
 
 export default function TermsPage() {
     return (
@@ -11,7 +17,7 @@ export default function TermsPage() {
 
                 <section>
                     <h2>Introduction</h2>
-                    <p>These Terms of Service (the “Terms”) describe how Maine News Now (“Company,” “we,” “our,” or “us”) provides Services across all current and future websites, subdomains, and online services (collectively, the “Services”). These Terms set a global standard for usage compliance and legal protection in accordance with the highest international legal frameworks. By using our Services, you agree to be bound by these Terms.</p>
+                    <p>These Terms of Service (the “Terms”) describe how Maine News Now (“Company,” “we,” “our,” or “us”) provides Services across all current and future websites, subdomains, and online services (collectively, the “Services”). These Terms set a global standard for usage compliance and legal protection. By using our Services, you agree to be bound by these Terms.</p>
                 </section>
 
                 <section>
@@ -76,7 +82,7 @@ export default function TermsPage() {
 
                 <section>
                     <h2>13. Contact and Disputes</h2>
-                    <p>Any disputes or inquiries regarding these Terms should be directed to privacy@mainenewstoday.com or our registered office in Florida, USA.</p>
+                    <p>Any disputes or inquiries regarding these Terms should be directed to <a href="mailto:privacy@mainenewsnow.com">privacy@mainenewsnow.com</a> or our registered office in Florida, USA.</p>
                 </section>
 
                 <section>

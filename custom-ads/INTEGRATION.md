@@ -194,6 +194,7 @@ These local routes should behave exactly like this:
 - Method support: `POST`, `OPTIONS`
 - Upstream target: `/api/events`
 - Must forward the request body unchanged
+- Must sanitize forwarded response headers before returning them locally
 - Should forward:
   - `origin`
   - `referer`
@@ -205,6 +206,7 @@ These local routes should behave exactly like this:
 - Method support: `GET`, `HEAD`
 - Upstream target: `/api/media/:id`
 - Must proxy the upstream response body and headers
+- Must sanitize forwarded response headers before returning them locally
 
 ## Query parameters expected by delivery
 
@@ -231,6 +233,46 @@ These `data-*` attributes are the supported integration surface:
 - `data-blocked-paths`
 
 The integration should keep configuration here, not in the ads admin.
+
+## Media URL mapping rule
+
+The ads service returns media URLs in this form:
+
+```txt
+/api/media/:id
+```
+
+For a direct third-party integration, the widget can request that path from the ads service origin as-is.
+
+For a first-party proxy integration, the widget runtime must map that path to the local proxy route:
+
+```txt
+/reader-tools/media/:id
+```
+
+It must not request:
+
+```txt
+/reader-tools/api/media/:id
+```
+
+That incorrect mapping will produce 404s and blank ad images.
+
+## Proxy response header rule
+
+When a client site proxies responses from the ads service, it should strip these headers before returning the local response:
+
+- `content-encoding`
+- `content-length`
+- `transfer-encoding`
+
+This matters especially for:
+
+- `/reader-tools/events`
+- `/reader-tools/media/:id`
+- any generic proxy helper used by `/reader-tools/*`
+
+If these headers are forwarded unchanged after response transformation, browsers can fail with `ERR_CONTENT_DECODING_FAILED`.
 
 ## Agent checklist
 
@@ -336,6 +378,20 @@ The integrating agent should not:
 - rename `data-*` configuration keys
 - call the ads service directly from page markup when the task explicitly asks for the first-party proxy pattern
 - create a one-off integration contract for a single project
+
+## Common failure modes
+
+1. Ad cards render but images do not:
+   - usually the widget mapped `/api/media/:id` incorrectly in first-party mode
+   - check that local requests go to `/reader-tools/media/:id`
+
+2. Browser shows `ERR_CONTENT_DECODING_FAILED` on `/reader-tools/events`:
+   - the proxy is likely forwarding upstream encoding headers unchanged
+   - strip `content-encoding`, `content-length`, and `transfer-encoding`
+
+3. Browser shows `ERR_BLOCKED_BY_CLIENT` for `widget.js`:
+   - this is usually a client-side blocker or extension
+   - use the standard first-party proxy pattern instead of loading `widget.js` directly from the ads-service domain
 
 ## Success criteria
 

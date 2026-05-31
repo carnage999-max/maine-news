@@ -1,16 +1,21 @@
 .bottomNav {
   position: fixed;
-  bottom: 0;
+  bottom: 0.85rem;
   left: 0;
   right: 0;
+  margin: 0 auto;
+  width: min(calc(100% - 1rem), 480px);
   height: var(--bottom-nav-height);
-  background-color: var(--color-bg);
-  border-top: 1px solid var(--border-color-dim);
+  background: rgba(10, 12, 15, 0.92);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
   display: flex;
   justify-content: space-around;
   align-items: center;
   z-index: 50;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding: 0.2rem 0.25rem calc(0.2rem + env(safe-area-inset-bottom));
+  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.36);
   transition: transform 0.3s ease-in-out;
 }
 
@@ -19,7 +24,7 @@
 }
 
 .navProxy {
-  height: var(--bottom-nav-height);
+  height: calc(var(--bottom-nav-height) + 1.5rem);
   transition: height 0.3s ease-in-out;
 }
 
@@ -33,62 +38,24 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0.3rem;
   height: 100%;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
   font-family: var(--font-heading);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   transition: color 0.2s ease;
+  border-radius: 14px;
 }
 
 .navItemActive {
-  color: var(--color-accent);
+  color: #fff;
+  background: linear-gradient(180deg, rgba(239, 43, 45, 0.16), rgba(239, 43, 45, 0.08));
 }
 
 .navLabel {
-  margin-top: 4px;
-  font-size: 0.65rem;
-  opacity: 0;
-  transform: translateY(5px);
-  transition: all 0.2s ease;
-  display: none; /* Spec says "Labels appear on active state" - can be tricky with fixed height, let's try just showing if active */
-}
-
-.navItemActive .navLabel {
-  opacity: 1;
-  transform: translateY(0);
-  display: block;
-}
-
-.minuteLogoWrapper {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #000;
-}
-
-.minuteLogoActive {
-  border-color: var(--color-accent);
-  transform: scale(1.15) translateY(-2px);
-  box-shadow: 0 0 10px rgba(191, 155, 48, 0.3);
-}
-
-.minuteLogo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.minuteLink .navLabel {
-    font-size: 0.6rem;
-    margin-top: 2px;
+  font-size: 0.68rem;
+  text-transform: none;
 }
 
 @media (min-width: 768px) {

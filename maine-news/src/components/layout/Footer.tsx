@@ -50,23 +50,36 @@ export default function Footer() {
 
                 <div className={styles.links}>
                     <div className={styles.linkGroup}>
+                        <h3>Categories</h3>
+                        <Link href="/maine-news">Maine News</Link>
+                        <Link href="/maine-weather">Maine Weather</Link>
+                        <Link href="/maine-politics">Maine Politics</Link>
+                        <Link href="/maine-crime">Maine Crime</Link>
+                        <Link href="/maine-sports">Maine Sports</Link>
+                        <Link href="/maine-business">Maine Business</Link>
+                        <Link href="/maine-opinion">Opinion</Link>
+                    </div>
+
+                    <div className={styles.linkGroup}>
+                        <h3>Info & Trust</h3>
+                        <Link href="/about">About Us</Link>
+                        <Link href="/contact">Contact</Link>
+                        <Link href="/editorial-policy">Editorial Policy</Link>
+                        <Link href="/privacy-policy">Privacy Policy</Link>
+                        <Link href="/advertise">Advertise</Link>
+                        <Link href="/terms">Terms of Service</Link>
+                    </div>
+
+                    <div className={styles.linkGroup}>
                         <h3>Platform</h3>
                         <Link href="/">Home</Link>
-                        <Link href="/latest">Latest</Link>
-                        <Link href="/sections">Sections</Link>
+                        <Link href="/latest">Latest Stories</Link>
+                        <Link href="/sections">All Sections</Link>
                         <Link href="/submit">Submit a Story</Link>
                     </div>
 
                     <div className={styles.linkGroup}>
-                        <h3>Company</h3>
-                        <Link href="/about">About Us</Link>
-                        <Link href="/privacy">Privacy Policy</Link>
-                        <Link href="/terms">Terms of Service</Link>
-                        <Link href="/editorial-policy">Editorial Policy</Link>
-                    </div>
-
-                    <div className={styles.linkGroup}>
-                        <h3>Download Our App</h3>
+                        <h3>Download App</h3>
                         <StoreBadges />
                     </div>
                 </div>

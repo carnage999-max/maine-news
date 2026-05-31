@@ -1,6 +1,12 @@
 import React from 'react';
+import { Metadata } from 'next';
 import styles from './Policy.module.css';
 import { EDITORIAL_DISCLAIMER_PARAGRAPHS } from '@/lib/editorialDisclaimer';
+
+export const metadata: Metadata = {
+    title: 'Editorial Policy',
+    description: 'Read the Editorial Policy for Maine News Now, detailing our commitment to accuracy, corrections, and attribution.',
+};
 
 export default function EditorialPolicyPage() {
     return (
