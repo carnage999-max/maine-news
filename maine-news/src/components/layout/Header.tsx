@@ -21,14 +21,13 @@ export default function Header() {
             <div className={`${styles.container} ${styles.desktopMasthead}`}>
                 <Link href="/" className={styles.logoWrapper}>
                     <Image
-                        src="/maine-news-now.png"
+                        src="/header-desktop.png"
                         alt="Maine News Now"
-                        width={300}
-                        height={78}
+                        width={2140}
+                        height={735}
                         className={styles.logoImage}
                         priority
                     />
-                    <span className={styles.tagline}>Maine&apos;s trusted news source</span>
                 </Link>
             </div>
 
@@ -60,10 +59,10 @@ export default function Header() {
 
                 <Link href="/" className={styles.mobileLogo}>
                     <Image
-                        src="/maine-news-now.png"
+                        src="/header-mobile.png"
                         alt="Maine News Now"
-                        width={152}
-                        height={40}
+                        width={2508}
+                        height={627}
                         className={styles.mobileLogoImage}
                         priority
                     />

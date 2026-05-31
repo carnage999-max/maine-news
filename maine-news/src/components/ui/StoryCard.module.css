@@ -10,6 +10,18 @@
   min-height: 100%;
 }
 
+.compactCard {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0.8rem;
+  padding: 0.7rem 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .imageWrapper {
   position: relative;
   width: 100%;
@@ -17,6 +29,13 @@
   background-color: #222;
   border-radius: 14px;
   overflow: hidden;
+}
+
+.compactCard .imageWrapper {
+  width: 108px;
+  min-width: 108px;
+  aspect-ratio: 1.45 / 1;
+  border-radius: 10px;
 }
 
 .image {
@@ -32,6 +51,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  min-width: 0;
 }
 
 .category {
@@ -79,6 +99,22 @@
   text-transform: none;
   letter-spacing: -0.03em;
   text-wrap: balance;
+}
+
+.compactCard .title {
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.compactCard .metaRow {
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
+.compactCard .date {
+  width: 100%;
+  margin-top: 0.15rem;
 }
 
 .card:not(:has(.imageWrapper)) {

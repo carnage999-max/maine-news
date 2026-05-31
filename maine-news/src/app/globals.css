@@ -20,8 +20,8 @@
   --font-display: var(--font-display-serif);
 
   --utility-bar-height: 32px;
-  --header-height-mobile: 72px;
-  --header-height-desktop: 150px;
+  --header-height-mobile: 58px;
+  --header-height-desktop: 44px;
   --header-nav-height: 48px;
   --bottom-nav-height: 68px;
   --container-width: 1400px;

@@ -4,13 +4,14 @@ import { db } from '@/db';
 import { posts as dbPosts } from '@/db/schema';
 import { desc } from 'drizzle-orm';
 import { getMaineDateString, getWeatherReport } from '@/lib/weather';
+import { getTrafficReport } from '@/lib/traffic';
 
 export const metadata: Metadata = {
   title: 'Maine News Now | Local Maine News, Weather, Politics & Breaking Stories',
   description: 'Maine News Now delivers local Maine news, weather, politics, crime, sports, business, opinion, and breaking stories across Maine.',
 };
 
-export const revalidate = 300;
+export const revalidate = 60;
 
 export default async function Home() {
   const authoredPosts = await db.query.posts.findMany({
@@ -41,6 +42,7 @@ export default async function Home() {
   }));
 
   let weather = null;
+  let traffic = null;
 
   try {
     const report = await getWeatherReport(getMaineDateString(), 1800);
@@ -60,11 +62,18 @@ export default async function Home() {
     console.error('Failed to load homepage weather summary:', error);
   }
 
+  try {
+    traffic = await getTrafficReport(60);
+  } catch (error) {
+    console.error('Failed to load homepage traffic summary:', error);
+  }
+
   return (
     <div>
       <HomeFeed
         initialPosts={formattedPosts}
         weather={weather}
+        traffic={traffic}
       />
     </div>
   );

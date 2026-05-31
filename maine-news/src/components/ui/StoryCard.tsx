@@ -11,13 +11,14 @@ interface StoryCardProps {
     isNational?: boolean;
     publishedDate?: string;
     priority?: boolean;
+    compact?: boolean;
 }
 
-export default function StoryCard({ title, image, slug, category, isNational, publishedDate, priority = false }: StoryCardProps) {
+export default function StoryCard({ title, image, slug, category, isNational, publishedDate, priority = false, compact = false }: StoryCardProps) {
     const fallbackImage = "/hero-fallback.jpeg";
 
     return (
-        <Link href={`/article/${slug}`} className={styles.card}>
+        <Link href={`/article/${slug}`} className={`${styles.card} ${compact ? styles.compactCard : ''}`}>
             <div className={styles.imageWrapper}>
                 <Image
                     src={image || fallbackImage}

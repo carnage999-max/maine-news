@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import SectionList from '@/components/home/SectionList';
 import ScrollToTop from '@/components/ui/ScrollToTop';
+import StoryCard from '@/components/ui/StoryCard';
 import {
     ArrowUpDown,
     Building2,
+    ChevronLeft,
     ChevronRight,
     CirclePlay,
     CloudSun,
@@ -22,6 +24,7 @@ import {
     X,
     Youtube,
 } from 'lucide-react';
+import type { TrafficReport } from '@/lib/traffic';
 import { formatTimeAgo } from '@/utils/formatDate';
 import styles from './HomeFeed.module.css';
 
@@ -54,6 +57,15 @@ interface WeatherSnapshot {
 interface HomeFeedProps {
     initialPosts: Post[];
     weather: WeatherSnapshot | null;
+    traffic: TrafficReport | null;
+}
+
+interface TrafficPreviewItem {
+    id: string;
+    category: string;
+    title: string;
+    regionLabel: string;
+    roadLabel?: string;
 }
 
 const CATEGORIES = [
@@ -77,7 +89,7 @@ const CATEGORIES = [
 const QUICK_LINKS = [
     { href: '/weather', label: 'Weather', icon: CloudSun },
     { href: '/latest', label: 'Live feed', icon: Radio },
-    { href: '/sections', label: 'Sections', icon: Map },
+    { href: '/traffic', label: 'Traffic', icon: Map },
     { href: '/the-maine-minute', label: 'Watch', icon: CirclePlay },
     { href: '/maine-politics', label: 'Politics', icon: Landmark },
     { href: '/maine-crime', label: 'Crime', icon: Shield },
@@ -99,13 +111,17 @@ function formatDisplayDate(dateString: string) {
     }).format(parsed);
 }
 
-export default function HomeFeed({ initialPosts, weather }: HomeFeedProps) {
+export default function HomeFeed({ initialPosts, weather, traffic }: HomeFeedProps) {
     const latestEditorial = initialPosts.find(post => post.category === 'editorial');
     const topStories = initialPosts.filter(post => post.category !== 'obituaries');
+    const heroStories = topStories.slice(0, 7);
 
     const [activeCategory, setActiveCategory] = useState('all');
+    const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
+    const [trendingIndex, setTrendingIndex] = useState(0);
     const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
     const [visibleCount, setVisibleCount] = useState(15);
+    const [mobileVisibleCount, setMobileVisibleCount] = useState(6);
     const [showFilters, setShowFilters] = useState(false);
     const [showEditorialAlert, setShowEditorialAlert] = useState(() => {
         if (typeof window === 'undefined') return false;
@@ -119,21 +135,67 @@ export default function HomeFeed({ initialPosts, weather }: HomeFeedProps) {
         return !Number.isNaN(publishedAt) && publishedAt > lastSeen;
     });
 
-    const leadStory = topStories[0];
+    const leadStory = heroStories[currentHeroIndex] || topStories[0];
     const breakingNews = topStories.slice(1, 6);
     const liveFeed = topStories.slice(0, 4);
-    const politicsSpotlight = topStories.find(post => post.category === 'politics') || topStories[2];
+    const politicsStories = topStories.filter(post => post.category === 'politics');
+    const politicsSpotlight = politicsStories[0] || topStories[2];
+    const politicsSecondary = politicsStories.slice(1, 3);
 
-    const trafficAlerts = (() => {
+    useEffect(() => {
+        if (heroStories.length <= 1) return;
+
+        const timer = window.setInterval(() => {
+            setCurrentHeroIndex((prev) => (prev + 1) % heroStories.length);
+        }, 5500);
+
+        return () => window.clearInterval(timer);
+    }, [heroStories.length]);
+
+    useEffect(() => {
+        if (topStories.length <= 1) return;
+
+        const timer = window.setInterval(() => {
+            setTrendingIndex((prev) => (prev + 1) % topStories.length);
+        }, 4200);
+
+        return () => window.clearInterval(timer);
+    }, [topStories.length]);
+
+    const rotatingTrendingStories = Array.from({ length: Math.min(5, topStories.length) }, (_, index) => (
+        topStories[(trendingIndex + index) % topStories.length]
+    )).filter(Boolean);
+
+    const trafficAlerts: TrafficPreviewItem[] = (() => {
+        if (traffic?.incidents?.length) {
+            return traffic.incidents.slice(0, 4).map((incident) => ({
+                id: incident.id,
+                category: incident.category,
+                title: incident.to ? `${incident.description} near ${incident.to}` : incident.description,
+                regionLabel: incident.regionLabel,
+                roadLabel: incident.roadNumbers.join(', '),
+            }));
+        }
+
         const matches = topStories.filter(post =>
             /(road|route|traffic|crash|turnpike|bridge|interstate|construction|i-)/i.test(post.title)
         );
 
-        if (matches.length >= 3) {
-            return matches.slice(0, 3);
+        if (matches.length >= 4) {
+            return matches.slice(0, 4).map((post) => ({
+                id: post.id,
+                category: post.category,
+                title: post.title,
+                regionLabel: 'Maine roads',
+            }));
         }
 
-        return topStories.slice(6, 9);
+        return topStories.slice(6, 10).map((post) => ({
+            id: post.id,
+            category: post.category,
+            title: post.title,
+            regionLabel: 'Maine roads',
+        }));
     })();
 
     const filteredPosts = initialPosts.filter(post => {
@@ -172,7 +234,7 @@ export default function HomeFeed({ initialPosts, weather }: HomeFeedProps) {
                     <span>Trending</span>
                 </div>
                 <div className={styles.trendingItems}>
-                    {topStories.slice(0, 5).map((story) => (
+                    {rotatingTrendingStories.map((story) => (
                         <Link key={story.id} href={`/article/${story.slug}`} className={styles.trendingLink}>
                             {story.title}
                         </Link>
@@ -193,6 +255,25 @@ export default function HomeFeed({ initialPosts, weather }: HomeFeedProps) {
                     <a href="https://www.youtube.com/@MaineNewsToday" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
                         <Youtube size={15} />
                     </a>
+                </div>
+            </section>
+
+            <section className={styles.mobileMarqueeBlock}>
+                <div className={styles.mobileMarqueeRow}>
+                    <span className={styles.mobileMarqueeLabel}>Trending</span>
+                    <div className={styles.mobileMarqueeViewport}>
+                        <div className={`${styles.mobileMarqueeTrack} ${styles.mobileMarqueeTrackAlt}`}>
+                            {[...topStories.slice(0, 6), ...topStories.slice(0, 6)].map((story, index) => (
+                                <Link
+                                    key={`${story.id}-trending-${index}`}
+                                    href={`/article/${story.slug}`}
+                                    className={styles.mobileMarqueeItem}
+                                >
+                                    {story.title}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -225,6 +306,30 @@ export default function HomeFeed({ initialPosts, weather }: HomeFeedProps) {
             {leadStory && (
                 <section className={styles.leadGrid}>
                     <Link href={`/article/${leadStory.slug}`} className={styles.leadStory}>
+                        <button
+                            type="button"
+                            className={`${styles.heroControl} ${styles.heroControlPrev}`}
+                            onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                setCurrentHeroIndex((prev) => (prev - 1 + heroStories.length) % heroStories.length);
+                            }}
+                            aria-label="Previous spotlight story"
+                        >
+                            <ChevronLeft size={20} />
+                        </button>
+                        <button
+                            type="button"
+                            className={`${styles.heroControl} ${styles.heroControlNext}`}
+                            onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                setCurrentHeroIndex((prev) => (prev + 1) % heroStories.length);
+                            }}
+                            aria-label="Next spotlight story"
+                        >
+                            <ChevronRight size={20} />
+                        </button>
                         <div className={styles.leadMedia}>
                             <Image
                                 src={leadStory.image || '/hero-fallback.jpeg'}
@@ -247,6 +352,23 @@ export default function HomeFeed({ initialPosts, weather }: HomeFeedProps) {
                                 <span className={styles.metaDot} />
                                 <span>{formatTimeAgo(leadStory.publishedDate)}</span>
                             </div>
+                            {heroStories.length > 1 && (
+                                <div className={styles.heroPagination}>
+                                    {heroStories.map((story, index) => (
+                                        <button
+                                            key={story.id}
+                                            type="button"
+                                            className={`${styles.heroPaginationDot} ${index === currentHeroIndex ? styles.heroPaginationDotActive : ''}`}
+                                            onClick={(event) => {
+                                                event.preventDefault();
+                                                event.stopPropagation();
+                                                setCurrentHeroIndex(index);
+                                            }}
+                                            aria-label={`Show spotlight story ${index + 1}`}
+                                        />
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </Link>
 
@@ -305,6 +427,16 @@ export default function HomeFeed({ initialPosts, weather }: HomeFeedProps) {
                         </div>
                         <CloudSun size={46} className={styles.weatherIcon} />
                     </div>
+                    <div className={styles.weatherDetailRow}>
+                        <div className={styles.weatherDetailPill}>
+                            <span>Alerts</span>
+                            <strong>{weather?.alertsCount || 0}</strong>
+                        </div>
+                        <div className={styles.weatherDetailPill}>
+                            <span>Outlook</span>
+                            <strong>{weather?.outlook?.[0]?.shortForecast || 'Quiet skies'}</strong>
+                        </div>
+                    </div>
                     <div className={styles.weatherOutlook}>
                         {(weather?.outlook || []).slice(0, 4).map((day) => (
                             <div key={day.name} className={styles.weatherDay}>
@@ -338,25 +470,39 @@ export default function HomeFeed({ initialPosts, weather }: HomeFeedProps) {
                     </div>
                 </article>
 
-                <article className={styles.utilityCard}>
+                <Link href="/traffic" className={`${styles.utilityCard} ${styles.trafficCard}`}>
                     <div className={styles.panelHeader}>
                         <div className={styles.panelTitle}>
                             <TriangleAlert size={16} />
                             <h2>Traffic alerts</h2>
                         </div>
-                        <Link href="/sections" className={styles.panelLink}>
-                            Sections <ChevronRight size={14} />
-                        </Link>
+                        <span className={styles.panelLink}>
+                            Live detail <ChevronRight size={14} />
+                        </span>
                     </div>
                     <div className={styles.storyList}>
                         {trafficAlerts.map((story) => (
-                            <Link key={story.id} href={`/article/${story.slug}`} className={styles.storyListItem}>
-                                <span className={styles.storyListTime}>{story.category}</span>
-                                <span className={styles.storyListText}>{story.title}</span>
-                            </Link>
+                            <div key={story.id} className={styles.storyListItem}>
+                                <span className={styles.storyListTime}>{story.regionLabel}</span>
+                                <span className={styles.storyListText}>
+                                    {story.title}
+                                    {story.roadLabel ? ` (${story.roadLabel})` : ''}
+                                </span>
+                            </div>
                         ))}
                     </div>
-                </article>
+                    <div className={styles.cardSummaryRow}>
+                        <div className={styles.summaryMetric}>
+                            <span>Live incidents</span>
+                            <strong>{traffic?.incidents?.length || trafficAlerts.length}</strong>
+                        </div>
+                        <div className={styles.summaryMetric}>
+                            <span>Coverage</span>
+                            <strong>{traffic?.regions?.length || 5} regions</strong>
+                        </div>
+                    </div>
+                    <div className={styles.trafficNote}>{traffic?.note || 'Tap through for the live statewide traffic desk and map.'}</div>
+                </Link>
 
                 {politicsSpotlight && (
                     <Link href={`/article/${politicsSpotlight.slug}`} className={`${styles.utilityCard} ${styles.spotlightCard}`}>
@@ -382,6 +528,16 @@ export default function HomeFeed({ initialPosts, weather }: HomeFeedProps) {
                             <h3>{politicsSpotlight.title}</h3>
                             <span>{formatTimeAgo(politicsSpotlight.publishedDate)}</span>
                         </div>
+                        {politicsSecondary.length > 0 && (
+                            <div className={styles.spotlightList}>
+                                {politicsSecondary.map((story) => (
+                                    <div key={story.id} className={styles.spotlightListItem}>
+                                        <strong>{story.title}</strong>
+                                        <span>{formatTimeAgo(story.publishedDate)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </Link>
                 )}
             </section>
@@ -394,6 +550,7 @@ export default function HomeFeed({ initialPosts, weather }: HomeFeedProps) {
                             onClick={() => {
                                 setActiveCategory(cat.id);
                                 setVisibleCount(15);
+                                setMobileVisibleCount(6);
                             }}
                             className={`${styles.tabButton} ${activeCategory === cat.id ? styles.activeTab : ''} ${cat.id === 'editorial' ? styles.editorialTab : ''} ${activeCategory === cat.id && cat.id === 'editorial' ? styles.editorialTabActive : ''}`}
                         >
@@ -427,6 +584,54 @@ export default function HomeFeed({ initialPosts, weather }: HomeFeedProps) {
                 </div>
             </div>
 
+            <section className={styles.mobileLatestSection}>
+                <div className={styles.mobileMarqueeRow}>
+                    <span className={styles.mobileMarqueeLabel}>Breaking</span>
+                    <div className={styles.mobileMarqueeViewport}>
+                        <div className={styles.mobileMarqueeTrack}>
+                            {[...breakingNews, ...breakingNews].map((story, index) => (
+                                <Link
+                                    key={`${story.id}-breaking-${index}`}
+                                    href={`/article/${story.slug}`}
+                                    className={styles.mobileMarqueeItem}
+                                >
+                                    {story.title}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                <div className={styles.mobileLatestHeader}>
+                    <h2>Latest headlines</h2>
+                    <Link href="/latest" className={styles.mobileLatestLink}>View all</Link>
+                </div>
+                <div className={styles.mobileLatestList}>
+                    {visiblePosts.slice(0, mobileVisibleCount).map((story) => (
+                        <StoryCard
+                            key={`mobile-${story.id}`}
+                            title={story.title}
+                            image={story.image}
+                            slug={story.slug}
+                            publishedDate={story.publishedDate}
+                            category={story.category}
+                            isNational={story.isNational}
+                            compact
+                        />
+                    ))}
+                </div>
+                {mobileVisibleCount < visiblePosts.length && (
+                    <div className={styles.mobileLoadMoreWrapper}>
+                        <button
+                            type="button"
+                            className={styles.loadMoreButton}
+                            onClick={() => setMobileVisibleCount((prev) => prev + 6)}
+                        >
+                            Load More Stories
+                        </button>
+                    </div>
+                )}
+            </section>
+
             {showFilters && (
                 <div className={styles.filterDrawer}>
                     <div className={styles.drawerHeader}>
@@ -442,6 +647,7 @@ export default function HomeFeed({ initialPosts, weather }: HomeFeedProps) {
                                 onClick={() => {
                                     setActiveCategory(cat.id);
                                     setVisibleCount(15);
+                                    setMobileVisibleCount(6);
                                     setShowFilters(false);
                                 }}
                                 className={`${styles.filterChip} ${activeCategory === cat.id ? styles.activeChip : ''} ${cat.id === 'editorial' ? styles.editorialChip : ''} ${activeCategory === cat.id && cat.id === 'editorial' ? styles.editorialChipActive : ''}`}

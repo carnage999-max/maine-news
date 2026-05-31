@@ -39,18 +39,18 @@
     justify-content: center;
     gap: 1.5rem;
     margin-top: 1.5rem;
-    opacity: 0.8;
+    opacity: 0.72;
 }
 
 /* ... */
 
 .socialLinks a {
-    color: #ffffff;
+    color: rgba(247, 247, 244, 0.76);
     transition: all 0.3s ease;
 }
 
 .socialLinks a:hover {
-    color: var(--color-accent);
+    color: #ffffff;
     transform: translateY(-3px);
 }
 

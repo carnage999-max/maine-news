@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CloudSun } from 'lucide-react';
+import { CloudSun, Ticket } from 'lucide-react';
 import styles from './UtilityBar.module.css';
+import { getLatestLotteryResults, type LotteryResult } from '@/lib/lottery';
 
 interface UtilityWeather {
     location: string;
@@ -13,6 +14,8 @@ interface UtilityWeather {
 
 export default function UtilityBar() {
     const [weather, setWeather] = useState<UtilityWeather | null>(null);
+    const [lottery, setLottery] = useState<LotteryResult[]>([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {
         let active = true;
@@ -43,6 +46,33 @@ export default function UtilityBar() {
         };
     }, []);
 
+    useEffect(() => {
+        let active = true;
+
+        async function loadLottery() {
+            const results = await getLatestLotteryResults();
+            if (active) {
+                setLottery(results);
+            }
+        }
+
+        loadLottery();
+
+        return () => {
+            active = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        if (lottery.length <= 1) return;
+
+        const timer = window.setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % lottery.length);
+        }, 5000);
+
+        return () => window.clearInterval(timer);
+    }, [lottery]);
+
     const dateLabel = new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/New_York',
         weekday: 'long',
@@ -50,6 +80,8 @@ export default function UtilityBar() {
         day: 'numeric',
         year: 'numeric',
     }).format(new Date());
+
+    const activeLottery = lottery[currentIndex];
 
     return (
         <div className={styles.utilityBar}>
@@ -63,6 +95,31 @@ export default function UtilityBar() {
                     </span>
                     <span className={styles.separator} />
                     <span className={styles.infoItem}>{weather?.location || 'Bangor, ME'}</span>
+                </div>
+
+                <div className={styles.lotteryCluster}>
+                    <div className={styles.lotteryLabel}>
+                        <Ticket size={13} className={styles.lotteryIcon} />
+                        <span>Maine Lottery</span>
+                    </div>
+                    {activeLottery ? (
+                        <div className={styles.lotteryItem}>
+                            <span className={styles.gameName}>{activeLottery.game}</span>
+                            <div className={styles.numbers}>
+                                {activeLottery.numbers.slice(0, 5).map((value, index) => (
+                                    <span key={`${activeLottery.game}-${index}`} className={styles.number}>{value}</span>
+                                ))}
+                                {activeLottery.extra && (
+                                    <span className={`${styles.number} ${styles.extraNumber}`}>{activeLottery.extra}</span>
+                                )}
+                            </div>
+                            {activeLottery.jackpot && (
+                                <span className={styles.jackpot}>{activeLottery.jackpot}</span>
+                            )}
+                        </div>
+                    ) : (
+                        <span className={styles.lotteryFallback}>Latest draws loading</span>
+                    )}
                 </div>
 
                 <div className={styles.actions}>

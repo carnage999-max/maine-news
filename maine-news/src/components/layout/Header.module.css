@@ -20,26 +20,16 @@
 
 .logoWrapper {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
-  padding: 1rem 0 0.95rem;
+  width: 100%;
+  padding: 0;
 }
 
 .logoImage {
-  width: min(100%, 300px);
+  width: min(100%, 380px);
   height: auto;
   object-fit: contain;
-}
-
-.tagline {
-  color: var(--color-text-dim);
-  font-family: var(--font-heading);
-  font-size: 0.7rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
 }
 
 .navBand {
@@ -51,12 +41,12 @@
   align-items: center;
   justify-content: space-between;
   min-height: var(--header-height-mobile);
-  gap: 0.75rem;
+  gap: 0.55rem;
 }
 
 .utilityButton {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -78,7 +68,7 @@
 }
 
 .mobileLogoImage {
-  width: 152px;
+  width: min(100%, 150px);
   height: auto;
   object-fit: contain;
 }
