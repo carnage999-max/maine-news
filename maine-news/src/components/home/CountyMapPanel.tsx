@@ -1,8 +1,11 @@
-import Image from 'next/image';
-import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { MapPinned } from 'lucide-react';
-import { MAINE_COUNTIES } from '@/lib/maineCounties';
 import styles from './CountyMapPanel.module.css';
+
+const CountyMapPanelClient = dynamic(() => import('./CountyMapPanelClient'), {
+    ssr: false,
+    loading: () => <div className={styles.mapLoading}>Loading county map...</div>,
+});
 
 export default function CountyMapPanel() {
     return (
@@ -18,23 +21,7 @@ export default function CountyMapPanel() {
             </div>
 
             <div className={styles.mapFrame}>
-                <Image
-                    src="/maine-counties-real.svg"
-                    alt="Map of Maine counties"
-                    fill
-                    sizes="340px"
-                    className={styles.mapImage}
-                />
-                {MAINE_COUNTIES.map((county) => (
-                    <Link
-                        key={county.slug}
-                        href={`/county/${county.slug}`}
-                        className={styles.countyPin}
-                        style={{ top: county.top, left: county.left }}
-                    >
-                        <span>{county.name}</span>
-                    </Link>
-                ))}
+                <CountyMapPanelClient />
             </div>
 
             <div className={styles.footer}>
