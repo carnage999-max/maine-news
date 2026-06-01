@@ -48,7 +48,19 @@ function asStringArray(value: unknown): string[] {
 
 function asPlacements(value: unknown): AdPlacement[] {
   const items = asStringArray(value).filter((item): item is AdPlacement =>
-    ["auto", "auto-top", "auto-inline", "auto-feed", "auto-bottom", "auto-sticky"].includes(item)
+    [
+      "auto",
+      "auto-top",
+      "auto-inline",
+      "auto-feed",
+      "auto-bottom",
+      "auto-sticky",
+      "home-header-left",
+      "home-header-right",
+      "home-featured",
+      "home-feed-inline",
+      "home-footer-feature"
+    ].includes(item)
   );
 
   return items.length > 0 ? items : ["auto"];

@@ -18,6 +18,11 @@
   display: none;
 }
 
+.sponsorMicroSlot {
+  flex: 1;
+  min-width: 0;
+}
+
 .logoWrapper {
   display: flex;
   align-items: center;
@@ -42,6 +47,13 @@
   justify-content: space-between;
   min-height: var(--header-height-mobile);
   gap: 0.55rem;
+}
+
+.mobileSponsorBar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding-bottom: 0.8rem;
 }
 
 .utilityButton {
@@ -80,7 +92,15 @@
   }
 
   .desktopMasthead {
-    justify-content: center;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+  }
+
+  .sponsorMicroSlot {
+    max-width: 260px;
   }
 
   .navBand {
@@ -137,6 +157,10 @@
   }
 
   .mobileHeader {
+    display: none;
+  }
+
+  .mobileSponsorBar {
     display: none;
   }
 }

@@ -19,6 +19,12 @@ export default function Header() {
     return (
         <header className={styles.header}>
             <div className={`${styles.container} ${styles.desktopMasthead}`}>
+                <div
+                    className={styles.sponsorMicroSlot}
+                    data-custom-ad-slot="home-header-left"
+                    data-custom-ad-format="micro"
+                    aria-label="Featured partner placement"
+                />
                 <Link href="/" className={styles.logoWrapper}>
                     <Image
                         src="/header-desktop.png"
@@ -29,6 +35,12 @@ export default function Header() {
                         priority
                     />
                 </Link>
+                <div
+                    className={styles.sponsorMicroSlot}
+                    data-custom-ad-slot="home-header-right"
+                    data-custom-ad-format="micro"
+                    aria-label="Featured partner placement"
+                />
             </div>
 
             <div className={`${styles.container} ${styles.navBand}`}>
@@ -71,6 +83,21 @@ export default function Header() {
                 <Link href="/search" className={styles.utilityButton} aria-label="Search">
                     <Search size={20} />
                 </Link>
+            </div>
+
+            <div className={`${styles.container} ${styles.mobileSponsorBar}`}>
+                <div
+                    className={styles.sponsorMicroSlot}
+                    data-custom-ad-slot="home-header-left"
+                    data-custom-ad-format="micro"
+                    aria-label="Featured partner placement"
+                />
+                <div
+                    className={styles.sponsorMicroSlot}
+                    data-custom-ad-slot="home-header-right"
+                    data-custom-ad-format="micro"
+                    aria-label="Featured partner placement"
+                />
             </div>
         </header>
     );

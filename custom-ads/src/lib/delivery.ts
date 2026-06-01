@@ -12,6 +12,10 @@ function pathMatches(pathname: string, rules: string[]) {
   });
 }
 
+function isAutoPlacement(placement: string) {
+  return placement === "auto" || placement.startsWith("auto-");
+}
+
 function isEligible(ad: ManagedAd, site: string, _page: string, placement: string) {
   const now = Date.now();
   const startsAt = ad.startsAt ? Date.parse(ad.startsAt) : null;
@@ -22,7 +26,12 @@ function isEligible(ad: ManagedAd, site: string, _page: string, placement: strin
   if (startsAt && startsAt > now) return false;
   if (endsAt && endsAt < now) return false;
   if (ad.maxImpressions && ad.impressions >= ad.maxImpressions) return false;
-  if (!ad.placements.includes("auto") && !ad.placements.includes(placement as never)) return false;
+  if (
+    !ad.placements.includes(placement as never) &&
+    !(isAutoPlacement(placement) && ad.placements.includes("auto"))
+  ) {
+    return false;
+  }
 
   return true;
 }

@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import StoryCard from '@/components/ui/StoryCard';
 import styles from './SectionList.module.css';
 
@@ -24,16 +25,25 @@ export default function SectionList({ title, stories }: SectionProps) {
                 <div className={styles.divider} />
             </div>
             <div className={styles.grid}>
-                {stories.map((story) => (
-                    <StoryCard
-                        key={story.id}
-                        title={story.title}
-                        image={story.image}
-                        slug={story.slug}
-                        publishedDate={story.publishedDate}
-                        category={story.category}
-                        isNational={story.isNational}
-                    />
+                {stories.map((story, index) => (
+                    <Fragment key={story.id}>
+                        <StoryCard
+                            title={story.title}
+                            image={story.image}
+                            slug={story.slug}
+                            publishedDate={story.publishedDate}
+                            category={story.category}
+                            isNational={story.isNational}
+                        />
+                        {index === 3 ? (
+                            <div
+                                className={styles.inlineSponsorSlot}
+                                data-custom-ad-slot="home-feed-inline"
+                                data-custom-ad-format="inline"
+                                aria-label="Featured partner placement"
+                            />
+                        ) : null}
+                    </Fragment>
                 ))}
             </div>
         </section>

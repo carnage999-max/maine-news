@@ -501,6 +501,13 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
                 </div>
             </section>
 
+            <div
+                className={styles.featuredSponsorSlot}
+                data-custom-ad-slot="home-featured"
+                data-custom-ad-format="featured"
+                aria-label="Featured partner placement"
+            />
+
             <section className={styles.utilityDeck}>
                 <article className={styles.utilityCard}>
                     <div className={styles.panelHeader}>
@@ -718,17 +725,26 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
                     <Link href="/latest" className={styles.mobileLatestLink}>View all</Link>
                 </div>
                 <div className={styles.mobileLatestList}>
-                    {visiblePosts.slice(0, mobileVisibleCount).map((story) => (
-                        <StoryCard
-                            key={`mobile-${story.id}`}
-                            title={story.title}
-                            image={story.image}
-                            slug={story.slug}
-                            publishedDate={story.publishedDate}
-                            category={story.category}
-                            isNational={story.isNational}
-                            compact
-                        />
+                    {visiblePosts.slice(0, mobileVisibleCount).map((story, index) => (
+                        <div key={`mobile-${story.id}`}>
+                            <StoryCard
+                                title={story.title}
+                                image={story.image}
+                                slug={story.slug}
+                                publishedDate={story.publishedDate}
+                                category={story.category}
+                                isNational={story.isNational}
+                                compact
+                            />
+                            {index === 2 ? (
+                                <div
+                                    className={styles.mobileInlineSponsorSlot}
+                                    data-custom-ad-slot="home-feed-inline"
+                                    data-custom-ad-format="inline"
+                                    aria-label="Featured partner placement"
+                                />
+                            ) : null}
+                        </div>
                     ))}
                 </div>
                 {mobileVisibleCount < visiblePosts.length && (

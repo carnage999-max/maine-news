@@ -10,7 +10,12 @@ const placementOptions = [
   { value: "auto-inline", label: "Inside article/body" },
   { value: "auto-feed", label: "Inside feeds/lists" },
   { value: "auto-bottom", label: "Before footer" },
-  { value: "auto-sticky", label: "Mobile sticky" }
+  { value: "auto-sticky", label: "Mobile sticky" },
+  { value: "home-header-left", label: "Maine News header left" },
+  { value: "home-header-right", label: "Maine News header right" },
+  { value: "home-featured", label: "Maine News featured band" },
+  { value: "home-feed-inline", label: "Maine News story break" },
+  { value: "home-footer-feature", label: "Maine News footer band" }
 ];
 
 const emptyForm = {
@@ -430,5 +435,5 @@ function compact(value: number) {
 }
 
 function siteSnippet(origin: string) {
-  return `<script async src="${origin}/widget.js" data-site="maine-news" data-max-slots="4" data-allowed-paths="/article/*,/latest/*" data-blocked-paths="/admin/*"></script>`;
+  return `<script async src="${origin}/widget.js" data-site="maine-news" data-max-slots="6" data-blocked-paths="/admin/*"></script>`;
 }

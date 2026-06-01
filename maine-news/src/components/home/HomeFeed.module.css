@@ -403,6 +403,10 @@
     margin-bottom: 1rem;
 }
 
+.featuredSponsorSlot {
+    margin-bottom: 1rem;
+}
+
 .quickLinkRow {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -927,6 +931,10 @@
     .mobileLatestList {
         display: flex;
         flex-direction: column;
+    }
+
+    .mobileInlineSponsorSlot {
+        margin: 0.75rem 0;
     }
 
     .tickerControlRow {

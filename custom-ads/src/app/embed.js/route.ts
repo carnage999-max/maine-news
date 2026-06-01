@@ -16,9 +16,31 @@ const client = String.raw`
   var page = location.pathname + location.search;
   var renderedIds = [];
 
+  function normalizeBase(value) {
+    if (!value) return "";
+    var normalized = String(value).trim();
+    if (!normalized) return "";
+    return normalized.replace(/\/$/, "");
+  }
+
+  var manualBaseUrl = normalizeBase(script.getAttribute("data-base-url"));
+  var proxyMode = !!manualBaseUrl;
+  if (manualBaseUrl) baseUrl = manualBaseUrl;
+
+  function deliveryPath() {
+    return proxyMode ? "/delivery" : "/api/delivery";
+  }
+
+  function eventPath() {
+    return proxyMode ? "/events" : "/api/events";
+  }
+
   function resolveMediaUrl(path) {
     if (!path) return "";
     if (path.indexOf("http") === 0) return path;
+    if (proxyMode && path.indexOf("/api/media/") === 0) {
+      return baseUrl + path.replace("/api/media/", "/media/");
+    }
     return baseUrl + (path.charAt(0) === "/" ? path : "/" + path);
   }
 
@@ -38,6 +60,29 @@ const client = String.raw`
       ".custom-ad-title{font-size:17px;line-height:1.25;font-weight:750;color:#111827}",
       ".custom-ad-copy{font-size:13px;line-height:1.45;color:#475569;margin:0}",
       ".custom-ad-cta{font-size:13px;font-weight:720;color:#0f172a;margin-top:3px}",
+      "[data-custom-ad-format='micro']{margin:0}",
+      "[data-custom-ad-format='micro'] .custom-ad-card,[data-custom-ad-format='featured'] .custom-ad-card,[data-custom-ad-format='inline'] .custom-ad-card,[data-custom-ad-format='footer'] .custom-ad-card{background:linear-gradient(180deg,rgba(18,21,25,.98),rgba(10,12,16,.98));border:1px solid rgba(255,255,255,.08);color:#f7f7f4;box-shadow:none}",
+      "[data-custom-ad-format='micro'] .custom-ad-card:hover,[data-custom-ad-format='featured'] .custom-ad-card:hover,[data-custom-ad-format='inline'] .custom-ad-card:hover,[data-custom-ad-format='footer'] .custom-ad-card:hover{border-color:rgba(239,43,45,.36);transform:translateY(-1px)}",
+      "[data-custom-ad-format='micro'] .custom-ad-media,[data-custom-ad-format='featured'] .custom-ad-media,[data-custom-ad-format='inline'] .custom-ad-media,[data-custom-ad-format='footer'] .custom-ad-media{background:rgba(255,255,255,.02)}",
+      "[data-custom-ad-format='micro'] .custom-ad-label,[data-custom-ad-format='featured'] .custom-ad-label,[data-custom-ad-format='inline'] .custom-ad-label,[data-custom-ad-format='footer'] .custom-ad-label{color:rgba(247,247,244,.66);font-size:10px;letter-spacing:.08em;text-transform:uppercase}",
+      "[data-custom-ad-format='micro'] .custom-ad-title,[data-custom-ad-format='featured'] .custom-ad-title,[data-custom-ad-format='inline'] .custom-ad-title,[data-custom-ad-format='footer'] .custom-ad-title{color:#fff}",
+      "[data-custom-ad-format='micro'] .custom-ad-copy,[data-custom-ad-format='featured'] .custom-ad-copy,[data-custom-ad-format='inline'] .custom-ad-copy,[data-custom-ad-format='footer'] .custom-ad-copy{color:rgba(247,247,244,.78)}",
+      "[data-custom-ad-format='micro'] .custom-ad-cta,[data-custom-ad-format='featured'] .custom-ad-cta,[data-custom-ad-format='inline'] .custom-ad-cta,[data-custom-ad-format='footer'] .custom-ad-cta{display:none}",
+      "[data-custom-ad-format='micro'] .custom-ad-card{grid-template-columns:46px 1fr;gap:10px;min-height:54px;padding:8px 10px;border-radius:14px}",
+      "[data-custom-ad-format='micro'] .custom-ad-media{min-height:46px;border-radius:12px;overflow:hidden}",
+      "[data-custom-ad-format='micro'] .custom-ad-body{padding:0;gap:2px}",
+      "[data-custom-ad-format='micro'] .custom-ad-title{font-size:12px;line-height:1.15;font-weight:700}",
+      "[data-custom-ad-format='micro'] .custom-ad-copy{display:none}",
+      "[data-custom-ad-format='featured'] .custom-ad-card,[data-custom-ad-format='footer'] .custom-ad-card{grid-template-columns:64px 1fr;gap:14px;min-height:88px;padding:12px 14px;border-radius:18px}",
+      "[data-custom-ad-format='featured'] .custom-ad-media,[data-custom-ad-format='footer'] .custom-ad-media{min-height:60px;border-radius:14px;overflow:hidden}",
+      "[data-custom-ad-format='featured'] .custom-ad-body,[data-custom-ad-format='footer'] .custom-ad-body{padding:0;gap:4px}",
+      "[data-custom-ad-format='featured'] .custom-ad-title,[data-custom-ad-format='footer'] .custom-ad-title{font-size:15px;line-height:1.2;font-weight:700}",
+      "[data-custom-ad-format='featured'] .custom-ad-copy,[data-custom-ad-format='footer'] .custom-ad-copy{font-size:12px;line-height:1.45}",
+      "[data-custom-ad-format='inline'] .custom-ad-card{grid-template-columns:58px 1fr;gap:12px;min-height:78px;padding:12px 14px;border-radius:16px}",
+      "[data-custom-ad-format='inline'] .custom-ad-media{min-height:54px;border-radius:12px;overflow:hidden}",
+      "[data-custom-ad-format='inline'] .custom-ad-body{padding:0;gap:3px}",
+      "[data-custom-ad-format='inline'] .custom-ad-title{font-size:14px;line-height:1.2;font-weight:700}",
+      "[data-custom-ad-format='inline'] .custom-ad-copy{font-size:12px;line-height:1.4}",
       ".custom-ad-sticky{position:fixed;left:12px;right:12px;bottom:12px;z-index:2147483000;margin:0;display:none}",
       ".custom-ad-sticky .custom-ad-card{grid-template-columns:86px 1fr;min-height:84px;border-radius:10px}",
       ".custom-ad-sticky .custom-ad-media{min-height:84px}",
@@ -54,12 +99,13 @@ const client = String.raw`
     slot.className = "custom-ad-slot" + (className ? " " + className : "");
     slot.setAttribute("data-custom-ad-slot", name);
     slot.setAttribute("data-custom-ad-empty", "true");
+    slot.setAttribute("data-custom-ad-generated", "true");
     return slot;
   }
 
   function discoverSlots() {
     var existing = Array.prototype.slice.call(document.querySelectorAll("[data-custom-ad-slot]"));
-    if (existing.length) return existing.slice(0, maxSlots);
+    if (existing.length) return existing;
 
     var slots = [];
     var root = document.querySelector("article") || document.querySelector("main") || document.body;
@@ -104,10 +150,10 @@ const client = String.raw`
   function report(adId, eventName) {
     var payload = JSON.stringify({ adId: adId, event: eventName, site: site, page: page });
     if (navigator.sendBeacon) {
-      navigator.sendBeacon(baseUrl + "/api/events", new Blob([payload], { type: "application/json" }));
+      navigator.sendBeacon(baseUrl + eventPath(), new Blob([payload], { type: "application/json" }));
       return;
     }
-    fetch(baseUrl + "/api/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: payload, keepalive: true }).catch(function () {});
+    fetch(baseUrl + eventPath(), { method: "POST", headers: { "Content-Type": "application/json" }, body: payload, keepalive: true }).catch(function () {});
   }
 
   function render(slot, ad) {
@@ -138,7 +184,7 @@ const client = String.raw`
 
     var body = document.createElement("div");
     body.className = "custom-ad-body";
-    body.innerHTML = '<span class="custom-ad-label">Sponsored by ' + escapeHtml(ad.advertiserName) + '</span><strong class="custom-ad-title">' + escapeHtml(ad.title) + '</strong><p class="custom-ad-copy">' + escapeHtml(ad.description || "") + '</p><span class="custom-ad-cta">' + escapeHtml(ad.ctaLabel || "Learn more") + '</span>';
+    body.innerHTML = '<span class="custom-ad-label">' + escapeHtml(ad.advertiserName) + '</span><strong class="custom-ad-title">' + escapeHtml(ad.title) + '</strong><p class="custom-ad-copy">' + escapeHtml(ad.description || "") + '</p><span class="custom-ad-cta">' + escapeHtml(ad.ctaLabel || "Learn more") + '</span>';
 
     link.appendChild(media);
     link.appendChild(body);
@@ -176,16 +222,24 @@ const client = String.raw`
     observer.observe(slot);
   }
 
+  function isVisibleSlot(slot) {
+    return !!(slot && slot.getClientRects && slot.getClientRects().length > 0);
+  }
+
   function load() {
     addStyles();
     var slots = discoverSlots();
+    var hasManualSlots = slots.some(function (slot) {
+      return slot.getAttribute("data-custom-ad-generated") !== "true";
+    });
     var placements = slots.map(function (slot) {
       return slot.getAttribute("data-custom-ad-slot") || "auto";
     });
 
     if (!placements.length) return;
 
-    var url = baseUrl + "/api/delivery?site=" + encodeURIComponent(site) + "&page=" + encodeURIComponent(page) + "&placements=" + encodeURIComponent(placements.join(",")) + "&exclude=" + encodeURIComponent(renderedIds.join(",")) + "&maxSlots=" + encodeURIComponent(String(maxSlots)) + "&allowedPaths=" + encodeURIComponent(allowedPaths) + "&blockedPaths=" + encodeURIComponent(blockedPaths);
+    var requestedMaxSlots = hasManualSlots ? Math.max(maxSlots, placements.length) : maxSlots;
+    var url = baseUrl + deliveryPath() + "?site=" + encodeURIComponent(site) + "&page=" + encodeURIComponent(page) + "&placements=" + encodeURIComponent(placements.join(",")) + "&exclude=" + encodeURIComponent(renderedIds.join(",")) + "&maxSlots=" + encodeURIComponent(String(requestedMaxSlots)) + "&allowedPaths=" + encodeURIComponent(allowedPaths) + "&blockedPaths=" + encodeURIComponent(blockedPaths);
 
     fetch(url)
       .then(function (response) { return response.json(); })
@@ -200,6 +254,8 @@ const client = String.raw`
         (payload.ads || []).forEach(function (item) {
           var candidates = slotGroups[item.placement] || [];
           var slot = candidates.find(function (candidate) {
+            return isVisibleSlot(candidate) && candidate.getAttribute("data-custom-ad-empty") === "true";
+          }) || candidates.find(function (candidate) {
             return candidate.getAttribute("data-custom-ad-empty") === "true";
           }) || candidates[0];
           if (slot && item.ad) render(slot, item.ad);

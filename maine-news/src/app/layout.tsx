@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 const customAdsUrl = process.env.NEXT_PUBLIC_CUSTOM_ADS_URL;
-const customAdsMaxSlots = process.env.NEXT_PUBLIC_CUSTOM_ADS_MAX_SLOTS || "4";
+const customAdsMaxSlots = process.env.NEXT_PUBLIC_CUSTOM_ADS_MAX_SLOTS || "6";
 const customAdsAllowedPaths = process.env.NEXT_PUBLIC_CUSTOM_ADS_ALLOWED_PATHS || "";
 const customAdsBlockedPaths = process.env.NEXT_PUBLIC_CUSTOM_ADS_BLOCKED_PATHS || "";
 

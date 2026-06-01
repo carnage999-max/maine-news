@@ -13,6 +13,10 @@
     gap: 2rem;
 }
 
+.footerSponsorSlot {
+    width: 100%;
+}
+
 .brand {
     text-align: center;
 }

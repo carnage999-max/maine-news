@@ -6,7 +6,12 @@ export type AdPlacement =
   | "auto-inline"
   | "auto-feed"
   | "auto-bottom"
-  | "auto-sticky";
+  | "auto-sticky"
+  | "home-header-left"
+  | "home-header-right"
+  | "home-featured"
+  | "home-feed-inline"
+  | "home-footer-feature";
 
 export type ManagedAd = {
   id: string;

@@ -8,6 +8,13 @@ export default function Footer() {
     return (
         <footer className={styles.footer}>
             <div className={styles.container}>
+                <div
+                    className={styles.footerSponsorSlot}
+                    data-custom-ad-slot="home-footer-feature"
+                    data-custom-ad-format="footer"
+                    aria-label="Featured partner placement"
+                />
+
                 <div className={styles.brand}>
                     <h2 className={styles.logo}>Maine News Now</h2>
                     <p className={styles.tagline}>Unbiased. Unafraid. Unfiltered.</p>
