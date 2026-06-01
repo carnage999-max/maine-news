@@ -285,6 +285,13 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
 
     return (
         <div className={styles.feedContainer} style={tickerSpeedStyles}>
+            <div
+                className={styles.mobileTopSponsorSlot}
+                data-custom-ad-slot="home-header-left"
+                data-custom-ad-format="micro"
+                aria-label="Featured partner placement"
+            />
+
             <section className={styles.trendingStrip}>
                 <div className={styles.trendingHeader}>
                     <Flame size={14} />
@@ -455,6 +462,13 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
                     </aside>
                 </section>
             )}
+
+            <div
+                className={styles.mobilePostHeroSponsorSlot}
+                data-custom-ad-slot="home-header-right"
+                data-custom-ad-format="micro"
+                aria-label="Featured partner placement"
+            />
 
             <section className={styles.quickLinks}>
                 <div className={styles.quickLinkRow}>

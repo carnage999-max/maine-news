@@ -31,6 +31,11 @@
     display: none;
 }
 
+.mobileTopSponsorSlot,
+.mobilePostHeroSponsorSlot {
+    display: none;
+}
+
 .trendingHeader {
     display: inline-flex;
     align-items: center;
@@ -836,6 +841,19 @@
 }
 
 @media (max-width: 959px) {
+    .mobileTopSponsorSlot,
+    .mobilePostHeroSponsorSlot {
+        display: block;
+    }
+
+    .mobileTopSponsorSlot {
+        margin-bottom: 0.9rem;
+    }
+
+    .mobilePostHeroSponsorSlot {
+        margin: 0 0 1rem;
+    }
+
     .trendingStrip {
         display: none;
     }

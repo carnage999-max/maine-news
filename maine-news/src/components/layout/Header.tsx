@@ -84,21 +84,6 @@ export default function Header() {
                     <Search size={20} />
                 </Link>
             </div>
-
-            <div className={`${styles.container} ${styles.mobileSponsorBar}`}>
-                <div
-                    className={styles.sponsorMicroSlot}
-                    data-custom-ad-slot="home-header-left"
-                    data-custom-ad-format="micro"
-                    aria-label="Featured partner placement"
-                />
-                <div
-                    className={styles.sponsorMicroSlot}
-                    data-custom-ad-slot="home-header-right"
-                    data-custom-ad-format="micro"
-                    aria-label="Featured partner placement"
-                />
-            </div>
         </header>
     );
 }

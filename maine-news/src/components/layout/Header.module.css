@@ -48,13 +48,6 @@
   gap: 0.55rem;
 }
 
-.mobileSponsorBar {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-  padding-bottom: 0.8rem;
-}
-
 .utilityButton {
   width: 36px;
   height: 36px;
@@ -162,10 +155,6 @@
   }
 
   .mobileHeader {
-    display: none;
-  }
-
-  .mobileSponsorBar {
     display: none;
   }
 }
