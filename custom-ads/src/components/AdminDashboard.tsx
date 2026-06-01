@@ -15,8 +15,7 @@ const placementOptions = [
   { value: "home-header-right", label: "Maine News header right" },
   { value: "home-featured", label: "Maine News featured band" },
   { value: "home-feed-inline", label: "Maine News story break" },
-  { value: "home-footer-feature", label: "Maine News footer band" },
-  { value: "home-partner-block", label: "Maine News footer partner block" }
+  { value: "home-footer-feature", label: "Maine News footer band" }
 ];
 
 const emptyForm = {

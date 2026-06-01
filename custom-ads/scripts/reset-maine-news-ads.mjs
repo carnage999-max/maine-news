@@ -64,18 +64,6 @@ const adRows = [
     mediaContentType: "image/png",
     placements: ["home-footer-feature"],
   },
-  {
-    id: "cb3e79d9-f84d-4b5e-bd2b-4f3548d43354",
-    advertiserName: "Charleston Church",
-    title: "Community rooted.",
-    description: "A welcoming church family in Charleston, Maine.",
-    ctaLabel: "Visit site",
-    destinationUrl: "https://charlestonchurch.net",
-    altText: "Charleston Church logo",
-    mediaPath: "../maine-news/public/charleston-church.png",
-    mediaContentType: "image/png",
-    placements: ["home-partner-block"],
-  },
 ];
 
 async function loadEnv() {

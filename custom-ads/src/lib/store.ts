@@ -59,8 +59,7 @@ function asPlacements(value: unknown): AdPlacement[] {
       "home-header-right",
       "home-featured",
       "home-feed-inline",
-      "home-footer-feature",
-      "home-partner-block"
+      "home-footer-feature"
     ].includes(item)
   );
 

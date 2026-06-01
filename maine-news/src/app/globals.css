@@ -121,7 +121,7 @@ a:hover {
   background: #555;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 960px) {
   .container {
     padding: 0 1.5rem;
   }

@@ -11,8 +11,7 @@ const placements: AdPlacement[] = [
   "home-header-right",
   "home-featured",
   "home-feed-inline",
-  "home-footer-feature",
-  "home-partner-block"
+  "home-footer-feature"
 ];
 
 function splitList(value: FormDataEntryValue | null) {
