@@ -1,13 +1,13 @@
 // Simplified Maine county boundaries as GeoJSON
 // These are approximate geometries for fallback purposes
 export const MAINE_COUNTIES_GEOJSON = {
-    type: 'FeatureCollection' as const,
+    type: 'FeatureCollection',
     features: [
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'Aroostook' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-69.977, 47.464],
@@ -20,10 +20,10 @@ export const MAINE_COUNTIES_GEOJSON = {
             },
         },
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'Washington' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-67.5, 45.562],
@@ -36,10 +36,10 @@ export const MAINE_COUNTIES_GEOJSON = {
             },
         },
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'Piscataquis' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-71.0, 45.562],
@@ -52,10 +52,10 @@ export const MAINE_COUNTIES_GEOJSON = {
             },
         },
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'Penobscot' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-69.5, 45.562],
@@ -68,10 +68,10 @@ export const MAINE_COUNTIES_GEOJSON = {
             },
         },
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'Hancock' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-68.3, 45.0],
@@ -84,10 +84,10 @@ export const MAINE_COUNTIES_GEOJSON = {
             },
         },
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'Somerset' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-71.0, 44.9],
@@ -100,10 +100,10 @@ export const MAINE_COUNTIES_GEOJSON = {
             },
         },
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'Franklin' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-71.5, 44.9],
@@ -116,10 +116,10 @@ export const MAINE_COUNTIES_GEOJSON = {
             },
         },
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'Oxford' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-72.0, 44.4],
@@ -132,10 +132,10 @@ export const MAINE_COUNTIES_GEOJSON = {
             },
         },
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'Androscoggin' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-71.0, 44.4],
@@ -148,10 +148,10 @@ export const MAINE_COUNTIES_GEOJSON = {
             },
         },
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'Kennebec' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-70.4, 44.4],
@@ -164,10 +164,10 @@ export const MAINE_COUNTIES_GEOJSON = {
             },
         },
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'Waldo' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-69.5, 44.4],
@@ -180,10 +180,10 @@ export const MAINE_COUNTIES_GEOJSON = {
             },
         },
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'Knox' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-69.1, 44.2],
@@ -196,10 +196,10 @@ export const MAINE_COUNTIES_GEOJSON = {
             },
         },
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'Lincoln' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-69.5, 43.9],
@@ -212,10 +212,10 @@ export const MAINE_COUNTIES_GEOJSON = {
             },
         },
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'Sagadahoc' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-70.0, 43.9],
@@ -228,10 +228,10 @@ export const MAINE_COUNTIES_GEOJSON = {
             },
         },
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'Cumberland' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-70.5, 43.6],
@@ -244,10 +244,10 @@ export const MAINE_COUNTIES_GEOJSON = {
             },
         },
         {
-            type: 'Feature' as const,
+            type: 'Feature',
             properties: { county: 'York' },
             geometry: {
-                type: 'Polygon' as const,
+                type: 'Polygon',
                 coordinates: [
                     [
                         [-71.2, 43.3],
