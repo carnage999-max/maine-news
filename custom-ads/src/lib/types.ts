@@ -11,7 +11,8 @@ export type AdPlacement =
   | "home-header-right"
   | "home-featured"
   | "home-feed-inline"
-  | "home-footer-feature";
+  | "home-footer-feature"
+  | "home-partner-block";
 
 export type ManagedAd = {
   id: string;

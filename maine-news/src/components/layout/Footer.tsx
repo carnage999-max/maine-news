@@ -55,23 +55,12 @@ export default function Footer() {
                     </Link>
                 </div>
 
-                <div className={styles.partnerBlock}>
-                    <a
-                        href="https://www.charlestonchurch.net"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.partnerLink}
-                    >
-                        <span className={styles.partnerLabel}>Community Partner</span>
-                        <Image
-                            src="/charleston-church.png"
-                            alt="Charleston Church"
-                            width={220}
-                            height={88}
-                            className={styles.partnerImage}
-                        />
-                    </a>
-                </div>
+                <div
+                    className={styles.partnerBlock}
+                    data-custom-ad-slot="home-partner-block"
+                    data-custom-ad-format="footer"
+                    aria-label="Featured partner placement"
+                />
 
                 <div className={styles.links}>
                     <div className={styles.linkGroup}>
