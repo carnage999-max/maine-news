@@ -54,6 +54,14 @@ export default function Footer() {
                         <span className={styles.minuteCtaText}>Read The Maine Minute</span>
                     </Link>
                 </div>
+
+                <div
+                    className={styles.partnerBlock}
+                    data-custom-ad-slot="home-partner-block"
+                    data-custom-ad-format="footer"
+                    aria-label="Featured partner placement"
+                />
+
                 <div className={styles.links}>
                     <div className={styles.linkGroup}>
                         <h3>Categories</h3>

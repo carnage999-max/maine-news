@@ -74,6 +74,12 @@
     width: 100%;
 }
 
+.partnerBlock {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
 .minuteCta {
     display: inline-flex;
     align-items: center;
@@ -220,7 +226,8 @@
     }
 
     .socialLinks,
-    .footerCta {
+    .footerCta,
+    .partnerBlock {
         justify-content: flex-start;
     }
 
