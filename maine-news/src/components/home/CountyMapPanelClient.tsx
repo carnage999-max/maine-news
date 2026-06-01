@@ -29,6 +29,9 @@ const MAINE_BOUNDS: [[number, number], [number, number]] = [
     [47.6, -66.7],
 ];
 
+// Approximate center of Maine based on bounds
+const MAINE_CENTER: [number, number] = [45.225, -68.95];
+
 const BASE_STYLE: PathOptions = {
     color: 'rgba(14, 16, 19, 0.92)',
     weight: 1.1,
@@ -45,9 +48,15 @@ const HOVER_STYLE: PathOptions = {
 
 export default function CountyMapPanelClient() {
     const router = useRouter();
+    const mapRef = useRef<any>(null);
     const geoJsonRef = useRef<LeafletGeoJSON | null>(null);
     const [data, setData] = useState<CountyFeatureCollection | null>(null);
     const [error, setError] = useState(false);
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     useEffect(() => {
         let cancelled = false;
@@ -124,6 +133,14 @@ export default function CountyMapPanelClient() {
         );
     }, [data, router]);
 
+    if (!isClient) {
+        return (
+            <div className={styles.mapState}>
+                <p>Loading county boundaries...</p>
+            </div>
+        );
+    }
+
     if (error) {
         return (
             <div className={styles.mapState}>
@@ -143,8 +160,8 @@ export default function CountyMapPanelClient() {
     return (
         <div className={styles.mapCanvas}>
             <MapContainer
-                bounds={MAINE_BOUNDS}
-                boundsOptions={{ padding: [8, 8] }}
+                center={MAINE_CENTER}
+                zoom={7}
                 maxBounds={MAINE_BOUNDS}
                 maxBoundsViscosity={1}
                 zoomControl={false}
@@ -152,7 +169,7 @@ export default function CountyMapPanelClient() {
                 doubleClickZoom={false}
                 boxZoom={false}
                 keyboard={false}
-                dragging={false}
+                dragging={true}
                 touchZoom={false}
                 attributionControl
                 className={styles.leafletMap}
