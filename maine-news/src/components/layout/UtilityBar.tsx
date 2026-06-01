@@ -75,10 +75,9 @@ export default function UtilityBar() {
 
     const dateLabel = new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/New_York',
-        weekday: 'long',
+        weekday: 'short',
         month: 'short',
         day: 'numeric',
-        year: 'numeric',
     }).format(new Date());
 
     const activeLottery = lottery[currentIndex];
@@ -125,7 +124,6 @@ export default function UtilityBar() {
                 <div className={styles.actions}>
                     <Link href="/about" className={styles.navLink}>About Us</Link>
                     <Link href="/advertise" className={styles.navLink}>Advertise</Link>
-                    <Link href="/submit" className={styles.navLink}>Submit News Tip</Link>
                     <Link href="/contact" className={styles.navLink}>Contact</Link>
                     <Link href="/submit" className={styles.tipButton}>Send News Tip</Link>
                 </div>

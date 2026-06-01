@@ -8,6 +8,13 @@
       "when": 1779358433245,
       "tag": "0000_flashy_iron_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780332000000,
+      "tag": "0001_newsroom_profiles",
+      "breakpoints": true
     }
   ]
 }

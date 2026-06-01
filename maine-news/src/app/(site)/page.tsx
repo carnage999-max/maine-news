@@ -1,7 +1,7 @@
 import HomeFeed from '@/components/home/HomeFeed';
 import { Metadata } from 'next';
 import { db } from '@/db';
-import { posts as dbPosts } from '@/db/schema';
+import { authors, posts as dbPosts } from '@/db/schema';
 import { desc } from 'drizzle-orm';
 import { getMaineDateString, getWeatherReport } from '@/lib/weather';
 import { getTrafficReport } from '@/lib/traffic';
@@ -41,6 +41,19 @@ export default async function Home() {
     isOriginal: post.isOriginal,
   }));
 
+  const newsroomProfiles = await db.query.authors.findMany({
+    orderBy: [desc(authors.createdAt)],
+    columns: {
+      id: true,
+      name: true,
+      role: true,
+      avatar: true,
+      bio: true,
+      email: true,
+      contactInfo: true,
+    },
+  });
+
   let weather = null;
   let traffic = null;
 
@@ -74,6 +87,7 @@ export default async function Home() {
         initialPosts={formattedPosts}
         weather={weather}
         traffic={traffic}
+        authors={newsroomProfiles}
       />
     </div>
   );

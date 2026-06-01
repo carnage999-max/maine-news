@@ -12,7 +12,7 @@ export default function Header() {
         { href: '/maine-business', label: 'Business' },
         { href: '/weather', label: 'Weather' },
         { href: '/maine-sports', label: 'Sports' },
-        { href: '/maine-opinion', label: 'Opinion' },
+        { href: '/editorial', label: 'Editorial' },
         { href: '/sections', label: 'Sections' },
     ];
 

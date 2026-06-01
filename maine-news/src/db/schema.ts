@@ -19,8 +19,11 @@ export const posts = pgTable('posts', {
 export const authors = pgTable('authors', {
     id: uuid('id').defaultRandom().primaryKey(),
     name: text('name').notNull().unique(),
+    role: text('role').notNull().default('Reporter'),
     avatar: text('avatar'),
     bio: text('bio'),
+    email: text('email'),
+    contactInfo: text('contact_info'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

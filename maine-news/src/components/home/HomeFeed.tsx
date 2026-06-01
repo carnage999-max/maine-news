@@ -1,17 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import SectionList from '@/components/home/SectionList';
+import NewsroomSection, { type NewsroomProfile } from '@/components/home/NewsroomSection';
+import CountyMapPanel from '@/components/home/CountyMapPanel';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import StoryCard from '@/components/ui/StoryCard';
 import {
     ArrowUpDown,
     Building2,
+    CirclePlay,
     ChevronLeft,
     ChevronRight,
-    CirclePlay,
     CloudSun,
     Facebook,
     Flame,
@@ -19,11 +21,13 @@ import {
     Landmark,
     Map,
     Radio,
+    ScrollText,
     Shield,
     TriangleAlert,
     X,
     Youtube,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { TrafficReport } from '@/lib/traffic';
 import { formatTimeAgo } from '@/utils/formatDate';
 import styles from './HomeFeed.module.css';
@@ -58,6 +62,7 @@ interface HomeFeedProps {
     initialPosts: Post[];
     weather: WeatherSnapshot | null;
     traffic: TrafficReport | null;
+    authors: NewsroomProfile[];
 }
 
 interface TrafficPreviewItem {
@@ -67,6 +72,29 @@ interface TrafficPreviewItem {
     regionLabel: string;
     roadLabel?: string;
 }
+
+interface QuickLinkIconItem {
+    href: string;
+    label: string;
+    icon: LucideIcon;
+    iconClassName: string;
+    large?: boolean;
+    highlightClassName?: string;
+}
+
+interface QuickLinkImageItem {
+    href: string;
+    label: string;
+    imageSrc: string;
+    imageAlt: string;
+    imageOnly?: boolean;
+    large?: boolean;
+    highlightClassName?: string;
+    icon?: never;
+    iconClassName?: never;
+}
+
+type QuickLinkItem = QuickLinkIconItem | QuickLinkImageItem;
 
 const CATEGORIES = [
     { id: 'all', label: 'News' },
@@ -86,16 +114,32 @@ const CATEGORIES = [
     { id: 'obituaries', label: 'Obituaries' },
 ];
 
-const QUICK_LINKS = [
-    { href: '/weather', label: 'Weather', icon: CloudSun },
-    { href: '/latest', label: 'Live feed', icon: Radio },
-    { href: '/traffic', label: 'Traffic', icon: Map },
-    { href: '/the-maine-minute', label: 'Watch', icon: CirclePlay },
-    { href: '/maine-politics', label: 'Politics', icon: Landmark },
-    { href: '/maine-crime', label: 'Crime', icon: Shield },
-    { href: '/maine-business', label: 'Business', icon: Building2 },
-    { href: '/submit', label: 'Tips', icon: TriangleAlert },
+const QUICK_LINK_TOP: QuickLinkIconItem[] = [
+    { href: '/weather', label: 'Weather', icon: CloudSun, iconClassName: styles.iconWeather },
+    { href: '/latest', label: 'Live feed', icon: Radio, iconClassName: styles.iconLiveFeed },
+    { href: '/traffic', label: 'Traffic', icon: Map, iconClassName: styles.iconTraffic },
+    { href: '/the-maine-minute', label: 'Watch', icon: CirclePlay, iconClassName: styles.iconWatch },
 ];
+
+const QUICK_LINK_MIDDLE: QuickLinkItem[] = [
+    { href: '/the-maine-minute', label: 'Maine Minute', imageSrc: '/maine-minutes.png', imageAlt: 'The Maine Minute', imageOnly: true },
+    { href: '/editorial', label: 'Editorial', icon: ScrollText, iconClassName: styles.iconEditorial, large: true, highlightClassName: styles.quickLinkEditorial },
+];
+
+const QUICK_LINK_BOTTOM: QuickLinkIconItem[] = [
+    { href: '/maine-politics', label: 'Politics', icon: Landmark, iconClassName: styles.iconPolitics },
+    { href: '/maine-crime', label: 'Crime', icon: Shield, iconClassName: styles.iconCrime },
+    { href: '/maine-business', label: 'Business', icon: Building2, iconClassName: styles.iconBusiness },
+    { href: '/submit', label: 'Tips', icon: TriangleAlert, iconClassName: styles.iconTips },
+];
+
+const TICKER_SPEEDS = {
+    slow: { primary: '56s', secondary: '64s' },
+    normal: { primary: '42s', secondary: '48s' },
+    fast: { primary: '30s', secondary: '36s' },
+} as const;
+
+type TickerSpeed = keyof typeof TICKER_SPEEDS;
 
 function formatDisplayDate(dateString: string) {
     const parsed = new Date(dateString);
@@ -111,7 +155,7 @@ function formatDisplayDate(dateString: string) {
     }).format(parsed);
 }
 
-export default function HomeFeed({ initialPosts, weather, traffic }: HomeFeedProps) {
+export default function HomeFeed({ initialPosts, weather, traffic, authors }: HomeFeedProps) {
     const latestEditorial = initialPosts.find(post => post.category === 'editorial');
     const topStories = initialPosts.filter(post => post.category !== 'obituaries');
     const heroStories = topStories.slice(0, 7);
@@ -122,6 +166,11 @@ export default function HomeFeed({ initialPosts, weather, traffic }: HomeFeedPro
     const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
     const [visibleCount, setVisibleCount] = useState(15);
     const [mobileVisibleCount, setMobileVisibleCount] = useState(6);
+    const [tickerSpeed, setTickerSpeed] = useState<TickerSpeed>(() => {
+        if (typeof window === 'undefined') return 'normal';
+        const savedSpeed = window.localStorage.getItem('mobileTickerSpeed');
+        return savedSpeed === 'slow' || savedSpeed === 'normal' || savedSpeed === 'fast' ? savedSpeed : 'normal';
+    });
     const [showFilters, setShowFilters] = useState(false);
     const [showEditorialAlert, setShowEditorialAlert] = useState(() => {
         if (typeof window === 'undefined') return false;
@@ -141,6 +190,10 @@ export default function HomeFeed({ initialPosts, weather, traffic }: HomeFeedPro
     const politicsStories = topStories.filter(post => post.category === 'politics');
     const politicsSpotlight = politicsStories[0] || topStories[2];
     const politicsSecondary = politicsStories.slice(1, 3);
+
+    useEffect(() => {
+        window.localStorage.setItem('mobileTickerSpeed', tickerSpeed);
+    }, [tickerSpeed]);
 
     useEffect(() => {
         if (heroStories.length <= 1) return;
@@ -225,9 +278,13 @@ export default function HomeFeed({ initialPosts, weather, traffic }: HomeFeedPro
     });
 
     const visiblePosts = sortedPosts.slice(0, visibleCount);
+    const tickerSpeedStyles = {
+        '--mobile-marquee-duration': TICKER_SPEEDS[tickerSpeed].primary,
+        '--mobile-marquee-duration-alt': TICKER_SPEEDS[tickerSpeed].secondary,
+    } as CSSProperties;
 
     return (
-        <div className={styles.feedContainer}>
+        <div className={styles.feedContainer} style={tickerSpeedStyles}>
             <section className={styles.trendingStrip}>
                 <div className={styles.trendingHeader}>
                     <Flame size={14} />
@@ -372,36 +429,76 @@ export default function HomeFeed({ initialPosts, weather, traffic }: HomeFeedPro
                         </div>
                     </Link>
 
-                    <aside className={styles.breakingPanel}>
-                        <div className={styles.panelHeader}>
-                            <div className={styles.panelTitle}>
-                                <span className={styles.breakingDot} />
-                                <h2>Breaking news</h2>
-                            </div>
-                            <Link href="/latest" className={styles.panelLink}>
-                                View all <ChevronRight size={14} />
-                            </Link>
-                        </div>
+                    <aside className={styles.desktopRail}>
+                        <CountyMapPanel />
 
-                        <div className={styles.breakingList}>
-                            {breakingNews.map((story) => (
-                                <Link key={story.id} href={`/article/${story.slug}`} className={styles.breakingItem}>
-                                    <span className={styles.breakingTime}>{formatTimeAgo(story.publishedDate)}</span>
-                                    <span className={styles.breakingText}>{story.title}</span>
+                        <div className={styles.breakingPanel}>
+                            <div className={styles.panelHeader}>
+                                <div className={styles.panelTitle}>
+                                    <span className={styles.breakingDot} />
+                                    <h2>Breaking news</h2>
+                                </div>
+                                <Link href="/latest" className={styles.panelLink}>
+                                    View all <ChevronRight size={14} />
                                 </Link>
-                            ))}
+                            </div>
+
+                            <div className={styles.breakingList}>
+                                {breakingNews.map((story) => (
+                                    <Link key={story.id} href={`/article/${story.slug}`} className={styles.breakingItem}>
+                                        <span className={styles.breakingTime}>{formatTimeAgo(story.publishedDate)}</span>
+                                        <span className={styles.breakingText}>{story.title}</span>
+                                    </Link>
+                                ))}
+                            </div>
                         </div>
                     </aside>
                 </section>
             )}
 
             <section className={styles.quickLinks}>
-                {QUICK_LINKS.map((link) => (
-                    <Link key={link.href} href={link.href} className={styles.quickLinkCard}>
-                        <link.icon size={18} />
-                        <span>{link.label}</span>
-                    </Link>
-                ))}
+                <div className={styles.quickLinkRow}>
+                    {QUICK_LINK_TOP.map((link) => (
+                        <Link key={link.href} href={link.href} className={styles.quickLinkCard}>
+                            <link.icon size={18} className={link.iconClassName} />
+                            <span>{link.label}</span>
+                        </Link>
+                    ))}
+                </div>
+                <div className={styles.quickLinkFeatureRow}>
+                    {QUICK_LINK_MIDDLE.map((link) => (
+                        <Link
+                            key={link.href}
+                            href={link.href}
+                            className={
+                                'imageOnly' in link && link.imageOnly
+                                    ? styles.quickLinkImageOnly
+                                    : `${styles.quickLinkCard} ${styles.quickLinkCardLarge} ${link.highlightClassName || ''}`
+                            }
+                        >
+                            {'imageSrc' in link ? (
+                                <Image
+                                    src={link.imageSrc}
+                                    alt={link.imageAlt}
+                                    width={'imageOnly' in link && link.imageOnly ? 170 : 112}
+                                    height={'imageOnly' in link && link.imageOnly ? 70 : 28}
+                                    className={'imageOnly' in link && link.imageOnly ? styles.quickLinkFeatureImage : styles.quickLinkBrandImage}
+                                />
+                            ) : (
+                                <link.icon size={22} className={link.iconClassName} />
+                            )}
+                            {(!('imageOnly' in link) || !link.imageOnly) && <span>{link.label}</span>}
+                        </Link>
+                    ))}
+                </div>
+                <div className={styles.quickLinkRow}>
+                    {QUICK_LINK_BOTTOM.map((link) => (
+                        <Link key={link.href} href={link.href} className={styles.quickLinkCard}>
+                            <link.icon size={18} className={link.iconClassName} />
+                            <span>{link.label}</span>
+                        </Link>
+                    ))}
+                </div>
             </section>
 
             <section className={styles.utilityDeck}>
@@ -601,6 +698,21 @@ export default function HomeFeed({ initialPosts, weather, traffic }: HomeFeedPro
                         </div>
                     </div>
                 </div>
+                <div className={styles.tickerControlRow}>
+                    <span className={styles.tickerControlLabel}>Ticker speed</span>
+                    <div className={styles.tickerControlGroup} role="group" aria-label="Ticker speed">
+                        {(['slow', 'normal', 'fast'] as TickerSpeed[]).map((speed) => (
+                            <button
+                                key={speed}
+                                type="button"
+                                className={`${styles.tickerControlButton} ${tickerSpeed === speed ? styles.tickerControlButtonActive : ''}`}
+                                onClick={() => setTickerSpeed(speed)}
+                            >
+                                {speed}
+                            </button>
+                        ))}
+                    </div>
+                </div>
                 <div className={styles.mobileLatestHeader}>
                     <h2>Latest headlines</h2>
                     <Link href="/latest" className={styles.mobileLatestLink}>View all</Link>
@@ -676,6 +788,8 @@ export default function HomeFeed({ initialPosts, weather, traffic }: HomeFeedPro
                     </div>
                 )}
             </div>
+
+            <NewsroomSection profiles={authors} />
 
             <ScrollToTop />
         </div>

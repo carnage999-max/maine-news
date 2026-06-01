@@ -1,4 +1,6 @@
 .feedContainer {
+    --mobile-marquee-duration: 42s;
+    --mobile-marquee-duration-alt: 48s;
     width: 100%;
     max-width: var(--container-width);
     margin: 0 auto;
@@ -129,6 +131,12 @@
     display: grid;
     gap: 1rem;
     margin-bottom: 1rem;
+}
+
+.desktopRail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
 }
 
 .leadStory {
@@ -391,9 +399,20 @@
 
 .quickLinks {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.75rem;
     margin-bottom: 1rem;
+}
+
+.quickLinkRow {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.quickLinkFeatureRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
 }
 
 .quickLinkCard {
@@ -409,6 +428,88 @@
     font-size: 0.78rem;
     color: var(--color-text-dim);
     box-shadow: var(--shadow-panel);
+}
+
+.quickLinkCardLarge {
+    min-height: 94px;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 0.9rem 0.95rem;
+}
+
+.quickLinkCardLarge span {
+    color: #fff;
+    font-family: var(--font-heading);
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.quickLinkEditorial {
+    background:
+        linear-gradient(140deg, rgba(246, 196, 83, 0.16), rgba(20, 23, 27, 0.98) 60%),
+        rgba(255, 255, 255, 0.04);
+}
+
+.quickLinkImage {
+    object-fit: contain;
+}
+
+.quickLinkBrandImage {
+    width: auto;
+    height: 26px;
+    object-fit: contain;
+}
+
+.quickLinkImageOnly {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 94px;
+    padding: 0.35rem 0.25rem;
+}
+
+.quickLinkFeatureImage {
+    width: min(100%, 168px);
+    height: auto;
+    object-fit: contain;
+    border-radius: 18px;
+}
+
+.iconWeather {
+    color: #f6c453;
+}
+
+.iconLiveFeed {
+    color: #ff5a52;
+}
+
+.iconTraffic {
+    color: #50c7ff;
+}
+
+.iconWatch {
+    color: #ff9d57;
+}
+
+.iconPolitics {
+    color: #93a8ff;
+}
+
+.iconCrime {
+    color: #ff7a7a;
+}
+
+.iconBusiness {
+    color: #57d4aa;
+}
+
+.iconTips {
+    color: #ffb347;
+}
+
+.iconEditorial {
+    color: #f6c453;
 }
 
 .utilityDeck {
@@ -726,12 +827,20 @@
     cursor: pointer;
 }
 
+.tickerControlRow {
+    display: none;
+}
+
 @media (max-width: 959px) {
     .trendingStrip {
         display: none;
     }
 
     .breakingPanel {
+        display: none;
+    }
+
+    .desktopRail {
         display: none;
     }
 
@@ -773,12 +882,12 @@
         align-items: center;
         gap: 1.25rem;
         white-space: nowrap;
-        animation: marqueeLeft 24s linear infinite;
+        animation: marqueeLeft var(--mobile-marquee-duration) linear infinite;
         width: max-content;
     }
 
     .mobileMarqueeTrackAlt {
-        animation-duration: 28s;
+        animation-duration: var(--mobile-marquee-duration-alt);
     }
 
     .mobileMarqueeItem {
@@ -820,6 +929,46 @@
         flex-direction: column;
     }
 
+    .tickerControlRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.8rem;
+        margin: 0.7rem 0 0.55rem;
+    }
+
+    .tickerControlLabel {
+        color: var(--color-text-muted);
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .tickerControlGroup {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .tickerControlButton {
+        padding: 0.4rem 0.72rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--color-text-dim);
+        font-family: var(--font-heading);
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+    }
+
+    .tickerControlButtonActive {
+        border-color: rgba(239, 43, 45, 0.45);
+        background: rgba(239, 43, 45, 0.14);
+        color: #fff;
+    }
+
     .mobileLoadMoreWrapper {
         display: flex;
         justify-content: center;
@@ -836,12 +985,6 @@
 
     .heroControl {
         display: none;
-    }
-}
-
-@media (min-width: 720px) {
-    .quickLinks {
-        grid-template-columns: repeat(8, minmax(0, 1fr));
     }
 }
 

@@ -9,9 +9,8 @@
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 3rem;
+    display: grid;
+    gap: 2rem;
 }
 
 .brand {
@@ -42,8 +41,6 @@
     opacity: 0.72;
 }
 
-/* ... */
-
 .socialLinks a {
     color: rgba(247, 247, 244, 0.76);
     transition: all 0.3s ease;
@@ -67,15 +64,8 @@
     transform: translateY(-3px);
 }
 
-.links {
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem;
-    width: 100%;
-    align-items: center;
-}
-
-.footerCta {
+.footerCta,
+.partnerBlock {
     display: flex;
     justify-content: center;
     width: 100%;
@@ -122,6 +112,39 @@
     color: var(--color-text);
 }
 
+.partnerLink {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 1rem 1.1rem;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    box-shadow: var(--shadow-panel);
+}
+
+.partnerLabel {
+    color: var(--color-text-muted);
+    font-family: var(--font-heading);
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.partnerImage {
+    width: auto;
+    height: 74px;
+    object-fit: contain;
+    border-radius: 18px;
+}
+
+.links {
+    display: grid;
+    gap: 2rem;
+    width: 100%;
+}
+
 .linkGroup {
     display: flex;
     flex-direction: column;
@@ -149,10 +172,9 @@
 }
 
 .appLinksGroup {
-    display: flex;
+    display: grid;
     gap: 0.75rem;
-    flex-wrap: wrap;
-    justify-content: center;
+    width: 100%;
     margin-top: 0.5rem;
 }
 
@@ -165,7 +187,7 @@
     border-radius: 8px;
     border: 1px solid var(--border-color-dim);
     transition: all 0.2s ease;
-    flex: 0 0 auto;
+    width: 100%;
 }
 
 .storeBadge:hover {
@@ -213,35 +235,24 @@
 
 @media (min-width: 768px) {
     .container {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: flex-start;
-        text-align: left;
+        grid-template-columns: minmax(220px, 0.9fr) minmax(220px, 0.9fr) minmax(0, 1.6fr);
+        align-items: start;
     }
 
     .brand {
         text-align: left;
-        flex: 0 0 auto;
     }
 
-    .footerCta {
-        justify-content: flex-start;
-        align-self: flex-start;
-        padding-top: 1.25rem;
-        min-width: 200px;
-    }
-
-    .socialLinks {
+    .socialLinks,
+    .footerCta,
+    .partnerBlock {
         justify-content: flex-start;
     }
 
     .links {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(150px, 1fr));
-        gap: 2rem;
+        grid-template-columns: repeat(4, minmax(140px, 1fr));
+        gap: 1.5rem;
         justify-items: start;
-        width: auto;
-        flex: 1;
     }
 
     .linkGroup {
@@ -249,13 +260,12 @@
     }
 
     .appLinksGroup {
-        justify-content: flex-start;
-        flex-wrap: nowrap;
+        width: min(100%, 220px);
     }
 
     .bottomBar {
-        width: 100%;
-        margin-top: 2rem;
+        grid-column: 1 / -1;
+        margin-top: 0.5rem;
     }
 }
 
