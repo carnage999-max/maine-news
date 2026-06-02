@@ -256,11 +256,21 @@ const client = String.raw`
 
         (payload.ads || []).forEach(function (item) {
           var candidates = slotGroups[item.placement] || [];
-          var slot = candidates.find(function (candidate) {
+          var visibleEmptyCandidates = candidates.filter(function (candidate) {
             return isVisibleSlot(candidate) && candidate.getAttribute("data-custom-ad-empty") === "true";
-          }) || candidates.find(function (candidate) {
+          });
+          var emptyCandidates = candidates.filter(function (candidate) {
             return candidate.getAttribute("data-custom-ad-empty") === "true";
-          }) || candidates[0];
+          });
+
+          if (visibleEmptyCandidates.length) {
+            visibleEmptyCandidates.forEach(function (candidate) {
+              if (item.ad) render(candidate, item.ad);
+            });
+            return;
+          }
+
+          var slot = emptyCandidates[0] || candidates[0];
           if (slot && item.ad) render(slot, item.ad);
         });
       })
