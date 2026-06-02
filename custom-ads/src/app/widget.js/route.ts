@@ -106,8 +106,17 @@ const client = String.raw`
     return slot;
   }
 
+  function isEmptySlot(slot) {
+    return slot && slot.getAttribute("data-custom-ad-empty") !== "false";
+  }
+
   function discoverSlots() {
     var existing = Array.prototype.slice.call(document.querySelectorAll("[data-custom-ad-slot]"));
+    existing.forEach(function (slot) {
+      if (!slot.hasAttribute("data-custom-ad-empty")) {
+        slot.setAttribute("data-custom-ad-empty", "true");
+      }
+    });
     if (existing.length) return existing;
 
     var slots = [];
@@ -235,7 +244,11 @@ const client = String.raw`
     var hasManualSlots = slots.some(function (slot) {
       return slot.getAttribute("data-custom-ad-generated") !== "true";
     });
-    var placements = slots.map(function (slot) {
+    var visibleSlots = slots.filter(function (slot) {
+      return isVisibleSlot(slot);
+    });
+    var requestSlots = hasManualSlots && visibleSlots.length ? visibleSlots : slots;
+    var placements = requestSlots.map(function (slot) {
       return slot.getAttribute("data-custom-ad-slot") || "auto";
     });
 
@@ -247,7 +260,7 @@ const client = String.raw`
     fetch(url)
       .then(function (response) { return response.json(); })
       .then(function (payload) {
-        var slotGroups = slots.reduce(function (grouped, slot) {
+        var slotGroups = requestSlots.reduce(function (grouped, slot) {
           var placement = slot.getAttribute("data-custom-ad-slot") || "auto";
           if (!grouped[placement]) grouped[placement] = [];
           grouped[placement].push(slot);
@@ -257,10 +270,10 @@ const client = String.raw`
         (payload.ads || []).forEach(function (item) {
           var candidates = slotGroups[item.placement] || [];
           var visibleEmptyCandidates = candidates.filter(function (candidate) {
-            return isVisibleSlot(candidate) && candidate.getAttribute("data-custom-ad-empty") === "true";
+            return isVisibleSlot(candidate) && isEmptySlot(candidate);
           });
           var emptyCandidates = candidates.filter(function (candidate) {
-            return candidate.getAttribute("data-custom-ad-empty") === "true";
+            return isEmptySlot(candidate);
           });
 
           if (visibleEmptyCandidates.length) {

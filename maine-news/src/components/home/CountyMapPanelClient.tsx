@@ -24,6 +24,8 @@ type CountyFeatureCollection = GeoJsonObject & {
     }>;
 };
 
+const LIVE_COUNTY_GEOJSON_URL = 'https://gis.mcht.org/arcgis/rest/services/AdminPolitical/MEGIS_Boundary_Counties/MapServer/0/query?where=1%3D1&outFields=county&returnGeometry=true&f=geojson&outSR=4326';
+
 const MAINE_BOUNDS: [[number, number], [number, number]] = [
     [42.85, -71.2],
     [47.6, -66.7],
@@ -46,6 +48,21 @@ const HOVER_STYLE: PathOptions = {
     fillOpacity: 0.92,
 };
 
+function getFirstPolygonPointCount(data: CountyFeatureCollection | null) {
+    const firstFeature = data?.features?.[0];
+    const coordinates = firstFeature?.geometry?.coordinates;
+
+    if (!Array.isArray(coordinates) || !Array.isArray(coordinates[0])) {
+        return 0;
+    }
+
+    return Array.isArray(coordinates[0][0]) ? coordinates[0].length : 0;
+}
+
+function looksLikeFallbackGeometry(data: CountyFeatureCollection | null) {
+    return getFirstPolygonPointCount(data) > 0 && getFirstPolygonPointCount(data) <= 8;
+}
+
 export default function CountyMapPanelClient() {
     const router = useRouter();
     const mapRef = useRef<any>(null);
@@ -63,16 +80,34 @@ export default function CountyMapPanelClient() {
 
         async function loadCountyMap() {
             try {
-                const response = await fetch('/api/maine-counties', { cache: 'force-cache' });
+                const response = await fetch('/api/maine-counties', { cache: 'no-store' });
 
                 if (!response.ok) {
                     throw new Error('Unable to load county map.');
                 }
 
                 const json = await response.json() as CountyFeatureCollection;
+                const source = response.headers.get('x-maine-county-source');
+                const shouldBypassFallback = source === 'fallback' || looksLikeFallbackGeometry(json);
+
+                const finalData = shouldBypassFallback
+                    ? await fetch(LIVE_COUNTY_GEOJSON_URL, {
+                        cache: 'no-store',
+                        headers: {
+                            accept: 'application/geo+json, application/json',
+                        },
+                    }).then(async (liveResponse) => {
+                        if (!liveResponse.ok) {
+                            return json;
+                        }
+
+                        const liveJson = await liveResponse.json() as CountyFeatureCollection;
+                        return liveJson;
+                    })
+                    : json;
 
                 if (!cancelled) {
-                    setData(json);
+                    setData(finalData);
                     setError(false);
                 }
             } catch {
