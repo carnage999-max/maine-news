@@ -12,8 +12,8 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { fetchPostBySlug, getImageUrl } from '../../services/api';
-import { colors, typography, spacing, fontSize } from '../../constants/theme';
-import { Share2, Volume2, ArrowLeft, Type, Facebook, Instagram, Youtube } from 'lucide-react-native';
+import { colors, typography, spacing, fontSize, radius } from '../../constants/theme';
+import { Share2, Volume2, Type, Facebook, Instagram, Youtube } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 import { Linking } from 'react-native';
 import { Svg, Path } from 'react-native-svg';
@@ -324,6 +324,8 @@ export default function ArticleDetail() {
         <View style={styles.container}>
             <Stack.Screen options={{
                 title: '',
+                headerStyle: { backgroundColor: colors.backgroundElevated },
+                headerTintColor: colors.text,
                 headerRight: () => (
                     <View style={styles.headerActions}>
                         <TouchableOpacity onPress={toggleTextSize} style={styles.headerIcon}>
@@ -355,11 +357,13 @@ export default function ArticleDetail() {
                     </View>
                 </View>
 
-                <Image
-                    source={getImageUrl(post.image) ? { uri: getImageUrl(post.image)! } : require('../../assets/hero-fallback.jpeg')}
-                    style={styles.heroImage}
-                    resizeMode="cover"
-                />
+                <View style={styles.heroImageWrap}>
+                    <Image
+                        source={getImageUrl(post.image) ? { uri: getImageUrl(post.image)! } : require('../../assets/hero-fallback.jpeg')}
+                        style={styles.heroImage}
+                        resizeMode="cover"
+                    />
+                </View>
 
                 <View style={styles.content}>
                     {renderNode(post.content, 0)}
@@ -397,9 +401,20 @@ const styles = StyleSheet.create({
         paddingBottom: spacing.xxl,
     },
     header: {
-        padding: spacing.lg,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.borderDim,
+        margin: spacing.md,
+        marginBottom: spacing.lg,
+        padding: spacing.xl,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.lg,
+        backgroundColor: colors.backgroundElevated,
+    },
+    heroImageWrap: {
+        marginHorizontal: spacing.md,
+        overflow: 'hidden',
+        borderRadius: radius.lg,
+        borderWidth: 1,
+        borderColor: colors.border,
     },
     heroImage: {
         width: '100%',
@@ -412,9 +427,12 @@ const styles = StyleSheet.create({
         marginRight: 8,
     },
     headerIcon: {
-        padding: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 6,
         flexDirection: 'row',
         alignItems: 'center',
+        borderRadius: radius.pill,
+        backgroundColor: 'rgba(255,255,255,0.04)',
     },
     sizeIndicator: {
         fontSize: 10,
@@ -428,13 +446,13 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start',
         paddingHorizontal: 8,
         paddingVertical: 2,
-        borderRadius: 2,
+        borderRadius: 8,
         marginBottom: spacing.md,
     },
     categoryText: {
         fontFamily: 'Inter_600SemiBold',
         fontSize: 10,
-        color: colors.background,
+        color: '#fff',
     },
     title: {
         fontFamily: 'Oswald_700Bold',
@@ -463,7 +481,13 @@ const styles = StyleSheet.create({
         color: colors.textDim,
     },
     content: {
-        padding: spacing.lg,
+        marginTop: spacing.lg,
+        marginHorizontal: spacing.md,
+        padding: spacing.xl,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.lg,
+        backgroundColor: colors.backgroundElevated,
     },
     paragraphContainer: {
         marginBottom: spacing.lg,
@@ -481,7 +505,7 @@ const styles = StyleSheet.create({
         gap: 30,
         borderTopWidth: 1,
         borderTopColor: colors.borderDim,
-        marginHorizontal: spacing.lg,
+        marginHorizontal: spacing.md,
     },
     socialIcon: {
         padding: 8,
@@ -548,11 +572,12 @@ const styles = StyleSheet.create({
         lineHeight: 16,
     },
     footer: {
-        marginTop: spacing.xxl,
-        padding: spacing.xxl,
+        marginTop: spacing.xl,
+        padding: spacing.xl,
         alignItems: 'center',
         borderTopWidth: 1,
         borderTopColor: colors.borderDim,
+        marginHorizontal: spacing.md,
     },
     footerBranding: {
         fontFamily: 'Oswald_700Bold',

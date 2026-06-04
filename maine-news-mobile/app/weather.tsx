@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { Stack } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CloudSun, MapPin, Wind, Droplets, AlertTriangle, Calendar } from 'lucide-react-native';
-import { colors, spacing, typography } from '../constants/theme';
+import { colors, radius, spacing, typography } from '../constants/theme';
 import { API_BASE_URL, fetchWeatherReport, WeatherReport, RegionForecast } from '../services/api';
 
 function formatTemp(temp?: number, unit?: string) {
@@ -77,9 +77,9 @@ export default function WeatherScreen() {
         <View style={styles.container}>
             <Stack.Screen options={{
                 title: 'Maine Weather',
-                headerTransparent: true,
-                headerTintColor: '#fff',
-                headerTitleStyle: { fontFamily: typography.heading }
+                headerStyle: { backgroundColor: colors.backgroundElevated },
+                headerTintColor: colors.text,
+                headerTitleStyle: { fontFamily: typography.heading, color: colors.text }
             }} />
 
             {loading ? (
@@ -89,7 +89,7 @@ export default function WeatherScreen() {
             ) : report ? (
                 <ScrollView contentContainerStyle={styles.content}>
                     <LinearGradient
-                        colors={['#0f172a', '#1e3a8a', '#0b1020']}
+                        colors={['#16191d', '#101317', '#090a0c']}
                         style={styles.heroGradient}
                     >
                         <View style={styles.heroContent}>
@@ -297,14 +297,17 @@ const styles = StyleSheet.create({
         paddingBottom: spacing.xxl,
     },
     heroGradient: {
-        paddingTop: 100,
+        paddingTop: 32,
         paddingBottom: 32,
-        paddingHorizontal: spacing.xl,
-        borderBottomLeftRadius: 30,
-        borderBottomRightRadius: 30,
+        paddingHorizontal: spacing.md,
     },
     heroContent: {
         gap: spacing.md,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.lg,
+        backgroundColor: colors.backgroundElevated,
+        padding: spacing.xl,
     },
     kicker: {
         fontFamily: typography.heading,
@@ -335,10 +338,10 @@ const styles = StyleSheet.create({
         color: colors.textDim,
     },
     snapshotCard: {
-        borderRadius: 18,
+        borderRadius: radius.lg,
         borderWidth: 1,
-        borderColor: colors.borderDim,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderColor: colors.border,
+        backgroundColor: 'rgba(255,255,255,0.03)',
         padding: spacing.md,
         gap: spacing.sm,
     },
@@ -381,10 +384,10 @@ const styles = StyleSheet.create({
         marginTop: spacing.lg,
         marginHorizontal: spacing.lg,
         padding: spacing.md,
-        borderRadius: 16,
+        borderRadius: radius.lg,
         borderWidth: 1,
-        borderColor: colors.borderDim,
-        backgroundColor: colors.cardBg,
+        borderColor: colors.border,
+        backgroundColor: colors.backgroundElevated,
         gap: spacing.sm,
     },
     shareTitle: {
@@ -429,7 +432,7 @@ const styles = StyleSheet.create({
     },
     tabButtonActive: {
         borderColor: colors.accent,
-        backgroundColor: 'rgba(191, 155, 48, 0.12)',
+        backgroundColor: colors.accentSoft,
     },
     tabButtonText: {
         fontFamily: typography.bodySemiBold,
@@ -461,10 +464,10 @@ const styles = StyleSheet.create({
         gap: spacing.md,
     },
     forecastCard: {
-        borderRadius: 16,
+        borderRadius: radius.lg,
         borderWidth: 1,
-        borderColor: colors.borderDim,
-        backgroundColor: colors.cardBg,
+        borderColor: colors.border,
+        backgroundColor: colors.backgroundElevated,
         padding: spacing.md,
         gap: spacing.xs,
     },
@@ -510,10 +513,10 @@ const styles = StyleSheet.create({
     },
     outlookCard: {
         width: 150,
-        borderRadius: 16,
+        borderRadius: radius.lg,
         borderWidth: 1,
-        borderColor: colors.borderDim,
-        backgroundColor: colors.cardBg,
+        borderColor: colors.border,
+        backgroundColor: colors.backgroundElevated,
         padding: spacing.md,
         gap: spacing.xs,
     },
@@ -542,7 +545,7 @@ const styles = StyleSheet.create({
         marginTop: spacing.xl,
         marginHorizontal: spacing.lg,
         padding: spacing.md,
-        borderRadius: 16,
+        borderRadius: radius.lg,
         borderWidth: 1,
         borderColor: 'rgba(248, 113, 113, 0.4)',
         backgroundColor: 'rgba(248, 113, 113, 0.1)',
@@ -591,10 +594,10 @@ const styles = StyleSheet.create({
         lineHeight: 16,
     },
     errorCard: {
-        borderRadius: 14,
+        borderRadius: radius.md,
         borderWidth: 1,
-        borderColor: colors.borderDim,
-        backgroundColor: colors.cardBg,
+        borderColor: colors.border,
+        backgroundColor: colors.backgroundElevated,
         padding: spacing.md,
     },
     errorText: {

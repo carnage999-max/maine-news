@@ -1,17 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import {
-    View,
-    Text,
-    TextInput,
-    FlatList,
-    TouchableOpacity,
-    StyleSheet,
-    ActivityIndicator
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { fetchPosts, searchPosts, Post } from '../services/api';
-import { colors, typography, spacing, fontSize } from '../constants/theme';
-import { Search as SearchIcon, ArrowLeft, ChevronUp } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useRouter, Stack } from 'expo-router';
+import { ChevronUp, Search as SearchIcon } from 'lucide-react-native';
+import { colors, radius, spacing } from '../constants/theme';
+import { fetchPosts, searchPosts, type Post } from '../services/api';
 
 export default function SearchScreen() {
     const [query, setQuery] = useState('');
@@ -19,9 +11,8 @@ export default function SearchScreen() {
     const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [showScrollTop, setShowScrollTop] = useState(false);
-    const router = useRouter();
-
     const flatListRef = React.useRef<FlatList>(null);
+    const router = useRouter();
 
     useEffect(() => {
         async function load() {
@@ -34,51 +25,35 @@ export default function SearchScreen() {
                 setLoading(false);
             }
         }
-        load();
+        void load();
     }, []);
 
     useEffect(() => {
-        if (query.trim()) {
-            setFilteredPosts(searchPosts(allPosts, query));
-        } else {
-            setFilteredPosts([]);
-        }
+        setFilteredPosts(query.trim() ? searchPosts(allPosts, query) : []);
     }, [query, allPosts]);
-
-    const handleScroll = (event: any) => {
-        const offsetY = event.nativeEvent.contentOffset.y;
-        if (offsetY > 400 && !showScrollTop) {
-            setShowScrollTop(true);
-        } else if (offsetY <= 400 && showScrollTop) {
-            setShowScrollTop(false);
-        }
-    };
-
-    const scrollToTop = () => {
-        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-    };
-
-    const renderItem = ({ item }: { item: Post }) => (
-        <TouchableOpacity
-            style={styles.resultItem}
-            onPress={() => router.push(`/article/${item.slug}`)}
-        >
-            <Text style={styles.resultTitle}>{item.title}</Text>
-            <View style={styles.resultMeta}>
-                <Text style={styles.category}>{item.category.toUpperCase()}</Text>
-                <Text style={styles.separator}>•</Text>
-                <Text style={styles.metaText}>{item.author}</Text>
-            </View>
-        </TouchableOpacity>
-    );
 
     return (
         <View style={styles.container}>
+            <Stack.Screen
+                options={{
+                    title: 'Search',
+                    headerStyle: { backgroundColor: colors.backgroundElevated },
+                    headerTintColor: colors.text,
+                    headerTitleStyle: { fontFamily: 'Oswald_700Bold', color: colors.text },
+                }}
+            />
+
+            <View style={styles.heroPanel}>
+                <Text style={styles.kicker}>Search the newsroom</Text>
+                <Text style={styles.title}>Find Stories Fast</Text>
+                <Text style={styles.subtitle}>Search headlines, authors, or topics across Maine News Now.</Text>
+            </View>
+
             <View style={styles.searchBar}>
-                <SearchIcon size={20} color={colors.accent} style={styles.searchIcon} />
+                <SearchIcon size={18} color={colors.textDim} />
                 <TextInput
                     style={styles.input}
-                    placeholder="Search Maine Intel..."
+                    placeholder="Search stories, topics, or authors..."
                     placeholderTextColor={colors.textDim}
                     value={query}
                     onChangeText={setQuery}
@@ -96,29 +71,30 @@ export default function SearchScreen() {
                     <FlatList
                         ref={flatListRef}
                         data={filteredPosts}
-                        renderItem={renderItem}
                         keyExtractor={(item) => item.slug}
-                        onScroll={handleScroll}
+                        onScroll={(event) => setShowScrollTop(event.nativeEvent.contentOffset.y > 420)}
                         scrollEventThrottle={16}
+                        contentContainerStyle={styles.list}
+                        renderItem={({ item }) => (
+                            <TouchableOpacity style={styles.resultCard} onPress={() => router.push(`/article/${item.slug}`)}>
+                                <Text style={styles.resultCategory}>{item.category.toUpperCase()}</Text>
+                                <Text style={styles.resultTitle}>{item.title}</Text>
+                                <Text style={styles.resultMeta}>{item.author}</Text>
+                            </TouchableOpacity>
+                        )}
                         ListEmptyComponent={
                             <View style={styles.empty}>
                                 <Text style={styles.emptyText}>
-                                    {query.trim() ? `No results for "${query}"` : 'Type to start searching...'}
+                                    {query.trim() ? `No results for "${query}"` : 'Type to start searching the newsroom.'}
                                 </Text>
                             </View>
                         }
-                        contentContainerStyle={styles.list}
                     />
-
-                    {showScrollTop && (
-                        <TouchableOpacity
-                            style={styles.scrollToTopButton}
-                            onPress={scrollToTop}
-                            activeOpacity={0.8}
-                        >
-                            <ChevronUp size={24} color={colors.background} />
+                    {showScrollTop ? (
+                        <TouchableOpacity style={styles.scrollTopButton} onPress={() => flatListRef.current?.scrollToOffset({ offset: 0, animated: true })}>
+                            <ChevronUp size={22} color={colors.text} />
                         </TouchableOpacity>
-                    )}
+                    ) : null}
                 </>
             )}
         </View>
@@ -126,94 +102,90 @@ export default function SearchScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background,
+    container: { flex: 1, backgroundColor: colors.background },
+    heroPanel: {
+        margin: spacing.md,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.lg,
+        backgroundColor: colors.backgroundElevated,
+        padding: spacing.xl,
+    },
+    kicker: {
+        color: colors.accent,
+        fontFamily: 'Oswald_500Medium',
+        fontSize: 12,
+        letterSpacing: 1,
+        marginBottom: 6,
+    },
+    title: { color: colors.text, fontFamily: 'Oswald_700Bold', fontSize: 28 },
+    subtitle: {
+        color: colors.textMuted,
+        fontFamily: 'Inter_400Regular',
+        fontSize: 14,
+        lineHeight: 22,
+        marginTop: spacing.sm,
     },
     searchBar: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.cardBg,
-        margin: spacing.md,
+        backgroundColor: colors.backgroundElevated,
+        marginHorizontal: spacing.md,
+        marginBottom: spacing.md,
         paddingHorizontal: spacing.md,
-        borderRadius: 8,
+        borderRadius: radius.md,
         borderWidth: 1,
         borderColor: colors.border,
-    },
-    searchIcon: {
-        marginRight: spacing.sm,
+        minHeight: 54,
     },
     input: {
         flex: 1,
-        height: 50,
         color: colors.text,
         fontFamily: 'Inter_400Regular',
         fontSize: 16,
+        marginLeft: spacing.sm,
     },
-    list: {
+    list: { paddingHorizontal: spacing.md, paddingBottom: spacing.xxl },
+    resultCard: {
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.md,
+        backgroundColor: colors.backgroundElevated,
         padding: spacing.md,
+        marginBottom: spacing.sm,
     },
-    resultItem: {
-        padding: spacing.lg,
-        backgroundColor: colors.cardBg,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.borderDim,
-        borderRadius: 4,
-        marginBottom: spacing.xs,
-    },
-    resultTitle: {
+    resultCategory: {
+        color: colors.accent,
         fontFamily: 'Oswald_500Medium',
-        fontSize: 18,
-        color: colors.text,
+        fontSize: 11,
+        letterSpacing: 1,
         marginBottom: 4,
     },
-    resultMeta: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    category: {
+    resultTitle: {
+        color: colors.text,
         fontFamily: 'Inter_600SemiBold',
-        fontSize: 10,
-        color: colors.accent,
+        fontSize: 17,
+        lineHeight: 23,
     },
-    metaText: {
+    resultMeta: {
+        color: colors.textDim,
         fontFamily: 'Inter_400Regular',
-        fontSize: 10,
-        color: colors.textDim,
+        fontSize: 12,
+        marginTop: 8,
     },
-    separator: {
-        color: colors.textDim,
-    },
-    center: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    empty: {
-        padding: spacing.xxl,
-        alignItems: 'center',
-    },
-    emptyText: {
-        fontFamily: 'Inter_400Regular',
-        color: colors.textDim,
-        fontSize: 14,
-    },
-    scrollToTopButton: {
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    empty: { padding: spacing.xxl, alignItems: 'center' },
+    emptyText: { color: colors.textDim, fontFamily: 'Inter_400Regular', fontSize: 14, textAlign: 'center' },
+    scrollTopButton: {
         position: 'absolute',
-        bottom: spacing.lg,
         right: spacing.lg,
+        bottom: spacing.xl,
+        width: 46,
+        height: 46,
+        borderRadius: radius.pill,
         backgroundColor: colors.accent,
-        width: 44,
-        height: 44,
-        borderRadius: 22,
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
-        zIndex: 100,
     },
 });

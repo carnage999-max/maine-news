@@ -1,273 +1,324 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import {
-    View,
-    Text,
-    FlatList,
-    TouchableOpacity,
-    StyleSheet,
-    RefreshControl,
-    ActivityIndicator,
-    Image,
-    Dimensions,
-    ScrollView,
-    Animated,
-    Linking,
-    Easing,
-} from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { fetchPosts, Post, getImageUrl, filterByCategory } from '../../services/api';
-import { colors, spacing, fontSize } from '../../constants/theme';
-import { Clock, ArrowUpDown, ChevronUp, Facebook, Instagram, Youtube } from 'lucide-react-native';
-import { Svg, Path } from 'react-native-svg';
+import { CircleAlert, CloudSun, Landmark, Map, Radio, ScrollText, Search, Shield, TriangleAlert, Tv2, Building2, Menu, ChevronUp, ChevronRight } from 'lucide-react-native';
+import {
+    ActivityIndicator,
+    Dimensions,
+    FlatList,
+    Image,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import HeadlineRow from '../../components/home/HeadlineRow';
+import NewsTicker from '../../components/home/NewsTicker';
+import { colors, fontSize, radius, spacing } from '../../constants/theme';
+import {
+    API_BASE_URL,
+    fetchLotterySummary,
+    fetchNewsroomProfiles,
+    fetchPosts,
+    fetchTrafficReport,
+    fetchWeatherReport,
+    getImageUrl,
+    type LotterySummary,
+    type NewsroomProfile,
+    type Post,
+    type TrafficReport,
+    type WeatherReport,
+} from '../../services/api';
 
 const { width } = Dimensions.get('window');
-const CATEGORIES = ['all', 'exclusives', 'top-stories', 'local', 'national', 'politics', 'opinion', 'editorial', 'health', 'sports', 'weather', 'entertainment'];
+const HERO_HEIGHT = 438;
+const TICKER_STORAGE_KEY = 'mobileTickerSpeed';
 
-const XIcon = ({ color }: { color: string }) => (
-    <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <Path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.45-6.231h0.001zm-1.161 17.52h1.833L7.084 4.126H5.117l11.966 15.644z" fill={color} />
-    </Svg>
-);
+type TickerSpeed = 'slow' | 'normal' | 'fast';
 
-const LiveTicker = React.memo(({ headlines }: { headlines: string[] }) => {
-    const translateX = useRef(new Animated.Value(0)).current;
-    const [contentWidth, setContentWidth] = useState(0);
-    const tickerItems = useMemo(() =>
-        headlines.length > 0 ? headlines : ["No breaking news at this time"],
-        [headlines]
-    );
+const LATEST_FILTERS = ['latest', 'maine', 'crime', 'politics', 'business', 'health', 'editorial'] as const;
 
-    useEffect(() => {
-        if (contentWidth <= 0) return;
+const QUICK_TOP = [
+    { label: 'Weather', icon: CloudSun, color: colors.highlight, route: '/weather' },
+    { label: 'Live feed', icon: Radio, color: colors.accent, route: '/search' },
+    { label: 'Traffic', icon: Map, color: colors.info, route: '/traffic' },
+    { label: 'Watch', icon: Tv2, color: colors.blue, route: '/video-hub' },
+];
 
-        translateX.setValue(0);
-        const animation = Animated.loop(
-            Animated.timing(translateX, {
-                toValue: -contentWidth,
-                duration: contentWidth * 35,
-                easing: Easing.linear,
-                useNativeDriver: true,
-            })
-        );
+const QUICK_BOTTOM = [
+    { label: 'Politics', icon: Landmark, color: colors.highlight, route: '/category/politics' },
+    { label: 'Crime', icon: Shield, color: colors.accent, route: '/category/crime' },
+    { label: 'Business', icon: Building2, color: colors.success, route: '/category/business' },
+    { label: 'Tips', icon: TriangleAlert, color: colors.warning, route: '/tips' },
+];
 
-        animation.start();
-        return () => animation.stop();
-    }, [contentWidth, tickerItems]);
+function formatCompactDate() {
+    return new Intl.DateTimeFormat('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: '2-digit',
+    }).format(new Date());
+}
 
-    const renderTrackPart = (isMain: boolean) => (
-        <View
-            key={isMain ? 'main' : 'dup'}
-            style={styles.tickerTrackPart}
-            onLayout={(e) => {
-                if (isMain) {
-                    const w = e.nativeEvent.layout.width;
-                    if (w > 0 && Math.abs(w - contentWidth) > 1) {
-                        setContentWidth(w);
-                    }
-                }
-            }}
-        >
-            {tickerItems.map((item, i) => (
-                <View key={i} style={styles.tickerItemWrapper}>
-                    <Text numberOfLines={1} style={styles.tickerItem}>{item.toUpperCase()}</Text>
-                    <Text style={styles.tickerSeparator}>///</Text>
-                </View>
-            ))}
-        </View>
-    );
+function formatRelativeTime(dateString: string) {
+    const now = new Date();
+    const past = new Date(dateString);
+    const diffInMs = now.getTime() - past.getTime();
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInHours / 24);
 
-    return (
-        <View style={styles.tickerContainer}>
-            <View style={styles.tickerLabel}>
-                <Text style={styles.tickerLabelText}>LIVE</Text>
-            </View>
-            <View style={styles.tickerWrapper}>
-                <Animated.View
-                    style={[
-                        styles.tickerTrack,
-                        {
-                            transform: [{ translateX }],
-                            width: contentWidth ? contentWidth * 2 : 10000
-                        }
-                    ]}
-                >
-                    {renderTrackPart(true)}
-                    {renderTrackPart(false)}
-                </Animated.View>
-            </View>
-        </View>
-    );
-});
+    if (diffInHours < 1) {
+        const diffInMinutes = Math.max(1, Math.floor(diffInMs / (1000 * 60)));
+        return `${diffInMinutes} min ago`;
+    }
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
+    if (diffInDays < 7) return `${diffInDays} day${diffInDays === 1 ? '' : 's'} ago`;
+    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(past);
+}
 
-export default function HomeFeed() {
-    const [allPosts, setAllPosts] = useState<Post[]>([]);
-    const [displayPosts, setDisplayPosts] = useState<Post[]>([]);
+function getLatestSectionPosts(posts: Post[], activeFilter: string) {
+    if (activeFilter === 'latest') {
+        return posts;
+    }
+
+    if (activeFilter === 'maine') {
+        return posts.filter((post) => !post.isNational);
+    }
+
+    return posts.filter((post) => post.category.toLowerCase() === activeFilter);
+}
+
+function getWeatherSnapshot(weather: WeatherReport | null) {
+    if (!weather?.regions?.length) {
+        return null;
+    }
+
+    return weather.regions.find((region) => region.id === 'statewide' && region.status === 'ok')
+        || weather.regions.find((region) => region.status === 'ok')
+        || weather.regions[0];
+}
+
+function getLotteryLine(lottery: LotterySummary | null) {
+    const powerball = lottery?.powerball;
+    if (!powerball?.numbers?.length) {
+        return 'Powerball pending';
+    }
+
+    const joinedNumbers = powerball.numbers.join(' ');
+    return powerball.extra
+        ? `Powerball ${joinedNumbers} ${powerball.extra}`
+        : `Powerball ${joinedNumbers}`;
+}
+
+export default function HomeScreen() {
+    const router = useRouter();
+    const insets = useSafeAreaInsets();
+    const flatListRef = useRef<FlatList<Post>>(null);
+    const heroScrollRef = useRef<ScrollView>(null);
+    const heroTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [traffic, setTraffic] = useState<TrafficReport | null>(null);
+    const [weather, setWeather] = useState<WeatherReport | null>(null);
+    const [lottery, setLottery] = useState<LotterySummary | null>(null);
+    const [profiles, setProfiles] = useState<NewsroomProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [activeCategory, setActiveCategory] = useState('all');
-    const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
-    const [showScrollTop, setShowScrollTop] = useState(false);
     const [heroIndex, setHeroIndex] = useState(0);
-    const [interactionCount, setInteractionCount] = useState(0);
+    const [latestFilter, setLatestFilter] = useState<(typeof LATEST_FILTERS)[number]>('latest');
+    const [mobileVisibleCount, setMobileVisibleCount] = useState(6);
+    const [showScrollTop, setShowScrollTop] = useState(false);
+    const [tickerSpeed, setTickerSpeed] = useState<TickerSpeed>('normal');
 
-    const flatListRef = useRef<FlatList>(null);
-    const heroScrollViewRef = useRef<ScrollView>(null);
-    const heroTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const router = useRouter();
+    useEffect(() => {
+        AsyncStorage.getItem(TICKER_STORAGE_KEY).then((saved) => {
+            if (saved === 'slow' || saved === 'normal' || saved === 'fast') {
+                setTickerSpeed(saved);
+            }
+        }).catch(() => undefined);
+    }, []);
 
-    const loadPosts = async () => {
+    useEffect(() => {
+        AsyncStorage.setItem(TICKER_STORAGE_KEY, tickerSpeed).catch(() => undefined);
+    }, [tickerSpeed]);
+
+    const loadHome = async () => {
         try {
-            const data = await fetchPosts();
-            setAllPosts(data);
-            applyFilters(data, activeCategory, sortBy);
+            const [postData, weatherData, lotteryData, trafficData, profileData] = await Promise.all([
+                fetchPosts(),
+                fetchWeatherReport(),
+                fetchLotterySummary(),
+                fetchTrafficReport(),
+                fetchNewsroomProfiles(),
+            ]);
+
+            setPosts(postData);
+            setWeather(weatherData);
+            setLottery(lotteryData);
+            setTraffic(trafficData);
+            setProfiles(profileData);
         } catch (error) {
-            console.error('Error loading posts:', error);
+            console.error('Failed to load mobile home:', error);
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
     };
 
-    const applyFilters = (data: Post[], category: string, sort: string) => {
-        let filtered = [...data];
-
-        if (category === 'exclusives') {
-            filtered = data.filter(post => post.isOriginal === true);
-        } else if (category !== 'all') {
-            filtered = filterByCategory(data, category);
-        }
-
-        filtered.sort((a, b) => {
-            const dateA = new Date(a.publishedDate).getTime();
-            const dateB = new Date(b.publishedDate).getTime();
-            return sort === 'newest' ? dateB - dateA : dateA - dateB;
-        });
-
-        setDisplayPosts(filtered);
-    };
-
     useEffect(() => {
-        loadPosts();
+        void loadHome();
     }, []);
 
-    useEffect(() => {
-        if (allPosts.length > 1) {
-            heroTimerRef.current = setInterval(() => {
-                const nextIndex = (heroIndex + 1) % Math.min(6, allPosts.length);
-                setHeroIndex(nextIndex);
-                heroScrollViewRef.current?.scrollTo({ x: nextIndex * width, animated: true });
-            }, 3500);
+    const heroStories = useMemo(() => posts.slice(0, 7), [posts]);
+    const topStory = heroStories[heroIndex] || posts[0];
+    const weatherSnapshot = useMemo(() => getWeatherSnapshot(weather), [weather]);
+    const trendingItems = useMemo(() => posts.slice(0, 10).map((post) => post.title), [posts]);
+    const breakingItems = useMemo(() => {
+        const incidentLabels = traffic?.incidents?.slice(0, 4).map((incident) => incident.description) || [];
+        if (incidentLabels.length) {
+            return incidentLabels;
         }
-        return () => {
-            if (heroTimerRef.current) clearInterval(heroTimerRef.current);
-        };
-    }, [allPosts, heroIndex, interactionCount]);
+        return posts.slice(0, 8).map((post) => post.title);
+    }, [posts, traffic]);
+    const latestHeadlines = useMemo(() => getLatestSectionPosts(posts.slice(1), latestFilter), [posts, latestFilter]);
 
     useEffect(() => {
-        applyFilters(allPosts, activeCategory, sortBy);
-    }, [activeCategory, sortBy]);
+        if (heroStories.length <= 1) {
+            return;
+        }
+
+        heroTimerRef.current = setInterval(() => {
+            setHeroIndex((prev) => {
+                const next = (prev + 1) % heroStories.length;
+                heroScrollRef.current?.scrollTo({ x: next * width, animated: true });
+                return next;
+            });
+        }, 6000);
+
+        return () => {
+            if (heroTimerRef.current) {
+                clearInterval(heroTimerRef.current);
+            }
+        };
+    }, [heroStories.length]);
 
     const onRefresh = () => {
         setRefreshing(true);
-        loadPosts();
-    };
-
-    const toggleSort = () => {
-        setSortBy(prev => prev === 'newest' ? 'oldest' : 'newest');
+        void loadHome();
     };
 
     const handleScroll = (event: any) => {
         const offsetY = event.nativeEvent.contentOffset.y;
-        if (offsetY > 400 && !showScrollTop) {
-            setShowScrollTop(true);
-        } else if (offsetY <= 400 && showScrollTop) {
-            setShowScrollTop(false);
-        }
+        setShowScrollTop(offsetY > 520);
     };
 
-    const scrollToTop = () => {
-        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-    };
+    const renderTopStrip = () => (
+        <View style={[styles.topStrip, { paddingTop: insets.top + 4 }]}>
+            <Text style={styles.topStripText}>{formatCompactDate()}</Text>
+            <Text style={styles.topStripDivider}>•</Text>
+            <Text style={styles.topStripTemp}>
+                {weatherSnapshot?.today?.temperature !== undefined
+                    ? `${weatherSnapshot.today.temperature}${weatherSnapshot.today.temperatureUnit || ''}`
+                    : 'Maine'}
+            </Text>
+            <Text style={styles.topStripDivider}>•</Text>
+            <Text style={styles.topStripLottery} numberOfLines={1}>
+                {getLotteryLine(lottery)}
+            </Text>
+        </View>
+    );
 
-    const formatRelativeTime = (dateString: string) => {
-        const now = new Date();
-        const past = new Date(dateString);
-        const diffInMs = now.getTime() - past.getTime();
-        const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-        const diffInDays = Math.floor(diffInHours / 24);
-
-        if (diffInHours < 1) {
-            const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-            return `${diffInMinutes}m ago`;
-        }
-        if (diffInHours < 24) return `${diffInHours}h ago`;
-        if (diffInDays === 1) return 'Yesterday';
-        if (diffInDays < 7) return `${diffInDays}d ago`;
-        return past.toLocaleDateString();
-    };
+    const renderHeaderBand = () => (
+        <View style={styles.headerBand}>
+            <TouchableOpacity style={styles.headerIconButton} onPress={() => router.push('/sections')}>
+                <Menu size={22} color={colors.text} />
+            </TouchableOpacity>
+            <Image
+                source={require('../../assets/maine-news-now.png')}
+                style={styles.headerLogo}
+                resizeMode="contain"
+            />
+            <TouchableOpacity style={styles.headerIconButton} onPress={() => router.push('/search')}>
+                <Search size={21} color={colors.text} />
+            </TouchableOpacity>
+        </View>
+    );
 
     const renderHero = () => {
-        const heroStories = allPosts.slice(0, 6);
-        if (heroStories.length === 0) return null;
+        if (!heroStories.length) {
+            return null;
+        }
 
         return (
-            <View style={styles.heroContainer}>
+            <View style={styles.heroWrap}>
                 <ScrollView
-                    ref={heroScrollViewRef}
+                    ref={heroScrollRef}
                     horizontal
                     pagingEnabled
                     showsHorizontalScrollIndicator={false}
-                    onMomentumScrollEnd={(e) => {
-                        const newIndex = Math.round(e.nativeEvent.contentOffset.x / width);
+                    onMomentumScrollEnd={(event) => {
+                        const newIndex = Math.round(event.nativeEvent.contentOffset.x / width);
                         setHeroIndex(newIndex);
-                        setInteractionCount(prev => prev + 1);
                     }}
                     onScrollBeginDrag={() => {
-                        if (heroTimerRef.current) clearInterval(heroTimerRef.current);
+                        if (heroTimerRef.current) {
+                            clearInterval(heroTimerRef.current);
+                        }
                     }}
                 >
                     {heroStories.map((post) => (
                         <TouchableOpacity
                             key={post.slug}
+                            activeOpacity={0.92}
                             style={styles.heroSlide}
                             onPress={() => router.push(`/article/${post.slug}`)}
-                            activeOpacity={0.9}
                         >
-                            <View style={styles.heroImagePlaceholder}>
-                                <Image
-                                    source={getImageUrl(post.image) ? { uri: getImageUrl(post.image) } : require('../../assets/hero-fallback.jpeg')}
-                                    style={styles.heroFullImage}
-                                    resizeMode="contain"
-                                />
-                            </View>
+                            <Image
+                                source={getImageUrl(post.image) ? { uri: getImageUrl(post.image)! } : require('../../assets/hero-fallback.jpeg')}
+                                style={styles.heroImage}
+                                resizeMode="cover"
+                            />
                             <LinearGradient
-                                colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.95)']}
+                                colors={['rgba(0,0,0,0.02)', 'rgba(0,0,0,0.36)', 'rgba(0,0,0,0.96)']}
+                                style={StyleSheet.absoluteFill}
+                            />
+                            <LinearGradient
+                                colors={['rgba(239,43,45,0.03)', 'rgba(6,7,8,0)', 'rgba(6,7,8,0.5)']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
                                 style={StyleSheet.absoluteFill}
                             />
                             <View style={styles.heroContent}>
-                                <Text style={styles.heroTitle} numberOfLines={3}>
-                                    {post.title}
-                                </Text>
-                                <View style={styles.meta}>
-                                    <Text style={styles.metaTextInverse}>{post.author}</Text>
-                                    <Text style={styles.separatorInverse}>///</Text>
-                                    <Text style={styles.metaTextInverse}>
-                                        {formatRelativeTime(post.publishedDate)}
-                                    </Text>
+                                <View style={styles.topStoryChip}>
+                                    <Text style={styles.topStoryChipText}>TOP STORY</Text>
                                 </View>
+                                <Text style={styles.heroTitle}>{post.title}</Text>
+                                <Text style={styles.heroSummary} numberOfLines={3}>
+                                    {post.excerpt || 'Maine communities are following this story closely as the latest developments continue to unfold.'}
+                                </Text>
+                                <Text style={styles.heroMeta}>
+                                    {new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(post.publishedDate))}
+                                    {'  •  '}
+                                    {formatRelativeTime(post.publishedDate)}
+                                </Text>
                             </View>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
-                <View style={styles.heroIndicatorsOverlay}>
-                    {heroStories.map((_, i) => (
-                        <View
-                            key={i}
-                            style={[
-                                styles.heroIndicator,
-                                i === heroIndex && styles.activeHeroIndicator
-                            ]}
+                <View style={styles.heroDots}>
+                    {heroStories.map((story, index) => (
+                        <TouchableOpacity
+                            key={story.slug}
+                            onPress={() => {
+                                setHeroIndex(index);
+                                heroScrollRef.current?.scrollTo({ x: index * width, animated: true });
+                            }}
+                            style={[styles.heroDot, index === heroIndex && styles.heroDotActive]}
                         />
                     ))}
                 </View>
@@ -275,219 +326,630 @@ export default function HomeFeed() {
         );
     };
 
-    const renderSocialBar = () => {
-        return (
-            <View style={styles.socialBar}>
-                <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.facebook.com/share/1DWXu7JBHo/?mibextid=wwXIfr')}>
-                    <Facebook size={18} color="#1877F2" fill="#1877F2" />
+    const renderQuickLinks = () => (
+        <View style={styles.quickLinksSection}>
+            <View style={styles.quickGridRow}>
+                {QUICK_TOP.map((item) => (
+                    <TouchableOpacity key={item.label} style={styles.quickCard} onPress={() => router.push(item.route as any)}>
+                        <item.icon size={22} color={item.color} />
+                        <Text style={styles.quickCardLabel}>{item.label}</Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+
+            <View style={styles.quickMiddleRow}>
+                <TouchableOpacity style={styles.minuteImageWrap} onPress={() => router.push('/video-hub')}>
+                    <Image
+                        source={{ uri: `${API_BASE_URL}/maine-minutes.png` }}
+                        style={styles.minuteImage}
+                        resizeMode="cover"
+                    />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/maine_news_today?igsh=NXo3OHJzMmRwbXRq&utm_source=qr')}>
-                    <Instagram size={18} color="#E4405F" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://x.com/MaineNews_Now')}>
-                    <XIcon color="#000" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.mylibertysocial.com/app/pages/200')}>
-                    <Image source={require('../../assets/liberty-social.png')} style={{ width: 18, height: 18 }} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.youtube.com/@MaineNewsToday')}>
-                    <Youtube size={18} color="#FF0000" />
+                <TouchableOpacity style={[styles.quickCard, styles.quickCardLarge]} onPress={() => router.push('/category/editorial')}>
+                    <ScrollText size={26} color={colors.purple} />
+                    <Text style={styles.quickCardLabelLarge}>Editorial</Text>
                 </TouchableOpacity>
             </View>
-        );
-    };
 
-    const renderSectionHeader = () => {
-        return (
-            <View style={styles.stickyHeaderContent}>
-                {renderSocialBar()}
-                <View style={styles.sectionHeader}>
-                    <View style={styles.sectionTitleRow}>
-                        <Text style={styles.sectionTitle}>LATEST NEWS</Text>
-                        <TouchableOpacity style={styles.sortButton} onPress={toggleSort}>
-                            <ArrowUpDown size={16} color={colors.accent} />
-                            <Text style={styles.sortText}>{sortBy.toUpperCase()}</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.filterBar}
+            <View style={styles.quickGridRow}>
+                {QUICK_BOTTOM.map((item) => (
+                    <TouchableOpacity key={item.label} style={styles.quickCard} onPress={() => router.push(item.route as any)}>
+                        <item.icon size={22} color={item.color} />
+                        <Text style={styles.quickCardLabel}>{item.label}</Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+        </View>
+    );
+
+    const renderTickerSpeedControls = () => (
+        <View style={styles.tickerSpeedRow}>
+            <Text style={styles.tickerSpeedLabel}>Ticker Speed</Text>
+            <View style={styles.tickerSpeedButtons}>
+                {(['slow', 'normal', 'fast'] as const).map((speedOption) => (
+                    <TouchableOpacity
+                        key={speedOption}
+                        style={[
+                            styles.tickerSpeedButton,
+                            tickerSpeed === speedOption && styles.tickerSpeedButtonActive,
+                        ]}
+                        onPress={() => setTickerSpeed(speedOption)}
                     >
-                        {CATEGORIES.map(cat => (
-                            <TouchableOpacity
-                                key={cat}
-                                style={[
-                                    styles.filterChip,
-                                    activeCategory === cat && styles.activeFilterChip
-                                ]}
-                                onPress={() => setActiveCategory(cat)}
-                            >
-                                <Text style={[
-                                    styles.filterChipText,
-                                    activeCategory === cat && styles.activeFilterChipText
-                                ]}>
-                                    {cat.toUpperCase()}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
+                        <Text
+                            style={[
+                                styles.tickerSpeedButtonText,
+                                tickerSpeed === speedOption && styles.tickerSpeedButtonTextActive,
+                            ]}
+                        >
+                            {speedOption.toUpperCase()}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
             </View>
-        );
-    };
+        </View>
+    );
 
-    const headlinesArray = useMemo(() => allPosts.slice(0, 10).map(p => p.title), [allPosts]);
-
-    const renderItem = ({ item }: { item: any }) => {
-        if (item.isHero) return renderHero();
-        if (item.isTicker) return <LiveTicker headlines={headlinesArray} />;
-        if (item.isHeader) return renderSectionHeader();
-
-        const post = item as Post;
-        const heroSlugs = allPosts.slice(0, 6).map(p => p.slug);
-        if (heroSlugs.includes(post.slug)) return null;
-
-        const imageUrl = getImageUrl(post.image);
+    const renderNewsroomPreview = () => {
+        if (!profiles.length) {
+            return null;
+        }
 
         return (
-            <TouchableOpacity
-                style={styles.card}
-                onPress={() => router.push(`/article/${post.slug}`)}
-                activeOpacity={0.7}
-            >
-                <Image
-                    source={imageUrl ? { uri: imageUrl } : require('../../assets/hero-fallback.jpeg')}
-                    style={styles.cardImage}
-                    resizeMode="cover"
-                />
-                <View style={styles.cardBody}>
-                    <View style={styles.cardHeader}>
-                        <Text style={styles.categoryBadge}>{post.category.toUpperCase()}</Text>
-                        <View style={styles.timeAgo}>
-                            <Clock size={12} color={colors.textDim} />
-                            <Text style={styles.timeText}>{formatRelativeTime(post.publishedDate)}</Text>
+            <View style={styles.newsroomPanel}>
+                <View style={styles.sectionHead}>
+                    <View>
+                        <Text style={styles.sectionKicker}>Meet the newsroom</Text>
+                        <Text style={styles.sectionTitle}>Reporters & Contributors</Text>
+                    </View>
+                </View>
+                {profiles.slice(0, 2).map((profile) => (
+                    <View key={profile.id} style={styles.profileRow}>
+                        {profile.avatar ? (
+                            <Image source={{ uri: profile.avatar }} style={styles.profileAvatar} />
+                        ) : (
+                            <View style={[styles.profileAvatar, styles.profileAvatarFallback]}>
+                                <Text style={styles.profileAvatarFallbackText}>{profile.name.charAt(0)}</Text>
+                            </View>
+                        )}
+                        <View style={styles.profileContent}>
+                            <Text style={styles.profileName}>{profile.name}</Text>
+                            <Text style={styles.profileRole}>{profile.role}</Text>
+                            {profile.bio ? (
+                                <Text style={styles.profileBio} numberOfLines={2}>
+                                    {profile.bio}
+                                </Text>
+                            ) : null}
                         </View>
                     </View>
-                    <Text style={styles.title} numberOfLines={3}>{post.title}</Text>
-                    <Text style={styles.excerpt} numberOfLines={2}>
-                        {post.excerpt || "Tap to read the full story on Maine News Now..."}
-                    </Text>
-                    <View style={styles.cardFooter}>
-                        <Text style={styles.authorText}>By {post.author}</Text>
-                    </View>
-                </View>
-            </TouchableOpacity>
+                ))}
+            </View>
         );
     };
+
+    const latestVisible = latestHeadlines.slice(0, mobileVisibleCount);
 
     if (loading) {
         return (
-            <View style={styles.centerContainer}>
+            <View style={styles.loadingWrap}>
                 <ActivityIndicator size="large" color={colors.accent} />
-                <Text style={styles.loadingText}>Fetching Maine Intelligence...</Text>
+                <Text style={styles.loadingText}>Loading Maine News Now...</Text>
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
+        <View style={styles.screen}>
             <FlatList
                 ref={flatListRef}
-                data={[
-                    { isHero: true, slug: 'home-hero' },
-                    { isTicker: true, slug: 'live-ticker' },
-                    { isHeader: true, slug: 'sticky-header' },
-                    ...displayPosts
-                ]}
-                renderItem={renderItem}
-                keyExtractor={(item, index) => item.slug || `item-${index}`}
-                stickyHeaderIndices={[2]}
+                data={latestVisible}
+                keyExtractor={(item) => item.slug}
                 onScroll={handleScroll}
                 scrollEventThrottle={16}
-                contentContainerStyle={styles.list}
-                ListFooterComponent={
-                    <View style={styles.footerContainer}>
-                        <Image source={require('../../assets/square-logo.png')} style={styles.footerLogo} resizeMode="contain" />
-                        <Text style={styles.footerTitle}>MAINE NEWS NOW</Text>
-                        <Text style={styles.footerTagline}>Truth. Independence. Maine.</Text>
-                        <Text style={styles.footerCopyright}>© {new Date().getFullYear()} Maine News Now. All rights reserved.</Text>
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
+                contentContainerStyle={styles.listContent}
+                ListHeaderComponent={(
+                    <>
+                        {renderTopStrip()}
+                        {renderHeaderBand()}
+                        <View style={styles.headerTickerZone}>
+                            <NewsTicker label="TRENDING" items={trendingItems} speed={tickerSpeed} compact />
+                        </View>
+                        {renderHero()}
+                        {renderQuickLinks()}
+                        <View style={styles.latestSection}>
+                            <NewsTicker label="BREAKING" items={breakingItems} speed={tickerSpeed} compact />
+                            {renderTickerSpeedControls()}
+                            <View style={styles.sectionHead}>
+                                <Text style={styles.sectionTitle}>Latest Headlines</Text>
+                                <TouchableOpacity onPress={() => router.push('/sections')}>
+                                    <Text style={styles.viewAllText}>View All</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+                                {LATEST_FILTERS.map((filter) => (
+                                    <TouchableOpacity
+                                        key={filter}
+                                        style={[styles.filterChip, latestFilter === filter && styles.filterChipActive]}
+                                        onPress={() => {
+                                            setLatestFilter(filter);
+                                            setMobileVisibleCount(6);
+                                        }}
+                                    >
+                                        <Text style={[styles.filterChipText, latestFilter === filter && styles.filterChipTextActive]}>
+                                            {filter}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
+                        </View>
+                    </>
+                )}
+                renderItem={({ item }) => (
+                    <HeadlineRow
+                        post={item}
+                        timeLabel={formatRelativeTime(item.publishedDate)}
+                        onPress={() => router.push(`/article/${item.slug}`)}
+                    />
+                )}
+                ListFooterComponent={(
+                    <>
+                        {latestVisible.length < latestHeadlines.length ? (
+                            <TouchableOpacity
+                                style={styles.loadMoreButton}
+                                onPress={() => setMobileVisibleCount((count) => count + 6)}
+                            >
+                                <Text style={styles.loadMoreText}>Load More Stories</Text>
+                                <ChevronRight size={18} color={colors.text} />
+                            </TouchableOpacity>
+                        ) : null}
+
+                        {renderNewsroomPreview()}
+
+                        <View style={styles.footerPanel}>
+                            <Text style={styles.footerTitle}>MAINE NEWS NOW</Text>
+                            <Text style={styles.footerTagline}>Maine’s trusted local news source.</Text>
+                            {traffic?.note ? <Text style={styles.footerNote}>{traffic.note}</Text> : null}
+                        </View>
+                    </>
+                )}
+                ListEmptyComponent={(
+                    <View style={styles.emptyWrap}>
+                        <CircleAlert size={20} color={colors.textDim} />
+                        <Text style={styles.emptyText}>No headlines available right now.</Text>
                     </View>
-                }
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
-                }
-                ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>No stories found for this selection.</Text>
-                    </View>
-                }
+                )}
             />
-            {showScrollTop && (
-                <TouchableOpacity style={styles.scrollToTopButton} onPress={scrollToTop} activeOpacity={0.8}>
-                    <ChevronUp size={24} color={colors.background} />
+
+            {showScrollTop ? (
+                <TouchableOpacity style={styles.scrollTopButton} onPress={() => flatListRef.current?.scrollToOffset({ offset: 0, animated: true })}>
+                    <ChevronUp size={22} color={colors.text} />
                 </TouchableOpacity>
-            )}
+            ) : null}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: colors.background },
-    centerContainer: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' },
-    loadingText: { fontFamily: 'Inter_400Regular', color: colors.textMuted, fontSize: fontSize.md, marginTop: spacing.md },
-    heroContainer: { height: 350, width: width, marginBottom: spacing.lg, overflow: 'hidden', backgroundColor: '#000' },
-    heroSlide: { width: width, height: 350 },
-    heroImagePlaceholder: { ...StyleSheet.absoluteFillObject, backgroundColor: '#1a1a1a', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
-    heroContent: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: spacing.lg, paddingBottom: spacing.xl, backgroundColor: 'transparent' },
-    heroIndicatorsOverlay: { position: 'absolute', bottom: spacing.md, left: spacing.lg, flexDirection: 'row', gap: 6, zIndex: 20 },
-    heroIndicator: { height: 4, width: 15, backgroundColor: 'rgba(255,255,255,0.4)', borderRadius: 2 },
-    activeHeroIndicator: { backgroundColor: '#fff', width: 35 },
-    tickerContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a1a1a', height: 40, borderBottomWidth: 1, borderBottomColor: colors.borderDim, zIndex: 5 },
-    tickerLabel: { backgroundColor: colors.accent, paddingHorizontal: spacing.md, height: '100%', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
-    tickerLabelText: { color: '#000', fontFamily: 'Oswald_700Bold', fontSize: 12, letterSpacing: 1 },
-    tickerWrapper: { flex: 1, overflow: 'hidden' },
-    tickerTrack: { flexDirection: 'row' },
-    tickerTrackPart: { flexDirection: 'row', alignItems: 'center' },
-    tickerItemWrapper: { flexDirection: 'row', alignItems: 'center', marginRight: 30 },
-    tickerItem: { color: colors.text, fontFamily: 'Oswald_400Regular', fontSize: 13, letterSpacing: 0.5 },
-    tickerSeparator: { color: colors.accent, fontSize: 13, marginLeft: 15 },
-    stickyHeaderContent: { backgroundColor: colors.background },
-    socialBar: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: 12, backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: colors.borderDim, gap: 24 },
-    socialIcon: { padding: 4 },
-    heroTitle: { fontFamily: 'Oswald_700Bold', fontSize: 28, color: colors.text, lineHeight: 34, marginBottom: spacing.md },
-    sectionHeader: { paddingTop: spacing.lg, paddingBottom: spacing.md, backgroundColor: colors.background },
-    sectionTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.md, marginBottom: spacing.md },
-    sectionTitle: { fontFamily: 'Oswald_700Bold', fontSize: 20, color: colors.text, letterSpacing: 0.5 },
-    sortButton: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 4, backgroundColor: colors.cardBg },
-    sortText: { fontFamily: 'Inter_600SemiBold', fontSize: 10, color: colors.accent },
-    filterBar: { paddingHorizontal: spacing.md, paddingBottom: spacing.sm, gap: spacing.sm },
-    filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: colors.cardBg, borderWidth: 1, borderColor: colors.borderDim, marginRight: spacing.xs },
-    activeFilterChip: { backgroundColor: colors.accent, borderColor: colors.accent },
-    filterChipText: { fontFamily: 'Inter_600SemiBold', fontSize: 12, color: colors.textMuted },
-    activeFilterChipText: { color: colors.background },
-    meta: { flexDirection: 'row', alignItems: 'center' },
-    metaTextInverse: { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors.textMuted },
-    separatorInverse: { color: colors.accent, marginHorizontal: 8 },
-    list: { paddingBottom: spacing.xxl },
-    card: { backgroundColor: colors.cardBg, marginHorizontal: spacing.md, marginBottom: spacing.md, borderRadius: 8, borderLeftWidth: 3, borderLeftColor: colors.accent, overflow: 'hidden' },
-    cardImage: { width: '100%', height: 180 },
-    cardBody: { padding: spacing.lg },
-    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
-    categoryBadge: { fontFamily: 'Inter_600SemiBold', fontSize: 10, color: colors.accent, letterSpacing: 1 },
-    timeAgo: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    timeText: { fontFamily: 'Inter_400Regular', fontSize: 10, color: colors.textDim },
-    title: { fontFamily: 'Oswald_700Bold', fontSize: 18, color: colors.text, marginBottom: spacing.sm, lineHeight: 24 },
-    excerpt: { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors.textMuted, lineHeight: 20, marginBottom: spacing.md },
-    cardFooter: { borderTopWidth: 1, borderTopColor: colors.borderDim, paddingTop: spacing.sm },
-    authorText: { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors.textDim, fontStyle: 'italic' },
-    emptyContainer: { padding: spacing.xxl, alignItems: 'center' },
-    emptyText: { fontFamily: 'Inter_400Regular', color: colors.textDim, textAlign: 'center' },
-    scrollToTopButton: { position: 'absolute', bottom: spacing.lg, right: spacing.lg, backgroundColor: colors.accent, width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 3 },
-    footerContainer: { padding: spacing.xxl, alignItems: 'center', backgroundColor: colors.cardBg, borderTopWidth: 1, borderTopColor: colors.borderDim, marginTop: spacing.lg },
-    footerLogo: { width: 60, height: 60, marginBottom: spacing.md },
-    footerTitle: { fontFamily: 'Oswald_700Bold', fontSize: 20, color: colors.text, marginBottom: spacing.xs },
-    footerTagline: { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors.accent, marginBottom: spacing.lg },
-    footerCopyright: { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors.textDim, textAlign: 'center' },
-    heroFullImage: { width: '100%', height: '100%' }
+    screen: {
+        flex: 1,
+        backgroundColor: colors.background,
+    },
+    loadingWrap: {
+        flex: 1,
+        backgroundColor: colors.background,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: spacing.md,
+        color: colors.textMuted,
+        fontFamily: 'Inter_400Regular',
+        fontSize: fontSize.md,
+    },
+    listContent: {
+        paddingBottom: 120,
+    },
+    topStrip: {
+        minHeight: 34,
+        paddingHorizontal: spacing.md,
+        paddingBottom: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.borderDim,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#08090a',
+    },
+    topStripText: {
+        color: colors.textMuted,
+        fontSize: 11,
+        fontFamily: 'Inter_600SemiBold',
+    },
+    topStripDivider: {
+        color: colors.textFaint,
+        marginHorizontal: 8,
+    },
+    topStripTemp: {
+        color: colors.highlight,
+        fontSize: 11,
+        fontFamily: 'Inter_600SemiBold',
+    },
+    topStripLottery: {
+        color: colors.textMuted,
+        flex: 1,
+        fontSize: 11,
+        fontFamily: 'Inter_400Regular',
+    },
+    headerBand: {
+        height: 66,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: spacing.md,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.borderDim,
+        backgroundColor: colors.backgroundElevated,
+    },
+    headerIconButton: {
+        width: 42,
+        height: 42,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: colors.border,
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    headerLogo: {
+        width: 146,
+        height: 42,
+    },
+    headerTickerZone: {
+        paddingHorizontal: spacing.md,
+        paddingTop: 12,
+        backgroundColor: colors.background,
+    },
+    heroWrap: {
+        marginTop: spacing.md,
+        marginHorizontal: spacing.md,
+        borderRadius: 24,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: colors.border,
+        backgroundColor: colors.backgroundPanel,
+    },
+    heroSlide: {
+        width: width - spacing.md * 2,
+        height: HERO_HEIGHT,
+    },
+    heroImage: {
+        ...StyleSheet.absoluteFillObject,
+        width: '100%',
+        height: '100%',
+    },
+    heroContent: {
+        position: 'absolute',
+        left: 18,
+        right: 18,
+        bottom: 22,
+    },
+    topStoryChip: {
+        alignSelf: 'flex-start',
+        backgroundColor: colors.accent,
+        paddingHorizontal: 14,
+        paddingVertical: 7,
+        borderRadius: 9,
+        marginBottom: spacing.md,
+    },
+    topStoryChipText: {
+        color: '#fff',
+        fontFamily: 'Oswald_700Bold',
+        fontSize: 13,
+        letterSpacing: 0.8,
+    },
+    heroTitle: {
+        color: colors.text,
+        fontFamily: 'Oswald_700Bold',
+        fontSize: 28,
+        lineHeight: 34,
+        textTransform: 'none',
+        textShadowColor: 'rgba(0,0,0,0.55)',
+        textShadowRadius: 12,
+        marginBottom: spacing.sm,
+    },
+    heroSummary: {
+        color: colors.textMuted,
+        fontFamily: 'Inter_400Regular',
+        fontSize: 16,
+        lineHeight: 25,
+        marginBottom: spacing.md,
+    },
+    heroMeta: {
+        color: colors.textMuted,
+        fontFamily: 'Inter_400Regular',
+        fontSize: 13,
+    },
+    heroDots: {
+        position: 'absolute',
+        bottom: 16,
+        left: 18,
+        flexDirection: 'row',
+        gap: 7,
+    },
+    heroDot: {
+        width: 7,
+        height: 7,
+        borderRadius: radius.pill,
+        backgroundColor: 'rgba(255,255,255,0.28)',
+    },
+    heroDotActive: {
+        width: 24,
+        backgroundColor: colors.accent,
+    },
+    quickLinksSection: {
+        paddingHorizontal: spacing.md,
+        paddingTop: spacing.lg,
+        gap: spacing.md,
+    },
+    quickGridRow: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+    },
+    quickMiddleRow: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+        alignItems: 'stretch',
+    },
+    quickCard: {
+        flex: 1,
+        minHeight: 74,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.md,
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: spacing.md,
+        gap: 8,
+    },
+    quickCardLarge: {
+        minHeight: 104,
+    },
+    quickCardLabel: {
+        color: colors.textMuted,
+        fontFamily: 'Inter_400Regular',
+        fontSize: 13,
+    },
+    quickCardLabelLarge: {
+        color: colors.text,
+        fontFamily: 'Oswald_500Medium',
+        fontSize: 18,
+        letterSpacing: 0.4,
+    },
+    minuteImageWrap: {
+        flex: 1.2,
+        minHeight: 104,
+    },
+    minuteImage: {
+        width: '100%',
+        height: '100%',
+        borderRadius: radius.lg,
+    },
+    latestSection: {
+        paddingHorizontal: spacing.md,
+        paddingTop: spacing.xl,
+    },
+    tickerSpeedRow: {
+        marginTop: spacing.md,
+        marginBottom: spacing.md2,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    tickerSpeedLabel: {
+        color: colors.textDim,
+        fontFamily: 'Inter_400Regular',
+        fontSize: 12,
+    },
+    tickerSpeedButtons: {
+        flexDirection: 'row',
+        gap: 8,
+    },
+    tickerSpeedButton: {
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: radius.pill,
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        borderWidth: 1,
+        borderColor: colors.borderDim,
+    },
+    tickerSpeedButtonActive: {
+        backgroundColor: colors.accentSoft,
+        borderColor: 'rgba(239,43,45,0.45)',
+    },
+    tickerSpeedButtonText: {
+        color: colors.textDim,
+        fontFamily: 'Inter_600SemiBold',
+        fontSize: 11,
+    },
+    tickerSpeedButtonTextActive: {
+        color: colors.text,
+    },
+    sectionHead: {
+        marginTop: spacing.lg,
+        marginBottom: spacing.md,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+    },
+    sectionKicker: {
+        color: colors.textDim,
+        fontFamily: 'Oswald_500Medium',
+        fontSize: 12,
+        letterSpacing: 1,
+        marginBottom: 4,
+    },
+    sectionTitle: {
+        color: colors.text,
+        fontFamily: 'Oswald_700Bold',
+        fontSize: 26,
+        letterSpacing: 0.3,
+    },
+    viewAllText: {
+        color: colors.textMuted,
+        fontFamily: 'Inter_600SemiBold',
+        fontSize: 12,
+    },
+    filterRow: {
+        paddingBottom: spacing.sm,
+        gap: spacing.sm,
+    },
+    filterChip: {
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: radius.pill,
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        borderWidth: 1,
+        borderColor: colors.borderDim,
+        marginRight: 8,
+    },
+    filterChipActive: {
+        backgroundColor: colors.accent,
+        borderColor: colors.accent,
+    },
+    filterChipText: {
+        color: colors.textMuted,
+        fontFamily: 'Inter_600SemiBold',
+        fontSize: 12,
+        textTransform: 'capitalize',
+    },
+    filterChipTextActive: {
+        color: '#fff',
+    },
+    loadMoreButton: {
+        marginHorizontal: spacing.md,
+        marginTop: spacing.lg,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.md,
+        backgroundColor: colors.backgroundElevated,
+        paddingVertical: 14,
+    },
+    loadMoreText: {
+        color: colors.text,
+        fontFamily: 'Oswald_500Medium',
+        fontSize: 16,
+    },
+    newsroomPanel: {
+        marginHorizontal: spacing.md,
+        marginTop: spacing.xl,
+        padding: spacing.md,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.lg,
+        backgroundColor: colors.backgroundElevated,
+    },
+    profileRow: {
+        flexDirection: 'row',
+        gap: spacing.md,
+        paddingTop: spacing.md,
+        paddingBottom: spacing.md2,
+        borderTopWidth: 1,
+        borderTopColor: colors.borderDim,
+    },
+    profileAvatar: {
+        width: 58,
+        height: 58,
+        borderRadius: radius.md,
+        backgroundColor: colors.backgroundSoft,
+    },
+    profileAvatarFallback: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    profileAvatarFallbackText: {
+        color: colors.text,
+        fontFamily: 'Oswald_700Bold',
+        fontSize: 22,
+    },
+    profileContent: {
+        flex: 1,
+    },
+    profileName: {
+        color: colors.text,
+        fontFamily: 'Oswald_500Medium',
+        fontSize: 20,
+    },
+    profileRole: {
+        color: colors.accent,
+        fontFamily: 'Inter_600SemiBold',
+        fontSize: 12,
+        marginTop: 2,
+        marginBottom: 4,
+    },
+    profileBio: {
+        color: colors.textMuted,
+        fontFamily: 'Inter_400Regular',
+        fontSize: 13,
+        lineHeight: 20,
+    },
+    footerPanel: {
+        marginHorizontal: spacing.md,
+        marginTop: spacing.xl,
+        padding: spacing.xl,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.lg,
+        backgroundColor: colors.backgroundElevated,
+        alignItems: 'center',
+    },
+    footerTitle: {
+        color: colors.text,
+        fontFamily: 'Oswald_700Bold',
+        fontSize: 24,
+        letterSpacing: 0.6,
+    },
+    footerTagline: {
+        color: colors.textMuted,
+        fontFamily: 'Inter_400Regular',
+        fontSize: 14,
+        marginTop: 4,
+    },
+    footerNote: {
+        marginTop: spacing.md,
+        color: colors.textDim,
+        fontFamily: 'Inter_400Regular',
+        fontSize: 12,
+        textAlign: 'center',
+    },
+    emptyWrap: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: spacing.xl,
+        gap: spacing.sm,
+    },
+    emptyText: {
+        color: colors.textDim,
+        fontFamily: 'Inter_400Regular',
+        fontSize: 14,
+    },
+    scrollTopButton: {
+        position: 'absolute',
+        right: spacing.lg,
+        bottom: spacing.xl,
+        width: 46,
+        height: 46,
+        borderRadius: radius.pill,
+        backgroundColor: colors.accent,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.3,
+        shadowRadius: 14,
+        elevation: 6,
+    },
 });

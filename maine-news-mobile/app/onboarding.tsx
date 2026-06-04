@@ -1,10 +1,11 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors, typography, spacing, fontSize } from '../constants/theme';
-import { ChevronRight } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ChevronRight } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, radius, spacing } from '../constants/theme';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 export default function Onboarding() {
     const router = useRouter();
@@ -15,89 +16,68 @@ export default function Onboarding() {
     };
 
     return (
-        <View style={styles.container}>
+        <LinearGradient colors={['#0d0f12', '#070809', '#060708']} style={styles.container}>
             <View style={styles.content}>
-                <View style={styles.logoContainer}>
+                <View style={styles.logoPanel}>
                     <Image
-                        source={require('../assets/icon.png')}
+                        source={require('../assets/maine-news-now.png')}
                         style={styles.logoImage}
                         resizeMode="contain"
                     />
-                    <Text style={styles.logoText}>MAINE NEWS NOW</Text>
-                    <View style={styles.accentBar} />
-                </View>
-
-                <Text style={styles.tagline}>Unbiased. Unafraid. Unfiltered.</Text>
-
-                <View style={styles.descriptionContainer}>
-                    <Text style={styles.description}>
-                        The intelligence core for Maine. World-class journalism, delivered without clutter.
-                    </Text>
+                    <Text style={styles.kicker}>Maine’s trusted local news source</Text>
+                    <Text style={styles.headline}>Breaking news, weather, politics, video, and local coverage in one newsroom.</Text>
                 </View>
             </View>
 
             <View style={styles.footer}>
-                <TouchableOpacity style={styles.button} onPress={handleGetStarted} activeOpacity={0.8}>
-                    <Text style={styles.buttonText}>Enter Feed</Text>
-                    <ChevronRight size={20} color={colors.background} />
+                <TouchableOpacity style={styles.button} onPress={handleGetStarted} activeOpacity={0.84}>
+                    <Text style={styles.buttonText}>Enter The Newsroom</Text>
+                    <ChevronRight size={18} color="#fff" />
                 </TouchableOpacity>
-
-                <Text style={styles.vLabel}>EST. 2026 — V1.0.0</Text>
+                <Text style={styles.vLabel}>Mobile Edition</Text>
             </View>
-        </View>
+        </LinearGradient>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.background,
-        padding: spacing.xxl,
+        padding: spacing.xl,
         justifyContent: 'space-between',
     },
     content: {
-        marginTop: height * 0.15,
+        marginTop: height * 0.16,
         alignItems: 'center',
     },
-    logoContainer: {
+    logoPanel: {
+        width: '100%',
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.lg,
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        padding: spacing.xl,
         alignItems: 'center',
-        marginBottom: spacing.md,
     },
     logoImage: {
-        width: 100,
-        height: 100,
-        marginBottom: spacing.md,
+        width: 220,
+        height: 74,
+        marginBottom: spacing.lg,
     },
-    logoText: {
-        fontFamily: 'Oswald_700Bold',
-        fontSize: 32,
-        color: colors.text,
-        textAlign: 'center',
-        letterSpacing: -1,
-    },
-    accentBar: {
-        width: 60,
-        height: 4,
-        backgroundColor: colors.accent,
-        marginTop: -4,
-    },
-    tagline: {
-        fontFamily: 'Inter_400Regular',
-        fontSize: 16,
+    kicker: {
         color: colors.accent,
+        fontFamily: 'Oswald_500Medium',
+        fontSize: 12,
+        letterSpacing: 1.2,
+        marginBottom: spacing.md,
         textTransform: 'uppercase',
-        letterSpacing: 2,
-        marginBottom: spacing.xxl,
     },
-    descriptionContainer: {
-        paddingHorizontal: spacing.xl,
-    },
-    description: {
+    headline: {
+        color: colors.text,
         fontFamily: 'Inter_400Regular',
         fontSize: 18,
-        color: colors.textMuted,
         textAlign: 'center',
-        lineHeight: 26,
+        lineHeight: 28,
     },
     footer: {
         alignItems: 'center',
@@ -106,22 +86,22 @@ const styles = StyleSheet.create({
     button: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.text,
-        paddingHorizontal: spacing.xxl,
-        paddingVertical: spacing.lg,
-        borderRadius: 4,
+        backgroundColor: colors.accent,
+        paddingHorizontal: spacing.xl,
+        paddingVertical: 16,
+        borderRadius: radius.md,
         gap: 8,
     },
     buttonText: {
         fontFamily: 'Oswald_700Bold',
         fontSize: 18,
-        color: colors.background,
-        textTransform: 'uppercase',
+        color: '#fff',
     },
     vLabel: {
-        marginTop: spacing.xl,
+        marginTop: spacing.lg,
         fontFamily: 'Inter_400Regular',
-        fontSize: 10,
+        fontSize: 11,
         color: colors.textDim,
-    }
+        letterSpacing: 0.4,
+    },
 });

@@ -1,93 +1,110 @@
 import React from 'react';
-import { ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Stack } from 'expo-router';
-import { colors, spacing } from '../../constants/theme';
+import { colors, radius, spacing } from '../../constants/theme';
 
 export default function TermsScreen() {
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-            <Stack.Screen options={{ title: 'Terms of Service' }} />
-            <Text style={styles.title}>Terms of Service</Text>
-            <Text style={styles.tagline}>Gold Standard Edition</Text>
-            <Text style={styles.date}>Last Updated: January 14, 2026</Text>
+            <Stack.Screen
+                options={{
+                    title: 'Terms of Service',
+                    headerStyle: { backgroundColor: colors.backgroundElevated },
+                    headerTintColor: colors.text,
+                    headerTitleStyle: { fontFamily: 'Oswald_700Bold', color: colors.text },
+                }}
+            />
 
-            <View style={styles.section}>
-                <Text style={styles.heading}>Introduction</Text>
-                <Text style={styles.text}>These Terms of Service (the “Terms”) describe how Maine News Now (“Company,” “we,” “our,” or “us”) provides Services across all websites and online platforms. These Terms set a global standard for usage compliance. By using our Services, you agree to these Terms.</Text>
+            <View style={styles.heroPanel}>
+                <Text style={styles.kicker}>Legal & policy</Text>
+                <Text style={styles.title}>Terms of Service</Text>
+                <Text style={styles.date}>Last updated: June 4, 2026</Text>
             </View>
 
-            <View style={styles.section}>
-                <Text style={styles.heading}>1. Scope and Applicability</Text>
-                <Text style={styles.text}>These Terms apply to all visitors and users of our Services. Continued use of our platform constitutes acceptance of these practices.</Text>
+            <View style={styles.panel}>
+                <Section
+                    title="Use of Service"
+                    body="By using Maine News Now, you agree to use our content and services lawfully and in a way that does not disrupt the platform or other users."
+                />
+                <Section
+                    title="Content & Availability"
+                    body="We work to keep coverage, video, weather, and alerts current, but we do not guarantee uninterrupted availability or error-free operation at all times."
+                />
+                <Section
+                    title="User Conduct"
+                    body="You may not misuse the service, attempt unauthorized access, submit harmful content, or interfere with our systems or newsroom operations."
+                />
+                <Section
+                    title="Intellectual Property"
+                    body="All branding, editorial presentation, and original content remain the property of Maine News Now or its licensors unless otherwise stated."
+                />
+                <Section
+                    title="Contact"
+                    body="For service questions or policy concerns, use the public contact channels listed on mainenewsnow.com."
+                />
             </View>
-
-            <View style={styles.section}>
-                <Text style={styles.heading}>3. Automated and AI‑Based Processing</Text>
-                <Text style={styles.text}>We utilize AI/ML technologies to analyze data and enhance personalization. Users acknowledge that automated decision‑making may influence recommendations.</Text>
-            </View>
-
-            <View style={styles.section}>
-                <Text style={styles.heading}>10. Security and Safeguards</Text>
-                <Text style={styles.text}>We employ technical and physical safeguards including encryption and multi‑factor authentication to protect our intellectual property and your accounts.</Text>
-            </View>
-
-            <View style={styles.section}>
-                <Text style={styles.heading}>13. Contact and Disputes</Text>
-                <Text style={styles.text}>Any disputes regarding these Terms should be directed to privacy@mainenewstoday.com or our registered office in Florida, USA.</Text>
-            </View>
-
-            <Text style={styles.footerText}>© 2026 Maine News Now. All rights reserved.</Text>
         </ScrollView>
     );
 }
 
+function Section({ title, body }: { title: string; body: string }) {
+    return (
+        <View style={styles.section}>
+            <Text style={styles.heading}>{title}</Text>
+            <Text style={styles.text}>{body}</Text>
+        </View>
+    );
+}
+
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background,
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { padding: spacing.md, paddingBottom: spacing.xxl },
+    heroPanel: {
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.lg,
+        backgroundColor: colors.backgroundElevated,
+        padding: spacing.xl,
+        marginBottom: spacing.md,
     },
-    content: {
-        padding: spacing.lg,
-        paddingBottom: spacing.xxl,
+    kicker: {
+        color: colors.accent,
+        fontFamily: 'Oswald_500Medium',
+        fontSize: 12,
+        letterSpacing: 1,
+        marginBottom: 6,
     },
     title: {
-        fontFamily: 'Oswald_700Bold',
-        fontSize: 32,
         color: colors.text,
-        marginBottom: 4,
-    },
-    tagline: {
-        fontFamily: 'Inter_600SemiBold',
-        fontSize: 14,
-        color: colors.accent,
-        marginBottom: 4,
+        fontFamily: 'Oswald_700Bold',
+        fontSize: 30,
     },
     date: {
+        color: colors.textDim,
         fontFamily: 'Inter_400Regular',
         fontSize: 12,
-        color: colors.textDim,
-        marginBottom: spacing.xl,
+        marginTop: spacing.sm,
+    },
+    panel: {
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.lg,
+        backgroundColor: colors.backgroundElevated,
+        padding: spacing.xl,
     },
     section: {
         marginBottom: spacing.xl,
     },
     heading: {
-        fontFamily: 'Oswald_700Bold',
-        fontSize: 18,
         color: colors.text,
+        fontFamily: 'Oswald_700Bold',
+        fontSize: 20,
         marginBottom: spacing.sm,
     },
     text: {
+        color: colors.textMuted,
         fontFamily: 'Inter_400Regular',
         fontSize: 15,
-        lineHeight: 22,
-        color: colors.textMuted,
+        lineHeight: 24,
     },
-    footerText: {
-        fontFamily: 'Inter_400Regular',
-        fontSize: 12,
-        color: colors.textDim,
-        textAlign: 'center',
-        marginTop: spacing.xl,
-    }
 });

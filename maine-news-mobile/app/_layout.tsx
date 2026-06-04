@@ -101,6 +101,26 @@ export default function RootLayout() {
                     options={{ title: 'Article' }}
                 />
                 <Stack.Screen
+                    name="traffic"
+                    options={{ title: 'Traffic' }}
+                />
+                <Stack.Screen
+                    name="weather"
+                    options={{ title: 'Weather' }}
+                />
+                <Stack.Screen
+                    name="search"
+                    options={{ title: 'Search' }}
+                />
+                <Stack.Screen
+                    name="local"
+                    options={{ title: 'Local Coverage' }}
+                />
+                <Stack.Screen
+                    name="county/[county]"
+                    options={{ title: 'County News' }}
+                />
+                <Stack.Screen
                     name="onboarding"
                     options={{ headerShown: false, presentation: 'fullScreenModal' }}
                 />

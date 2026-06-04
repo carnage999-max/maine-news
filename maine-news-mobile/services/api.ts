@@ -31,6 +31,7 @@ export interface Post {
     excerpt?: string;
     content?: string;
     isOriginal?: boolean;
+    isNational?: boolean;
 }
 
 export interface ForecastSlice {
@@ -82,6 +83,102 @@ export interface WeatherReport {
     source: string;
     regions: RegionForecast[];
     alerts: WeatherAlert[];
+}
+
+export interface LotteryDraw {
+    game: string;
+    numbers: string[];
+    extra?: string | null;
+    jackpot?: string | null;
+    date?: string | null;
+    source?: string;
+}
+
+export interface LotterySummary {
+    powerball?: LotteryDraw | null;
+    megamillions?: LotteryDraw | null;
+    luckyForLife?: LotteryDraw | null;
+    lottoAmerica?: LotteryDraw | null;
+    doublePlay?: LotteryDraw | null;
+    megabucks?: LotteryDraw | null;
+    gimme5?: LotteryDraw | null;
+    pick4?: LotteryDraw | null;
+    pick3?: LotteryDraw | null;
+}
+
+export interface TrafficRegionSummary {
+    id: string;
+    label: string;
+    incidentCount: number;
+}
+
+export interface TrafficIncident {
+    id: string;
+    regionId: string;
+    regionLabel: string;
+    category: string;
+    description: string;
+    magnitude: string;
+    iconCategory: number;
+    from?: string;
+    to?: string;
+    delaySeconds?: number;
+    lengthMeters?: number;
+    roadNumbers: string[];
+    startTime?: string;
+    endTime?: string;
+    lastReportTime?: string;
+    probabilityOfOccurrence?: string;
+    coordinates?: [number, number];
+}
+
+export interface TrafficReport {
+    configured: boolean;
+    source: 'tomtom' | 'unconfigured' | 'error';
+    updatedAt: string;
+    note?: string;
+    incidents: TrafficIncident[];
+    regions: TrafficRegionSummary[];
+}
+
+export interface NewsroomProfile {
+    id: string;
+    name: string;
+    role: string;
+    avatar?: string | null;
+    bio?: string | null;
+    email?: string | null;
+    contactInfo?: string | null;
+}
+
+export interface CountyFeatureProperties {
+    county?: string;
+}
+
+export interface CountyGeometry {
+    type: 'Polygon' | 'MultiPolygon';
+    coordinates: number[][][] | number[][][][];
+}
+
+export interface CountyFeature {
+    type: 'Feature';
+    properties: CountyFeatureProperties;
+    geometry: CountyGeometry;
+}
+
+export interface CountyFeatureCollection {
+    type: 'FeatureCollection';
+    features: CountyFeature[];
+}
+
+export interface CountySummary {
+    slug: string;
+    name: string;
+}
+
+export interface CountyFeedResponse {
+    county: CountySummary;
+    posts: Post[];
 }
 
 export const getImageUrl = (path?: string) => {
@@ -154,6 +251,124 @@ export async function fetchWeatherReport(date?: string): Promise<WeatherReport |
             }
         }
 
+        return null;
+    }
+}
+
+export async function fetchLotterySummary(): Promise<LotterySummary | null> {
+    const cacheKey = 'cached_lottery_summary';
+
+    try {
+        const response = await axios.get<LotterySummary>(`${API_BASE_URL}/api/lottery`);
+        const summary = response.data;
+        if (summary) {
+            await AsyncStorage.setItem(cacheKey, JSON.stringify(summary));
+        }
+        return summary || null;
+    } catch (error) {
+        console.error('Failed to fetch lottery summary:', error);
+        const cached = await AsyncStorage.getItem(cacheKey);
+        if (cached) {
+            try {
+                return JSON.parse(cached) as LotterySummary;
+            } catch (e) {
+                return null;
+            }
+        }
+        return null;
+    }
+}
+
+export async function fetchTrafficReport(): Promise<TrafficReport | null> {
+    const cacheKey = 'cached_traffic_report';
+
+    try {
+        const response = await axios.get<TrafficReport>(`${API_BASE_URL}/api/traffic`);
+        const report = response.data;
+        if (report) {
+            await AsyncStorage.setItem(cacheKey, JSON.stringify(report));
+        }
+        return report || null;
+    } catch (error) {
+        console.error('Failed to fetch traffic report:', error);
+        const cached = await AsyncStorage.getItem(cacheKey);
+        if (cached) {
+            try {
+                return JSON.parse(cached) as TrafficReport;
+            } catch (e) {
+                return null;
+            }
+        }
+        return null;
+    }
+}
+
+export async function fetchNewsroomProfiles(): Promise<NewsroomProfile[]> {
+    const cacheKey = 'cached_newsroom_profiles';
+
+    try {
+        const response = await axios.get<{ authors: NewsroomProfile[] }>(`${API_BASE_URL}/api/authors`);
+        const profiles = response.data.authors || [];
+        await AsyncStorage.setItem(cacheKey, JSON.stringify(profiles));
+        return profiles;
+    } catch (error) {
+        console.error('Failed to fetch newsroom profiles:', error);
+        const cached = await AsyncStorage.getItem(cacheKey);
+        if (cached) {
+            try {
+                return JSON.parse(cached) as NewsroomProfile[];
+            } catch (e) {
+                return [];
+            }
+        }
+        return [];
+    }
+}
+
+export async function fetchCountyMap(): Promise<CountyFeatureCollection | null> {
+    const cacheKey = 'cached_county_map';
+
+    try {
+        const response = await axios.get<CountyFeatureCollection>(`${API_BASE_URL}/api/maine-counties`);
+        const map = response.data;
+        if (map) {
+            await AsyncStorage.setItem(cacheKey, JSON.stringify(map));
+        }
+        return map || null;
+    } catch (error) {
+        console.error('Failed to fetch county map:', error);
+        const cached = await AsyncStorage.getItem(cacheKey);
+        if (cached) {
+            try {
+                return JSON.parse(cached) as CountyFeatureCollection;
+            } catch (e) {
+                return null;
+            }
+        }
+        return null;
+    }
+}
+
+export async function fetchCountyFeed(county: string): Promise<CountyFeedResponse | null> {
+    const cacheKey = `cached_county_feed_${county}`;
+
+    try {
+        const response = await axios.get<CountyFeedResponse>(`${API_BASE_URL}/api/county/${county}`);
+        const feed = response.data;
+        if (feed) {
+            await AsyncStorage.setItem(cacheKey, JSON.stringify(feed));
+        }
+        return feed || null;
+    } catch (error) {
+        console.error(`Failed to fetch county feed for ${county}:`, error);
+        const cached = await AsyncStorage.getItem(cacheKey);
+        if (cached) {
+            try {
+                return JSON.parse(cached) as CountyFeedResponse;
+            } catch (e) {
+                return null;
+            }
+        }
         return null;
     }
 }

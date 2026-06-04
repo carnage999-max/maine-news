@@ -1,24 +1,20 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-    View,
-    Text,
-    StyleSheet,
-    FlatList,
-    TouchableOpacity,
-    Dimensions,
-    ScrollView,
     ActivityIndicator,
-    RefreshControl,
+    FlatList,
+    Image,
     Modal,
-    Image
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { } from 'expo-router';
-import { colors, spacing } from '../../constants/theme';
-import { Play, Tv, Share2, Heart, Award, X, ChevronUp } from 'lucide-react-native';
-import { fetchVideos, Video } from '../../services/api';
+import { ChevronUp, Play, Share2, Tv2, X } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
-
-const { width } = Dimensions.get('window');
+import { colors, radius, spacing } from '../../constants/theme';
+import { fetchVideos, type Video } from '../../services/api';
 
 export default function VideoHub() {
     const [videos, setVideos] = useState<Video[]>([]);
@@ -27,7 +23,6 @@ export default function VideoHub() {
     const [activeTab, setActiveTab] = useState('ALL');
     const [playingVideo, setPlayingVideo] = useState<Video | null>(null);
     const [showScrollTop, setShowScrollTop] = useState(false);
-
     const flatListRef = React.useRef<FlatList>(null);
 
     const loadVideos = async () => {
@@ -43,61 +38,33 @@ export default function VideoHub() {
     };
 
     useEffect(() => {
-        loadVideos();
+        void loadVideos();
     }, []);
-
-    const onRefresh = () => {
-        setRefreshing(true);
-        loadVideos();
-    };
-
-    const handleScroll = (event: any) => {
-        const offsetY = event.nativeEvent.contentOffset.y;
-        if (offsetY > 400 && !showScrollTop) {
-            setShowScrollTop(true);
-        } else if (offsetY <= 400 && showScrollTop) {
-            setShowScrollTop(false);
-        }
-    };
-
-    const scrollToTop = () => {
-        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-    };
 
     const getYoutubeId = (url: string) => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
         const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : null;
+        return match && match[2].length === 11 ? match[2] : null;
     };
 
-    const getYoutubeThumbnail = (url: string) => {
-        const id = getYoutubeId(url);
-        return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
-    };
-
-    const handleVideoPress = (video: Video) => {
-        setPlayingVideo(video);
-    };
+    const filteredVideos = useMemo(() => {
+        if (activeTab === 'ALL') return videos;
+        if (activeTab === 'LATEST') return [...videos].sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime());
+        if (activeTab === 'POPULAR') return [...videos].sort((a, b) => Number.parseInt(b.views) - Number.parseInt(a.views));
+        return videos.filter((video) => /series|special|maine/i.test(video.category));
+    }, [activeTab, videos]);
 
     const renderVideoItem = ({ item }: { item: Video }) => {
-        const thumbUrl = item.thumbnail || getYoutubeThumbnail(item.videoUrl);
+        const thumbUrl = item.thumbnail || (getYoutubeId(item.videoUrl) ? `https://img.youtube.com/vi/${getYoutubeId(item.videoUrl)}/hqdefault.jpg` : null);
 
         return (
-            <TouchableOpacity
-                style={styles.videoCard}
-                activeOpacity={0.9}
-                onPress={() => handleVideoPress(item)}
-            >
-                <View style={[styles.thumbnailContainer, !thumbUrl && { backgroundColor: '#1a1a1a' }]}>
-                    {thumbUrl && (
-                        <Image
-                            source={{ uri: thumbUrl }}
-                            style={StyleSheet.absoluteFill}
-                            resizeMode="cover"
-                        />
-                    )}
+            <TouchableOpacity style={styles.videoCard} activeOpacity={0.88} onPress={() => setPlayingVideo(item)}>
+                <View style={styles.thumbnailContainer}>
+                    {thumbUrl ? (
+                        <Image source={{ uri: thumbUrl }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
+                    ) : null}
                     <View style={styles.thumbnailOverlay}>
-                        <Play size={40} color={colors.text} fill={colors.text} />
+                        <Play size={34} color="#fff" fill="#fff" />
                     </View>
                     <View style={styles.durationBadge}>
                         <Text style={styles.durationText}>{item.duration}</Text>
@@ -110,15 +77,10 @@ export default function VideoHub() {
                         <Text style={styles.viewCount}>{item.views} views</Text>
                     </View>
                     <Text style={styles.videoTitle} numberOfLines={2}>{item.title}</Text>
-
-                    <View style={styles.videoActions}>
-                        <TouchableOpacity style={styles.actionBtn}>
-                            <Heart size={18} color={colors.textDim} />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.actionBtn}>
-                            <Share2 size={18} color={colors.textDim} />
-                        </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity style={styles.shareRow}>
+                        <Share2 size={16} color={colors.textDim} />
+                        <Text style={styles.shareText}>Share</Text>
+                    </TouchableOpacity>
                 </View>
             </TouchableOpacity>
         );
@@ -126,42 +88,43 @@ export default function VideoHub() {
 
     return (
         <View style={styles.container}>
-
-            <View style={styles.tabsContainer}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
-                    {['ALL', 'LATEST', 'POPULAR', 'SERIES'].map((tab) => (
-                        <TouchableOpacity
-                            key={tab}
-                            style={[styles.tab, activeTab === tab && styles.activeTab]}
-                            onPress={() => setActiveTab(tab)}
-                        >
-                            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
-            </View>
-
             <FlatList
                 ref={flatListRef}
-                data={videos}
-                renderItem={renderVideoItem}
+                data={filteredVideos}
                 keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContent}
-                onScroll={handleScroll}
+                onScroll={(event) => setShowScrollTop(event.nativeEvent.contentOffset.y > 420)}
                 scrollEventThrottle={16}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
-                }
+                contentContainerStyle={styles.listContent}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void loadVideos(); }} tintColor={colors.accent} />}
                 ListHeaderComponent={
-                    <View style={styles.featuredHeader}>
-                        <Award size={20} color={colors.accent} />
-                        <Text style={styles.featuredLabel}>FEATURED BROADCASTS</Text>
-                    </View>
+                    <>
+                        <View style={styles.heroPanel}>
+                            <Text style={styles.heroKicker}>Watch the newsroom</Text>
+                            <Text style={styles.heroTitle}>Video Hub</Text>
+                            <Text style={styles.heroText}>Latest video coverage, featured broadcasts, and Maine Minute updates from the newsroom.</Text>
+                        </View>
+
+                        <View style={styles.tabRail}>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabRailContent}>
+                                {['ALL', 'LATEST', 'POPULAR', 'SERIES'].map((tab) => (
+                                    <TouchableOpacity key={tab} style={[styles.tab, activeTab === tab && styles.tabActive]} onPress={() => setActiveTab(tab)}>
+                                        <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{tab}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
+                        </View>
+
+                        <View style={styles.featuredHeader}>
+                            <Tv2 size={18} color={colors.accent} />
+                            <Text style={styles.featuredLabel}>Featured Broadcasts</Text>
+                        </View>
+                    </>
                 }
+                renderItem={renderVideoItem}
                 ListEmptyComponent={
                     !loading ? (
                         <View style={styles.emptyContainer}>
-                            <Text style={styles.emptyText}>No videos found. Check back later.</Text>
+                            <Text style={styles.emptyText}>No videos found right now.</Text>
                         </View>
                     ) : (
                         <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: 40 }} />
@@ -169,43 +132,24 @@ export default function VideoHub() {
                 }
             />
 
-            {showScrollTop && (
-                <TouchableOpacity
-                    style={styles.scrollToTopButton}
-                    onPress={scrollToTop}
-                    activeOpacity={0.8}
-                >
-                    <ChevronUp size={24} color={colors.background} />
+            {showScrollTop ? (
+                <TouchableOpacity style={styles.scrollTopButton} onPress={() => flatListRef.current?.scrollToOffset({ offset: 0, animated: true })}>
+                    <ChevronUp size={22} color={colors.text} />
                 </TouchableOpacity>
-            )}
+            ) : null}
 
-            <Modal
-                visible={playingVideo !== null}
-                animationType="slide"
-                transparent={false}
-                onRequestClose={() => setPlayingVideo(null)}
-            >
+            <Modal visible={playingVideo !== null} animationType="slide" transparent={false} onRequestClose={() => setPlayingVideo(null)}>
                 <View style={styles.playerContainer}>
                     <View style={styles.playerHeader}>
-                        <TouchableOpacity
-                            onPress={() => setPlayingVideo(null)}
-                            style={styles.closeButton}
-                        >
-                            <X size={24} color="#fff" />
+                        <TouchableOpacity onPress={() => setPlayingVideo(null)} style={styles.closeButton}>
+                            <X size={22} color="#fff" />
                         </TouchableOpacity>
-                        <Text style={styles.playerTitle} numberOfLines={1}>
-                            {playingVideo?.title}
-                        </Text>
+                        <Text style={styles.playerTitle} numberOfLines={1}>{playingVideo?.title}</Text>
                     </View>
 
                     <View style={styles.videoWrapper}>
                         {playingVideo && getYoutubeId(playingVideo.videoUrl) ? (
-                            <YoutubePlayer
-                                height={width * 9 / 16}
-                                width={width}
-                                play={true}
-                                videoId={getYoutubeId(playingVideo.videoUrl)!}
-                            />
+                            <YoutubePlayer height={220} play videoId={getYoutubeId(playingVideo.videoUrl)!} />
                         ) : (
                             <View style={styles.errorContainer}>
                                 <Text style={styles.errorText}>Video format not supported in-app.</Text>
@@ -225,70 +169,56 @@ export default function VideoHub() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background,
+    container: { flex: 1, backgroundColor: colors.background },
+    listContent: { padding: spacing.md, paddingBottom: spacing.xxl },
+    heroPanel: {
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.lg,
+        backgroundColor: colors.backgroundElevated,
+        padding: spacing.xl,
+        marginBottom: spacing.md,
     },
-    tabsContainer: {
-        backgroundColor: colors.background,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.borderDim,
-    },
-    tabsScroll: {
-        paddingHorizontal: spacing.md,
-    },
+    heroKicker: { color: colors.accent, fontFamily: 'Oswald_500Medium', fontSize: 12, letterSpacing: 1, marginBottom: 6 },
+    heroTitle: { color: colors.text, fontFamily: 'Oswald_700Bold', fontSize: 30 },
+    heroText: { color: colors.textMuted, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 22, marginTop: spacing.sm },
+    tabRail: { marginBottom: spacing.md },
+    tabRailContent: { gap: spacing.sm },
     tab: {
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.md,
-        marginRight: spacing.sm,
-    },
-    activeTab: {
-        borderBottomWidth: 3,
-        borderBottomColor: colors.accent,
-    },
-    tabText: {
-        fontFamily: 'Oswald_500Medium',
-        fontSize: 14,
-        color: colors.textDim,
-        letterSpacing: 1,
-    },
-    activeTabText: {
-        color: colors.accent,
-    },
-    listContent: {
-        padding: spacing.md,
-        paddingBottom: 40,
-    },
-    featuredHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: spacing.lg,
-    },
-    featuredLabel: {
-        fontFamily: 'Inter_600SemiBold',
-        fontSize: 12,
-        color: colors.textDim,
-        letterSpacing: 1,
-    },
-    videoCard: {
-        marginBottom: spacing.xl,
-        backgroundColor: colors.cardBg,
-        borderRadius: 12,
-        overflow: 'hidden',
+        paddingHorizontal: spacing.md,
+        paddingVertical: 10,
+        borderRadius: radius.pill,
         borderWidth: 1,
         borderColor: colors.borderDim,
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        marginRight: spacing.sm,
+    },
+    tabActive: {
+        backgroundColor: colors.accentSoft,
+        borderColor: 'rgba(239,43,45,0.4)',
+    },
+    tabText: { color: colors.textDim, fontFamily: 'Inter_600SemiBold', fontSize: 12 },
+    tabTextActive: { color: colors.text },
+    featuredHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: spacing.md },
+    featuredLabel: { color: colors.text, fontFamily: 'Oswald_700Bold', fontSize: 22 },
+    videoCard: {
+        marginBottom: spacing.lg,
+        backgroundColor: colors.backgroundElevated,
+        borderRadius: radius.lg,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: colors.border,
     },
     thumbnailContainer: {
         width: '100%',
-        height: 200,
+        height: 210,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#000',
     },
     thumbnailOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.3)',
+        backgroundColor: 'rgba(0,0,0,0.28)',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -296,133 +226,42 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 12,
         right: 12,
-        backgroundColor: 'rgba(0,0,0,0.8)',
+        backgroundColor: 'rgba(6,7,8,0.82)',
         paddingHorizontal: 8,
         paddingVertical: 4,
-        borderRadius: 4,
+        borderRadius: 6,
     },
-    durationText: {
-        color: 'white',
-        fontSize: 12,
-        fontFamily: 'Inter_600SemiBold',
-    },
-    videoInfo: {
-        padding: spacing.lg,
-    },
-    videoHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    videoCategory: {
-        fontFamily: 'Inter_600SemiBold',
-        fontSize: 10,
-        color: colors.accent,
-        letterSpacing: 1,
-    },
-    viewCount: {
-        fontFamily: 'Inter_400Regular',
-        fontSize: 10,
-        color: colors.textDim,
-    },
-    videoTitle: {
-        fontFamily: 'Oswald_700Bold',
-        fontSize: 20,
-        color: colors.text,
-        lineHeight: 26,
-        marginBottom: spacing.md,
-    },
-    videoActions: {
-        flexDirection: 'row',
-        gap: 20,
-    },
-    actionBtn: {
-        padding: 4,
-    },
-    playerContainer: {
-        flex: 1,
-        backgroundColor: '#000',
-    },
-    playerHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingTop: 50,
-        paddingBottom: 15,
-        paddingHorizontal: spacing.lg,
-        backgroundColor: '#000',
-    },
-    closeButton: {
-        padding: 8,
-        marginRight: 10,
-    },
-    playerTitle: {
-        flex: 1,
-        color: '#fff',
-        fontFamily: 'Oswald_500Medium',
-        fontSize: 16,
-    },
-    videoWrapper: {
-        backgroundColor: '#000',
-        justifyContent: 'center',
-    },
-    playerInfo: {
-        flex: 1,
-        padding: spacing.xl,
-        backgroundColor: colors.background,
-    },
-    playerCategory: {
-        fontFamily: 'Inter_600SemiBold',
-        fontSize: 12,
-        color: colors.accent,
-        letterSpacing: 1,
-        marginBottom: 8,
-    },
-    playerMainTitle: {
-        fontFamily: 'Oswald_700Bold',
-        fontSize: 24,
-        color: colors.text,
-        lineHeight: 32,
-        marginBottom: 12,
-    },
-    playerViews: {
-        fontFamily: 'Inter_400Regular',
-        fontSize: 14,
-        color: colors.textDim,
-    },
-    errorContainer: {
-        height: 200,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    errorText: {
-        color: '#fff',
-        fontFamily: 'Inter_400Regular',
-    },
-    emptyContainer: {
-        padding: spacing.xxl,
-        alignItems: 'center',
-    },
-    emptyText: {
-        fontFamily: 'Inter_400Regular',
-        fontSize: 14,
-        color: colors.textDim,
-    },
-    scrollToTopButton: {
+    durationText: { color: '#fff', fontSize: 12, fontFamily: 'Inter_600SemiBold' },
+    videoInfo: { padding: spacing.md },
+    videoHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+    videoCategory: { fontFamily: 'Oswald_500Medium', fontSize: 11, color: colors.accent, letterSpacing: 1 },
+    viewCount: { fontFamily: 'Inter_400Regular', fontSize: 11, color: colors.textDim },
+    videoTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 18, color: colors.text, lineHeight: 24, marginBottom: spacing.md },
+    shareRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    shareText: { color: colors.textDim, fontFamily: 'Inter_400Regular', fontSize: 12 },
+    playerContainer: { flex: 1, backgroundColor: '#000' },
+    playerHeader: { flexDirection: 'row', alignItems: 'center', paddingTop: 52, paddingBottom: 16, paddingHorizontal: spacing.md, backgroundColor: '#000' },
+    closeButton: { padding: 8, marginRight: 8 },
+    playerTitle: { flex: 1, color: '#fff', fontFamily: 'Inter_600SemiBold', fontSize: 15 },
+    videoWrapper: { backgroundColor: '#000', justifyContent: 'center' },
+    playerInfo: { flex: 1, padding: spacing.xl, backgroundColor: colors.backgroundElevated },
+    playerCategory: { fontFamily: 'Oswald_500Medium', fontSize: 12, color: colors.accent, letterSpacing: 1, marginBottom: 8 },
+    playerMainTitle: { fontFamily: 'Oswald_700Bold', fontSize: 24, color: colors.text, lineHeight: 31, marginBottom: 12 },
+    playerViews: { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors.textDim },
+    errorContainer: { height: 200, justifyContent: 'center', alignItems: 'center' },
+    errorText: { color: '#fff', fontFamily: 'Inter_400Regular' },
+    emptyContainer: { padding: spacing.xxl, alignItems: 'center' },
+    emptyText: { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors.textDim },
+    scrollTopButton: {
         position: 'absolute',
-        bottom: spacing.lg,
         right: spacing.lg,
+        bottom: spacing.xl,
+        width: 46,
+        height: 46,
+        borderRadius: radius.pill,
         backgroundColor: colors.accent,
-        width: 44,
-        height: 44,
-        borderRadius: 22,
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
-        zIndex: 100,
     },
 });

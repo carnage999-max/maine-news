@@ -1,103 +1,110 @@
 import React from 'react';
-import { ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Stack } from 'expo-router';
-import { colors, spacing } from '../../constants/theme';
+import { colors, radius, spacing } from '../../constants/theme';
 
 export default function PrivacyScreen() {
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-            <Stack.Screen options={{ title: 'Privacy Policy' }} />
-            <Text style={styles.title}>Global Privacy Policy</Text>
-            <Text style={styles.tagline}>Gold Standard Edition</Text>
-            <Text style={styles.date}>Last Updated: January 14, 2026</Text>
+            <Stack.Screen
+                options={{
+                    title: 'Privacy Policy',
+                    headerStyle: { backgroundColor: colors.backgroundElevated },
+                    headerTintColor: colors.text,
+                    headerTitleStyle: { fontFamily: 'Oswald_700Bold', color: colors.text },
+                }}
+            />
 
-            <View style={styles.section}>
-                <Text style={styles.heading}>Introduction</Text>
-                <Text style={styles.text}>This Global Privacy Policy (the “Policy”) describes how Maine News Now (“Company,” “we,” “our,” or “us”) collects, uses, discloses, and safeguards personal information across all current and future websites, subdomains, and online services (collectively, the “Services”). This Policy sets a global standard for privacy compliance and data protection in accordance with high international legal frameworks (GDPR, CCPA/CPRA, etc.).</Text>
+            <View style={styles.heroPanel}>
+                <Text style={styles.kicker}>Legal & policy</Text>
+                <Text style={styles.title}>Privacy Policy</Text>
+                <Text style={styles.date}>Last updated: June 4, 2026</Text>
             </View>
 
-            <View style={styles.section}>
-                <Text style={styles.heading}>1. Scope and Applicability</Text>
-                <Text style={styles.text}>This Policy applies to all visitors, customers, and users of our Services. By using our Services, you consent to the practices described herein.</Text>
+            <View style={styles.panel}>
+                <Section
+                    title="Introduction"
+                    body="This policy explains how Maine News Now collects, uses, shares, and protects information across our site, mobile app, and related services."
+                />
+                <Section
+                    title="Information We Collect"
+                    body="We may collect information you provide directly, limited technical/device data, and usage analytics needed to operate, secure, and improve our services."
+                />
+                <Section
+                    title="How We Use Information"
+                    body="We use data to deliver content, improve performance, prevent abuse, communicate with users, and support newsroom and service operations."
+                />
+                <Section
+                    title="Sharing"
+                    body="We do not sell personal data. Information may be shared with service providers or legal authorities when necessary to operate the service or comply with law."
+                />
+                <Section
+                    title="Contact"
+                    body="For privacy questions, contact the Maine News Now team through the contact details published on mainenewsnow.com."
+                />
             </View>
-
-            <View style={styles.section}>
-                <Text style={styles.heading}>2. Information We Collect</Text>
-                <Text style={styles.text}>We collect personal data directly and automatically, including identifiers (name, email), commercial data, geolocation, and behavioral analytics required for lawful business operations.</Text>
-            </View>
-
-            <View style={styles.section}>
-                <Text style={styles.heading}>3. Automated and AI‑Based Processing</Text>
-                <Text style={styles.text}>We utilize AI/ML technologies to enhance service personalization and detect fraud. Automated decision‑making is always subject to appropriate human oversight.</Text>
-            </View>
-
-            <View style={styles.section}>
-                <Text style={styles.heading}>4. How We Use Information</Text>
-                <Text style={styles.text}>We process data for legitimate business purposes: service delivery, account management, and platform security, grounded in a lawful basis under applicable law.</Text>
-            </View>
-
-            <View style={styles.section}>
-                <Text style={styles.heading}>5. Disclosure and Data Sharing</Text>
-                <Text style={styles.text}>We do not sell personal data. We share information only with trusted service providers and legal authorities when required by law.</Text>
-            </View>
-
-            <View style={styles.section}>
-                <Text style={styles.heading}>13. Contact and DPO</Text>
-                <Text style={styles.text}>We maintain a designated Data Protection Officer. Exercise your rights via email at privacy@mainenewstoday.com or by mail to our registered office in Florida, USA.</Text>
-            </View>
-
-            <Text style={styles.footerText}>© 2026 Maine News Now. All rights reserved.</Text>
         </ScrollView>
     );
 }
 
+function Section({ title, body }: { title: string; body: string }) {
+    return (
+        <View style={styles.section}>
+            <Text style={styles.heading}>{title}</Text>
+            <Text style={styles.text}>{body}</Text>
+        </View>
+    );
+}
+
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background,
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { padding: spacing.md, paddingBottom: spacing.xxl },
+    heroPanel: {
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.lg,
+        backgroundColor: colors.backgroundElevated,
+        padding: spacing.xl,
+        marginBottom: spacing.md,
     },
-    content: {
-        padding: spacing.lg,
-        paddingBottom: spacing.xxl,
+    kicker: {
+        color: colors.accent,
+        fontFamily: 'Oswald_500Medium',
+        fontSize: 12,
+        letterSpacing: 1,
+        marginBottom: 6,
     },
     title: {
-        fontFamily: 'Oswald_700Bold',
-        fontSize: 32,
         color: colors.text,
-        marginBottom: 4,
-    },
-    tagline: {
-        fontFamily: 'Inter_600SemiBold',
-        fontSize: 14,
-        color: colors.accent,
-        marginBottom: 4,
+        fontFamily: 'Oswald_700Bold',
+        fontSize: 30,
     },
     date: {
+        color: colors.textDim,
         fontFamily: 'Inter_400Regular',
         fontSize: 12,
-        color: colors.textDim,
-        marginBottom: spacing.xl,
+        marginTop: spacing.sm,
+    },
+    panel: {
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.lg,
+        backgroundColor: colors.backgroundElevated,
+        padding: spacing.xl,
     },
     section: {
         marginBottom: spacing.xl,
     },
     heading: {
-        fontFamily: 'Oswald_700Bold',
-        fontSize: 18,
         color: colors.text,
+        fontFamily: 'Oswald_700Bold',
+        fontSize: 20,
         marginBottom: spacing.sm,
     },
     text: {
+        color: colors.textMuted,
         fontFamily: 'Inter_400Regular',
         fontSize: 15,
-        lineHeight: 22,
-        color: colors.textMuted,
+        lineHeight: 24,
     },
-    footerText: {
-        fontFamily: 'Inter_400Regular',
-        fontSize: 12,
-        color: colors.textDim,
-        textAlign: 'center',
-        marginTop: spacing.xl,
-    }
 });
