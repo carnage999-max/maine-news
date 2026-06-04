@@ -20,7 +20,7 @@ export default function Onboarding() {
             <View style={styles.content}>
                 <View style={styles.logoPanel}>
                     <Image
-                        source={require('../assets/maine-news-now.png')}
+                        source={require('../assets/header-mobile.png')}
                         style={styles.logoImage}
                         resizeMode="contain"
                     />
@@ -60,8 +60,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     logoImage: {
-        width: 220,
-        height: 74,
+        width: 250,
+        height: 86,
         marginBottom: spacing.lg,
     },
     kicker: {

@@ -239,7 +239,7 @@ export default function HomeScreen() {
                 <Menu size={22} color={colors.text} />
             </TouchableOpacity>
             <Image
-                source={require('../../assets/maine-news-now.png')}
+                source={require('../../assets/header-mobile.png')}
                 style={styles.headerLogo}
                 resizeMode="contain"
             />
