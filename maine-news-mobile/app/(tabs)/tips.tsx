@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import axios from 'axios';
 import { Camera, CheckCircle2, Send, ShieldCheck } from 'lucide-react-native';
 import { API_BASE_URL } from '../../services/api';
@@ -11,6 +11,7 @@ export default function TipsScreen() {
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     const handleSubmit = async () => {
         if (!headline || !details) {
@@ -51,7 +52,10 @@ export default function TipsScreen() {
 
     return (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
-            <ScrollView contentContainerStyle={styles.content}>
+            <ScrollView
+                contentContainerStyle={styles.content}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); requestAnimationFrame(() => setRefreshing(false)); }} tintColor={colors.accent} />}
+            >
                 <View style={styles.heroPanel}>
                     <Text style={styles.kicker}>Secure newsroom intake</Text>
                     <Text style={styles.title}>Send A News Tip</Text>

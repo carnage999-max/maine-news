@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Building2, ChevronRight, CloudSun, Landmark, LayoutGrid, MapPinned, ScrollText, Shield, TriangleAlert, Tv2 } from 'lucide-react-native';
 import { colors, radius, spacing } from '../../constants/theme';
@@ -27,9 +28,14 @@ const ALL_SECTIONS = [
 
 export default function SectionsScreen() {
     const router = useRouter();
+    const [refreshing, setRefreshing] = useState(false);
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <ScrollView
+            style={styles.container}
+            contentContainerStyle={styles.content}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); requestAnimationFrame(() => setRefreshing(false)); }} tintColor={colors.accent} />}
+        >
             <View style={styles.heroPanel}>
                 <Text style={styles.heroKicker}>Newsroom navigation</Text>
                 <Text style={styles.heroTitle}>Browse Every Section</Text>

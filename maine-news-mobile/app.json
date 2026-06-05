@@ -17,7 +17,11 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mainenewstoday.app"
+      "bundleIdentifier": "com.mainenewstoday.app",
+      "associatedDomains": [
+        "applinks:mainenewsnow.com",
+        "applinks:www.mainenewsnow.com"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -31,12 +35,18 @@
       ],
       "intentFilters": [
         {
+          "autoVerify": true,
           "action": "VIEW",
           "data": [
             {
               "scheme": "https",
               "host": "mainenewsnow.com",
-              "pathPrefix": "/article"
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "https",
+              "host": "www.mainenewsnow.com",
+              "pathPrefix": "/"
             }
           ],
           "category": [
@@ -59,6 +69,17 @@
     ],
     "extra": {
       "router": {},
+      "appleAppSiteAssociationAppIDs": [
+        "TEAMID.com.mainenewstoday.app"
+      ],
+      "androidAssetStatements": [
+        {
+          "package_name": "com.mainenewstoday.app",
+          "sha256_cert_fingerprints": [
+            "REPLACE_WITH_PLAY_SIGNING_SHA256"
+          ]
+        }
+      ],
       "eas": {
         "projectId": "34155bc3-3eb4-4c43-b278-7e0143fa49fc"
       }

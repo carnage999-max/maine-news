@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import Svg, { G, Path } from 'react-native-svg';
 import { MapPinned } from 'lucide-react-native';
@@ -83,20 +83,23 @@ export default function LocalCoverageScreen() {
     const router = useRouter();
     const [map, setMap] = useState<CountyFeatureCollection | null>(null);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [selectedCounty, setSelectedCounty] = useState<string | null>(null);
 
-    useEffect(() => {
-        async function load() {
-            try {
-                const data = await fetchCountyMap();
-                setMap(data);
-            } catch (error) {
-                console.error('Failed to load county map:', error);
-            } finally {
-                setLoading(false);
-            }
+    const loadMap = async () => {
+        try {
+            const data = await fetchCountyMap();
+            setMap(data);
+        } catch (error) {
+            console.error('Failed to load county map:', error);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
         }
-        void load();
+    };
+
+    useEffect(() => {
+        void loadMap();
     }, []);
 
     const countyPaths = useMemo(() => {
@@ -105,7 +108,11 @@ export default function LocalCoverageScreen() {
     }, [map]);
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <ScrollView
+            style={styles.container}
+            contentContainerStyle={styles.content}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void loadMap(); }} tintColor={colors.accent} />}
+        >
             <Stack.Screen
                 options={{
                     title: 'Local Coverage',

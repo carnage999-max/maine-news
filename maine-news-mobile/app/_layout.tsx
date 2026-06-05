@@ -109,11 +109,17 @@ export default function RootLayout() {
                 />
                 <Stack.Screen
                     name="weather"
-                    options={{ title: 'Weather' }}
+                    options={{
+                        title: 'Weather',
+                        headerBackButtonDisplayMode: 'minimal',
+                    }}
                 />
                 <Stack.Screen
                     name="search"
-                    options={{ title: 'Search' }}
+                    options={{
+                        title: 'Search',
+                        headerBackButtonDisplayMode: 'minimal',
+                    }}
                 />
                 <Stack.Screen
                     name="category/[id]"

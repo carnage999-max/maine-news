@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { ChevronUp, Search as SearchIcon } from 'lucide-react-native';
 import StoryDisplayToggle, { type StoryDisplayMode } from '../components/common/StoryDisplayToggle';
@@ -24,6 +24,7 @@ export default function SearchScreen() {
     const [allPosts, setAllPosts] = useState<Post[]>([]);
     const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [showScrollTop, setShowScrollTop] = useState(false);
     const [displayMode, setDisplayMode] = usePersistedStoryDisplayMode('story-display-search');
     const flatListRef = React.useRef<FlatList>(null);
@@ -31,18 +32,20 @@ export default function SearchScreen() {
     const previousDisplayModeRef = React.useRef<StoryDisplayMode>(displayMode);
     const router = useRouter();
 
-    useEffect(() => {
-        async function load() {
-            try {
-                const data = await fetchPosts();
-                setAllPosts(data);
-            } catch (error) {
-                console.error('Error fetching posts:', error);
-            } finally {
-                setLoading(false);
-            }
+    const loadPosts = async () => {
+        try {
+            const data = await fetchPosts();
+            setAllPosts(data);
+        } catch (error) {
+            console.error('Error fetching posts:', error);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
         }
-        void load();
+    };
+
+    useEffect(() => {
+        void loadPosts();
     }, []);
 
     useEffect(() => {
@@ -111,6 +114,7 @@ export default function SearchScreen() {
                         }}
                         scrollEventThrottle={16}
                         contentContainerStyle={styles.list}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void loadPosts(); }} tintColor={colors.accent} />}
                         renderItem={({ item }) => (
                             <View style={displayMode === 'standard' ? styles.gridItemWrap : undefined}>
                                 {displayMode === 'list' ? (

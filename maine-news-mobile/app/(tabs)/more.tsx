@@ -1,4 +1,5 @@
-import { Image, Linking, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { Image, Linking, RefreshControl, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ChevronRight, FileText, Mail, MoreHorizontal, Shield, Share2, Facebook, Instagram, Youtube } from 'lucide-react-native';
 import { Svg, Path } from 'react-native-svg';
@@ -12,6 +13,7 @@ const XIcon = ({ color }: { color: string }) => (
 
 export default function MoreScreen() {
     const router = useRouter();
+    const [refreshing, setRefreshing] = useState(false);
 
     const handleShare = async () => {
         try {
@@ -35,7 +37,11 @@ export default function MoreScreen() {
     );
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <ScrollView
+            style={styles.container}
+            contentContainerStyle={styles.content}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); requestAnimationFrame(() => setRefreshing(false)); }} tintColor={colors.accent} />}
+        >
             <View style={styles.heroPanel}>
                 <MoreHorizontal size={30} color={colors.accent} />
                 <Text style={styles.heroTitle}>More From The Newsroom</Text>

@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "7E38U5R6M4.com.mainenewstoday.app",
+        "appID": "J4PDJ9UH55.com.mainenewstoday.app",
         "paths": ["/article/*", "/news/maine-minute/*"]
       }
     ]

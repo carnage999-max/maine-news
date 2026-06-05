@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Resend } from 'resend';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -13,7 +14,41 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Headline and details are required' }, { status: 400 });
         }
 
-        // Create a secure tip directory if it doesn't exist
+        const timestamp = new Date().getTime();
+        const submittedAt = new Date().toISOString();
+        const ip = request.headers.get('x-forwarded-for') || 'unknown';
+        const userAgent = request.headers.get('user-agent') || 'unknown';
+
+        if (process.env.RESEND_API_KEY) {
+            const resend = new Resend(process.env.RESEND_API_KEY);
+            await resend.emails.send({
+                from: 'Maine News Now <info@nathanreardon.com>',
+                to: ['jamesezekiel039@gmail.com', 'info@mainenewsnow.com', 'nathan@membershipauto.com'],
+                subject: `NEWS TIP: ${headline}`,
+                html: `
+                    <div style="font-family: sans-serif; padding: 20px; color: #333;">
+                        <h2 style="color: #ef2b2d; border-bottom: 2px solid #ef2b2d; padding-bottom: 10px;">New Mobile News Tip</h2>
+                        <p><strong>Headline:</strong> ${headline}</p>
+                        <p><strong>Anonymous:</strong> ${isAnonymous ? 'Yes' : 'No'}</p>
+                        <p><strong>Submitted:</strong> ${submittedAt}</p>
+                        <p><strong>IP:</strong> ${ip}</p>
+                        <p><strong>User Agent:</strong> ${userAgent}</p>
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+                        <div style="background: #f9f9f9; padding: 15px; border-radius: 4px; white-space: pre-wrap;">
+                            ${details}
+                        </div>
+                    </div>
+                `,
+            });
+
+            return NextResponse.json({
+                success: true,
+                message: 'Tip submitted securely. Thank you for your intelligence.',
+                tipId: timestamp,
+            });
+        }
+
+        // Local/dev fallback only
         const tipsDir = path.join(process.cwd(), 'secure-tips');
         try {
             await fs.access(tipsDir);
@@ -21,7 +56,6 @@ export async function POST(request: Request) {
             await fs.mkdir(tipsDir);
         }
 
-        const timestamp = new Date().getTime();
         const tipFileName = `tip-${timestamp}.json`;
         const tipPath = path.join(tipsDir, tipFileName);
 
@@ -30,9 +64,9 @@ export async function POST(request: Request) {
             headline,
             details,
             isAnonymous,
-            submittedAt: new Date().toISOString(),
-            ip: request.headers.get('x-forwarded-for') || 'unknown',
-            userAgent: request.headers.get('user-agent') || 'unknown'
+            submittedAt,
+            ip,
+            userAgent
         };
 
         await fs.writeFile(tipPath, JSON.stringify(tipContent, null, 2), 'utf-8');

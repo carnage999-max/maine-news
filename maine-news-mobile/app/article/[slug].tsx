@@ -8,7 +8,8 @@ import {
     TouchableOpacity,
     Dimensions,
     Share,
-    Image
+    Image,
+    RefreshControl
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { fetchPostBySlug, fetchPosts, getImageUrl, type Post } from '../../services/api';
@@ -42,6 +43,7 @@ export default function ArticleDetail() {
     const [post, setPost] = useState<any>(null);
     const [relatedPosts, setRelatedPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
     const speakingRef = useRef(false);
     const [sizeKey, setSizeKey] = useState<'S' | 'M' | 'L'>('M');
@@ -192,38 +194,44 @@ export default function ArticleDetail() {
         }
     };
 
-    useEffect(() => {
-        async function getPost() {
-            if (typeof slug === 'string') {
-                const [data, allPosts] = await Promise.all([
-                    fetchPostBySlug(slug),
-                    fetchPosts(),
-                ]);
-
-                setPost(data);
-
-                if (data) {
-                    const related = allPosts
-                        .filter((candidate) => candidate.slug !== slug)
-                        .filter((candidate) => {
-                            const candidateCategory = (candidate.category || '').toLowerCase();
-                            const currentCategory = (data.category || '').toLowerCase();
-                            if (candidateCategory && currentCategory && candidateCategory === currentCategory) {
-                                return true;
-                            }
-                            return candidate.isNational === data.isNational;
-                        })
-                        .slice(0, 4);
-
-                    setRelatedPosts(related);
-                } else {
-                    setRelatedPosts([]);
-                }
-
-                setLoading(false);
-            }
+    const loadArticle = async () => {
+        if (typeof slug !== 'string') {
+            setLoading(false);
+            setRefreshing(false);
+            return;
         }
-        getPost();
+
+        const [data, allPosts] = await Promise.all([
+            fetchPostBySlug(slug),
+            fetchPosts(),
+        ]);
+
+        setPost(data);
+
+        if (data) {
+            const related = allPosts
+                .filter((candidate) => candidate.slug !== slug)
+                .filter((candidate) => {
+                    const candidateCategory = (candidate.category || '').toLowerCase();
+                    const currentCategory = (data.category || '').toLowerCase();
+                    if (candidateCategory && currentCategory && candidateCategory === currentCategory) {
+                        return true;
+                    }
+                    return candidate.isNational === data.isNational;
+                })
+                .slice(0, 4);
+
+            setRelatedPosts(related);
+        } else {
+            setRelatedPosts([]);
+        }
+
+        setLoading(false);
+        setRefreshing(false);
+    };
+
+    useEffect(() => {
+        void loadArticle();
     }, [slug]);
 
     const toggleTextSize = () => {
@@ -369,7 +377,10 @@ export default function ArticleDetail() {
                 )
             }} />
 
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void loadArticle(); }} tintColor={colors.accent} />}
+            >
                 <View style={styles.header}>
                     <View style={styles.categoryBadge}>
                         <Text style={styles.categoryText}>{post.category.toUpperCase()}</Text>

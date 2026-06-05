@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Share } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Share, RefreshControl } from 'react-native';
 import { Stack } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CloudSun, MapPin, Wind, Droplets, AlertTriangle, Calendar } from 'lucide-react-native';
@@ -24,21 +24,23 @@ function formatPrecip(probability?: number | null) {
 export default function WeatherScreen() {
     const [report, setReport] = useState<WeatherReport | null>(null);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [activeRegionId, setActiveRegionId] = useState<string | null>(null);
 
-    useEffect(() => {
-        const loadReport = async () => {
-            try {
-                const data = await fetchWeatherReport();
-                setReport(data);
-            } catch (error) {
-                console.error('Error loading weather report:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const loadReport = async () => {
+        try {
+            const data = await fetchWeatherReport();
+            setReport(data);
+        } catch (error) {
+            console.error('Error loading weather report:', error);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
 
-        loadReport();
+    useEffect(() => {
+        void loadReport();
     }, []);
 
     useEffect(() => {
@@ -87,7 +89,10 @@ export default function WeatherScreen() {
                     <ActivityIndicator size="large" color={colors.accent} />
                 </View>
             ) : report ? (
-                <ScrollView contentContainerStyle={styles.content}>
+                <ScrollView
+                    contentContainerStyle={styles.content}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void loadReport(); }} tintColor={colors.accent} />}
+                >
                     <LinearGradient
                         colors={['#16191d', '#101317', '#090a0c']}
                         style={styles.heroGradient}
