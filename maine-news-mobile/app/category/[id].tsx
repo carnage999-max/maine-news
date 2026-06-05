@@ -2,6 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { ChevronUp } from 'lucide-react-native';
+import SponsorBanner from '../../components/common/SponsorBanner';
+import StoryDisplayToggle, { type StoryDisplayMode } from '../../components/common/StoryDisplayToggle';
+import StoryFeatureCard from '../../components/common/StoryFeatureCard';
+import StoryGridCard from '../../components/common/StoryGridCard';
+import usePersistedStoryDisplayMode from '../../components/common/usePersistedStoryDisplayMode';
 import HeadlineRow from '../../components/home/HeadlineRow';
 import { colors, radius, spacing } from '../../constants/theme';
 import { fetchPosts, filterByCategory, type Post } from '../../services/api';
@@ -22,6 +27,9 @@ export default function CategoryScreen() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [showScrollTop, setShowScrollTop] = useState(false);
+    const [displayMode, setDisplayMode] = usePersistedStoryDisplayMode(
+        `story-display-category-${typeof id === 'string' ? id : 'all'}`
+    );
     const flatListRef = React.useRef<FlatList>(null);
 
     const categoryName = useMemo(
@@ -80,15 +88,36 @@ export default function CategoryScreen() {
                         <Text style={styles.subtitle}>
                             Latest reporting, updates, and headlines from the {categoryName} desk.
                         </Text>
+                        <StoryDisplayToggle mode={displayMode} onChange={setDisplayMode} />
+                        <SponsorBanner compact />
                     </View>
                 }
                 renderItem={({ item }) => (
-                    <HeadlineRow
-                        post={item}
-                        timeLabel={formatRelativeTime(item.publishedDate)}
-                        onPress={() => router.push(`/article/${item.slug}`)}
-                    />
+                    <View style={displayMode === 'standard' ? styles.gridItemWrap : undefined}>
+                        {displayMode === 'list' ? (
+                            <HeadlineRow
+                                post={item}
+                                timeLabel={formatRelativeTime(item.publishedDate)}
+                                onPress={() => router.push(`/article/${item.slug}`)}
+                            />
+                        ) : displayMode === 'standard' ? (
+                            <StoryGridCard
+                                post={item}
+                                timeLabel={formatRelativeTime(item.publishedDate)}
+                                onPress={() => router.push(`/article/${item.slug}`)}
+                            />
+                        ) : (
+                            <StoryFeatureCard
+                                post={item}
+                                timeLabel={formatRelativeTime(item.publishedDate)}
+                                onPress={() => router.push(`/article/${item.slug}`)}
+                            />
+                        )}
+                    </View>
                 )}
+                numColumns={displayMode === 'standard' ? 2 : 1}
+                key={`category-${displayMode}`}
+                columnWrapperStyle={displayMode === 'standard' ? styles.gridRow : undefined}
                 ListEmptyComponent={
                     <View style={styles.emptyWrap}>
                         <Text style={styles.emptyText}>No stories found in this section yet.</Text>
@@ -136,6 +165,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
         lineHeight: 22,
         marginTop: spacing.sm,
+        marginBottom: spacing.md,
+    },
+    gridRow: {
+        gap: spacing.sm,
+    },
+    gridItemWrap: {
+        flex: 1,
+        marginBottom: spacing.sm,
     },
     emptyWrap: { paddingVertical: spacing.xl, alignItems: 'center' },
     emptyText: { color: colors.textDim, fontFamily: 'Inter_400Regular', fontSize: 14 },

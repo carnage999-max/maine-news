@@ -2,6 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronUp } from 'lucide-react-native';
+import SponsorBanner from '../../components/common/SponsorBanner';
+import StoryDisplayToggle, { type StoryDisplayMode } from '../../components/common/StoryDisplayToggle';
+import StoryFeatureCard from '../../components/common/StoryFeatureCard';
+import StoryGridCard from '../../components/common/StoryGridCard';
+import usePersistedStoryDisplayMode from '../../components/common/usePersistedStoryDisplayMode';
 import HeadlineRow from '../../components/home/HeadlineRow';
 import { colors, radius, spacing } from '../../constants/theme';
 import { fetchCountyFeed, type CountyFeedResponse } from '../../services/api';
@@ -25,6 +30,9 @@ export default function CountyFeedScreen() {
     const flatListRef = React.useRef<FlatList>(null);
 
     const countySlug = typeof county === 'string' ? county : '';
+    const [displayMode, setDisplayMode] = usePersistedStoryDisplayMode(
+        `story-display-county-${countySlug || 'default'}`
+    );
 
     const loadFeed = async () => {
         try {
@@ -81,15 +89,36 @@ export default function CountyFeedScreen() {
                         <TouchableOpacity style={styles.switchButton} onPress={() => router.push('/local')}>
                             <Text style={styles.switchButtonText}>Switch County</Text>
                         </TouchableOpacity>
+                        <StoryDisplayToggle mode={displayMode} onChange={setDisplayMode} />
+                        <SponsorBanner compact />
                     </View>
                 }
                 renderItem={({ item }) => (
-                    <HeadlineRow
-                        post={item}
-                        timeLabel={formatRelativeTime(item.publishedDate)}
-                        onPress={() => router.push(`/article/${item.slug}`)}
-                    />
+                    <View style={displayMode === 'standard' ? styles.gridItemWrap : undefined}>
+                        {displayMode === 'list' ? (
+                            <HeadlineRow
+                                post={item}
+                                timeLabel={formatRelativeTime(item.publishedDate)}
+                                onPress={() => router.push(`/article/${item.slug}`)}
+                            />
+                        ) : displayMode === 'standard' ? (
+                            <StoryGridCard
+                                post={item}
+                                timeLabel={formatRelativeTime(item.publishedDate)}
+                                onPress={() => router.push(`/article/${item.slug}`)}
+                            />
+                        ) : (
+                            <StoryFeatureCard
+                                post={item}
+                                timeLabel={formatRelativeTime(item.publishedDate)}
+                                onPress={() => router.push(`/article/${item.slug}`)}
+                            />
+                        )}
+                    </View>
                 )}
+                numColumns={displayMode === 'standard' ? 2 : 1}
+                key={`county-${displayMode}`}
+                columnWrapperStyle={displayMode === 'standard' ? styles.gridRow : undefined}
                 ListEmptyComponent={
                     <View style={styles.emptyWrap}>
                         <Text style={styles.emptyText}>No recent stories matched to this county yet.</Text>
@@ -132,6 +161,13 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.03)',
     },
     switchButtonText: { color: colors.text, fontFamily: 'Inter_600SemiBold', fontSize: 12 },
+    gridRow: {
+        gap: spacing.sm,
+    },
+    gridItemWrap: {
+        flex: 1,
+        marginBottom: spacing.sm,
+    },
     emptyWrap: { paddingVertical: spacing.xl, alignItems: 'center' },
     emptyText: { color: colors.textDim, fontFamily: 'Inter_400Regular', fontSize: 14 },
     scrollTopButton: {

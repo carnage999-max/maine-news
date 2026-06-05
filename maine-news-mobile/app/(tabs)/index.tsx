@@ -18,6 +18,11 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HeadlineRow from '../../components/home/HeadlineRow';
 import NewsTicker from '../../components/home/NewsTicker';
+import SponsorBanner from '../../components/common/SponsorBanner';
+import StoryDisplayToggle, { type StoryDisplayMode } from '../../components/common/StoryDisplayToggle';
+import StoryFeatureCard from '../../components/common/StoryFeatureCard';
+import StoryGridCard from '../../components/common/StoryGridCard';
+import usePersistedStoryDisplayMode from '../../components/common/usePersistedStoryDisplayMode';
 import { colors, fontSize, radius, spacing } from '../../constants/theme';
 import {
     API_BASE_URL,
@@ -36,6 +41,7 @@ import {
 
 const { width } = Dimensions.get('window');
 const HERO_HEIGHT = 438;
+const HERO_SLIDE_WIDTH = width - spacing.md * 2;
 const TICKER_STORAGE_KEY = 'mobileTickerSpeed';
 
 type TickerSpeed = 'slow' | 'normal' | 'fast';
@@ -90,7 +96,7 @@ function getLatestSectionPosts(posts: Post[], activeFilter: string) {
         return posts.filter((post) => !post.isNational);
     }
 
-    return posts.filter((post) => post.category.toLowerCase() === activeFilter);
+    return posts.filter((post) => (post.category || '').toLowerCase() === activeFilter);
 }
 
 function getWeatherSnapshot(weather: WeatherReport | null) {
@@ -104,15 +110,40 @@ function getWeatherSnapshot(weather: WeatherReport | null) {
 }
 
 function getLotteryLine(lottery: LotterySummary | null) {
-    const powerball = lottery?.powerball;
-    if (!powerball?.numbers?.length) {
-        return 'Powerball pending';
+    if (!lottery) {
+        return 'Lottery pending';
     }
 
-    const joinedNumbers = powerball.numbers.join(' ');
-    return powerball.extra
-        ? `Powerball ${joinedNumbers} ${powerball.extra}`
-        : `Powerball ${joinedNumbers}`;
+    const orderedDraws = [
+        ['Double Play', lottery.doublePlay],
+        ['Lotto America', lottery.lottoAmerica],
+        ['Lucky for Life', lottery.luckyForLife],
+        ['Powerball', lottery.powerball],
+        ['Mega Millions', lottery.megamillions],
+        ['Megabucks', lottery.megabucks],
+        ['Gimme 5', lottery.gimme5],
+        ['Pick 4', lottery.pick4],
+        ['Pick 3', lottery.pick3],
+    ] as const;
+
+    const availableDraw = orderedDraws.find(([, draw]) => draw?.numbers?.length);
+    if (!availableDraw) {
+        return 'Lottery pending';
+    }
+
+    const [label, draw] = availableDraw;
+    const joinedNumbers = draw!.numbers.join(' ');
+    return draw!.extra
+        ? `${label} ${joinedNumbers} ${draw!.extra}`
+        : `${label} ${joinedNumbers}`;
+}
+
+function hasUsableHeroImage(post: Post) {
+    if (!post.image) {
+        return false;
+    }
+
+    return !post.image.includes('hero-fallback');
 }
 
 export default function HomeScreen() {
@@ -134,6 +165,7 @@ export default function HomeScreen() {
     const [mobileVisibleCount, setMobileVisibleCount] = useState(6);
     const [showScrollTop, setShowScrollTop] = useState(false);
     const [tickerSpeed, setTickerSpeed] = useState<TickerSpeed>('normal');
+    const [headlineMode, setHeadlineMode] = usePersistedStoryDisplayMode('story-display-home');
 
     useEffect(() => {
         AsyncStorage.getItem(TICKER_STORAGE_KEY).then((saved) => {
@@ -174,18 +206,27 @@ export default function HomeScreen() {
         void loadHome();
     }, []);
 
-    const heroStories = useMemo(() => posts.slice(0, 7), [posts]);
-    const topStory = heroStories[heroIndex] || posts[0];
+    const heroStories = useMemo(() => {
+        const withRealImages = posts.filter(hasUsableHeroImage);
+        const source = withRealImages.length >= 3 ? withRealImages : posts;
+        return source.slice(0, 7);
+    }, [posts]);
     const weatherSnapshot = useMemo(() => getWeatherSnapshot(weather), [weather]);
     const trendingItems = useMemo(() => posts.slice(0, 10).map((post) => post.title), [posts]);
-    const breakingItems = useMemo(() => {
-        const incidentLabels = traffic?.incidents?.slice(0, 4).map((incident) => incident.description) || [];
-        if (incidentLabels.length) {
-            return incidentLabels;
+    const breakingItems = useMemo(() => posts.slice(0, 8).map((post) => post.title), [posts]);
+    const latestFeedSource = useMemo(() => {
+        if (posts.length <= 1) {
+            return posts;
         }
-        return posts.slice(0, 8).map((post) => post.title);
-    }, [posts, traffic]);
-    const latestHeadlines = useMemo(() => getLatestSectionPosts(posts.slice(1), latestFilter), [posts, latestFilter]);
+        return posts.slice(1);
+    }, [posts]);
+    const latestHeadlines = useMemo(() => {
+        const filtered = getLatestSectionPosts(latestFeedSource, latestFilter);
+        if (filtered.length) {
+            return filtered;
+        }
+        return latestFeedSource.length ? latestFeedSource : posts;
+    }, [latestFeedSource, latestFilter, posts]);
 
     useEffect(() => {
         if (heroStories.length <= 1) {
@@ -195,7 +236,7 @@ export default function HomeScreen() {
         heroTimerRef.current = setInterval(() => {
             setHeroIndex((prev) => {
                 const next = (prev + 1) % heroStories.length;
-                heroScrollRef.current?.scrollTo({ x: next * width, animated: true });
+                heroScrollRef.current?.scrollTo({ x: next * HERO_SLIDE_WIDTH, animated: true });
                 return next;
             });
         }, 6000);
@@ -261,14 +302,10 @@ export default function HomeScreen() {
                     horizontal
                     pagingEnabled
                     showsHorizontalScrollIndicator={false}
+                    style={styles.heroScroller}
                     onMomentumScrollEnd={(event) => {
-                        const newIndex = Math.round(event.nativeEvent.contentOffset.x / width);
+                        const newIndex = Math.round(event.nativeEvent.contentOffset.x / HERO_SLIDE_WIDTH);
                         setHeroIndex(newIndex);
-                    }}
-                    onScrollBeginDrag={() => {
-                        if (heroTimerRef.current) {
-                            clearInterval(heroTimerRef.current);
-                        }
                     }}
                 >
                     {heroStories.map((post) => (
@@ -316,7 +353,7 @@ export default function HomeScreen() {
                             key={story.slug}
                             onPress={() => {
                                 setHeroIndex(index);
-                                heroScrollRef.current?.scrollTo({ x: index * width, animated: true });
+                                heroScrollRef.current?.scrollTo({ x: index * HERO_SLIDE_WIDTH, animated: true });
                             }}
                             style={[styles.heroDot, index === heroIndex && styles.heroDotActive]}
                         />
@@ -338,7 +375,7 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.quickMiddleRow}>
-                <TouchableOpacity style={styles.minuteImageWrap} onPress={() => router.push('/video-hub')}>
+                <TouchableOpacity style={styles.minuteImageWrap} onPress={() => router.push('/maine-minute')}>
                     <Image
                         source={{ uri: `${API_BASE_URL}/maine-minutes.png` }}
                         style={styles.minuteImage}
@@ -364,7 +401,10 @@ export default function HomeScreen() {
 
     const renderTickerSpeedControls = () => (
         <View style={styles.tickerSpeedRow}>
-            <Text style={styles.tickerSpeedLabel}>Ticker Speed</Text>
+            <View>
+                <Text style={styles.tickerSpeedEyebrow}>Ticker controls</Text>
+                <Text style={styles.tickerSpeedLabel}>Adjust marquee speed</Text>
+            </View>
             <View style={styles.tickerSpeedButtons}>
                 {(['slow', 'normal', 'fast'] as const).map((speedOption) => (
                     <TouchableOpacity
@@ -456,15 +496,27 @@ export default function HomeScreen() {
                         </View>
                         {renderHero()}
                         {renderQuickLinks()}
+                        <View style={styles.sponsorSlot}>
+                            <SponsorBanner />
+                        </View>
                         <View style={styles.latestSection}>
-                            <NewsTicker label="BREAKING" items={breakingItems} speed={tickerSpeed} compact />
-                            {renderTickerSpeedControls()}
+                            <View style={styles.breakingPanel}>
+                                <View style={styles.breakingPanelHead}>
+                                    <View>
+                                        <Text style={styles.breakingKicker}>Live Desk</Text>
+                                        <Text style={styles.breakingTitle}>Breaking News</Text>
+                                    </View>
+                                </View>
+                                <NewsTicker label="BREAKING" items={breakingItems} speed={tickerSpeed} compact />
+                                {renderTickerSpeedControls()}
+                            </View>
                             <View style={styles.sectionHead}>
                                 <Text style={styles.sectionTitle}>Latest Headlines</Text>
                                 <TouchableOpacity onPress={() => router.push('/sections')}>
                                     <Text style={styles.viewAllText}>View All</Text>
                                 </TouchableOpacity>
                             </View>
+                            <StoryDisplayToggle mode={headlineMode} onChange={setHeadlineMode} />
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
                                 {LATEST_FILTERS.map((filter) => (
                                     <TouchableOpacity
@@ -476,7 +528,7 @@ export default function HomeScreen() {
                                         }}
                                     >
                                         <Text style={[styles.filterChipText, latestFilter === filter && styles.filterChipTextActive]}>
-                                            {filter}
+                                            {filter === 'editorial' ? 'Editorial' : filter}
                                         </Text>
                                     </TouchableOpacity>
                                 ))}
@@ -485,12 +537,31 @@ export default function HomeScreen() {
                     </>
                 )}
                 renderItem={({ item }) => (
-                    <HeadlineRow
-                        post={item}
-                        timeLabel={formatRelativeTime(item.publishedDate)}
-                        onPress={() => router.push(`/article/${item.slug}`)}
-                    />
+                    <View style={headlineMode === 'standard' ? styles.gridItemWrap : undefined}>
+                        {headlineMode === 'list' ? (
+                            <HeadlineRow
+                                post={item}
+                                timeLabel={formatRelativeTime(item.publishedDate)}
+                                onPress={() => router.push(`/article/${item.slug}`)}
+                            />
+                        ) : headlineMode === 'standard' ? (
+                            <StoryGridCard
+                                post={item}
+                                timeLabel={formatRelativeTime(item.publishedDate)}
+                                onPress={() => router.push(`/article/${item.slug}`)}
+                            />
+                        ) : (
+                            <StoryFeatureCard
+                                post={item}
+                                timeLabel={formatRelativeTime(item.publishedDate)}
+                                onPress={() => router.push(`/article/${item.slug}`)}
+                            />
+                        )}
+                    </View>
                 )}
+                numColumns={headlineMode === 'standard' ? 2 : 1}
+                key={`home-${headlineMode}`}
+                columnWrapperStyle={headlineMode === 'standard' ? styles.gridRow : undefined}
                 ListFooterComponent={(
                     <>
                         {latestVisible.length < latestHeadlines.length ? (
@@ -502,6 +573,10 @@ export default function HomeScreen() {
                                 <ChevronRight size={18} color={colors.text} />
                             </TouchableOpacity>
                         ) : null}
+
+                        <View style={styles.footerSponsorSlot}>
+                            <SponsorBanner compact />
+                        </View>
 
                         {renderNewsroomPreview()}
 
@@ -611,15 +686,20 @@ const styles = StyleSheet.create({
     heroWrap: {
         marginTop: spacing.md,
         marginHorizontal: spacing.md,
+        height: HERO_HEIGHT,
         borderRadius: 24,
         overflow: 'hidden',
         borderWidth: 1,
         borderColor: colors.border,
         backgroundColor: colors.backgroundPanel,
     },
+    heroScroller: {
+        height: HERO_HEIGHT,
+    },
     heroSlide: {
         width: width - spacing.md * 2,
         height: HERO_HEIGHT,
+        overflow: 'hidden',
     },
     heroImage: {
         ...StyleSheet.absoluteFillObject,
@@ -698,6 +778,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: spacing.sm,
         alignItems: 'stretch',
+        height: 104,
     },
     quickCard: {
         flex: 1,
@@ -713,6 +794,7 @@ const styles = StyleSheet.create({
     },
     quickCardLarge: {
         minHeight: 104,
+        height: 104,
     },
     quickCardLabel: {
         color: colors.textMuted,
@@ -728,6 +810,9 @@ const styles = StyleSheet.create({
     minuteImageWrap: {
         flex: 1.2,
         minHeight: 104,
+        height: 104,
+        borderRadius: radius.lg,
+        overflow: 'hidden',
     },
     minuteImage: {
         width: '100%',
@@ -738,12 +823,46 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.md,
         paddingTop: spacing.xl,
     },
+    sponsorSlot: {
+        marginTop: spacing.lg,
+        marginHorizontal: spacing.md,
+    },
+    breakingPanel: {
+        padding: spacing.md,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.lg,
+        backgroundColor: colors.backgroundElevated,
+        marginBottom: spacing.lg,
+    },
+    breakingPanelHead: {
+        marginBottom: spacing.md,
+    },
+    breakingKicker: {
+        color: colors.textDim,
+        fontFamily: 'Oswald_500Medium',
+        fontSize: 12,
+        letterSpacing: 1,
+        marginBottom: 4,
+    },
+    breakingTitle: {
+        color: colors.text,
+        fontFamily: 'Oswald_700Bold',
+        fontSize: 24,
+    },
     tickerSpeedRow: {
         marginTop: spacing.md,
-        marginBottom: spacing.md2,
+        marginBottom: 0,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+    },
+    tickerSpeedEyebrow: {
+        color: colors.textFaint,
+        fontFamily: 'Oswald_500Medium',
+        fontSize: 10,
+        letterSpacing: 1,
+        marginBottom: 2,
     },
     tickerSpeedLabel: {
         color: colors.textDim,
@@ -803,6 +922,14 @@ const styles = StyleSheet.create({
         paddingBottom: spacing.sm,
         gap: spacing.sm,
     },
+    gridRow: {
+        gap: spacing.sm,
+        paddingHorizontal: spacing.md,
+    },
+    gridItemWrap: {
+        flex: 1,
+        marginBottom: spacing.sm,
+    },
     filterChip: {
         paddingHorizontal: 14,
         paddingVertical: 8,
@@ -842,6 +969,10 @@ const styles = StyleSheet.create({
         color: colors.text,
         fontFamily: 'Oswald_500Medium',
         fontSize: 16,
+    },
+    footerSponsorSlot: {
+        marginHorizontal: spacing.md,
+        marginTop: spacing.lg,
     },
     newsroomPanel: {
         marginHorizontal: spacing.md,

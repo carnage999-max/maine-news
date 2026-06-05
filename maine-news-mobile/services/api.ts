@@ -181,6 +181,36 @@ export interface CountyFeedResponse {
     posts: Post[];
 }
 
+export interface MaineMinuteLink {
+    title: string;
+    slug: string;
+}
+
+export interface MaineMinuteSection {
+    title: string;
+    summary: string;
+    links: MaineMinuteLink[];
+}
+
+export interface MaineMinuteLotteryEntry {
+    game: string;
+    numbers: string[];
+    extra?: string | null;
+    jackpot?: string | null;
+    drawDate?: string | null;
+}
+
+export interface MaineMinuteReport {
+    date: string;
+    headline: string;
+    subhead: string;
+    sections: MaineMinuteSection[];
+    readMore: MaineMinuteLink[];
+    lottery: MaineMinuteLotteryEntry[];
+    timestamp: string;
+    isManual: boolean;
+}
+
 export const getImageUrl = (path?: string) => {
     if (!path) return null;
     if (path.startsWith('http')) return path;
@@ -365,6 +395,31 @@ export async function fetchCountyFeed(county: string): Promise<CountyFeedRespons
         if (cached) {
             try {
                 return JSON.parse(cached) as CountyFeedResponse;
+            } catch (e) {
+                return null;
+            }
+        }
+        return null;
+    }
+}
+
+export async function fetchMaineMinuteReport(date?: string): Promise<MaineMinuteReport | null> {
+    const cacheKey = date ? `cached_maine_minute_${date}` : 'cached_maine_minute_latest';
+    const url = date ? `${API_BASE_URL}/api/maine-minute?date=${date}` : `${API_BASE_URL}/api/maine-minute`;
+
+    try {
+        const response = await axios.get<MaineMinuteReport>(url);
+        const report = response.data;
+        if (report) {
+            await AsyncStorage.setItem(cacheKey, JSON.stringify(report));
+        }
+        return report || null;
+    } catch (error) {
+        console.error('Failed to fetch Maine Minute report:', error);
+        const cached = await AsyncStorage.getItem(cacheKey);
+        if (cached) {
+            try {
+                return JSON.parse(cached) as MaineMinuteReport;
             } catch (e) {
                 return null;
             }

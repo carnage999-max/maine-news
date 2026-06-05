@@ -98,7 +98,10 @@ export default function RootLayout() {
                 />
                 <Stack.Screen
                     name="article/[slug]"
-                    options={{ title: 'Article' }}
+                    options={{
+                        title: 'Article',
+                        headerBackButtonDisplayMode: 'minimal',
+                    }}
                 />
                 <Stack.Screen
                     name="traffic"
@@ -111,6 +114,10 @@ export default function RootLayout() {
                 <Stack.Screen
                     name="search"
                     options={{ title: 'Search' }}
+                />
+                <Stack.Screen
+                    name="maine-minute"
+                    options={{ title: 'The Maine Minute' }}
                 />
                 <Stack.Screen
                     name="local"

@@ -2,8 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { ChevronUp, Search as SearchIcon } from 'lucide-react-native';
+import SponsorBanner from '../components/common/SponsorBanner';
+import StoryDisplayToggle, { type StoryDisplayMode } from '../components/common/StoryDisplayToggle';
+import StoryFeatureCard from '../components/common/StoryFeatureCard';
+import StoryGridCard from '../components/common/StoryGridCard';
+import HeadlineRow from '../components/home/HeadlineRow';
+import usePersistedStoryDisplayMode from '../components/common/usePersistedStoryDisplayMode';
 import { colors, radius, spacing } from '../constants/theme';
 import { fetchPosts, searchPosts, type Post } from '../services/api';
+
+function formatRelativeTime(dateString: string) {
+    const now = new Date();
+    const past = new Date(dateString);
+    const diffInHours = Math.floor((now.getTime() - past.getTime()) / (1000 * 60 * 60));
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
+    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(past);
+}
 
 export default function SearchScreen() {
     const [query, setQuery] = useState('');
@@ -11,6 +26,7 @@ export default function SearchScreen() {
     const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [showScrollTop, setShowScrollTop] = useState(false);
+    const [displayMode, setDisplayMode] = usePersistedStoryDisplayMode('story-display-search');
     const flatListRef = React.useRef<FlatList>(null);
     const router = useRouter();
 
@@ -47,6 +63,8 @@ export default function SearchScreen() {
                 <Text style={styles.kicker}>Search the newsroom</Text>
                 <Text style={styles.title}>Find Stories Fast</Text>
                 <Text style={styles.subtitle}>Search headlines, authors, or topics across Maine News Now.</Text>
+                <StoryDisplayToggle mode={displayMode} onChange={setDisplayMode} />
+                <SponsorBanner compact />
             </View>
 
             <View style={styles.searchBar}>
@@ -76,12 +94,31 @@ export default function SearchScreen() {
                         scrollEventThrottle={16}
                         contentContainerStyle={styles.list}
                         renderItem={({ item }) => (
-                            <TouchableOpacity style={styles.resultCard} onPress={() => router.push(`/article/${item.slug}`)}>
-                                <Text style={styles.resultCategory}>{item.category.toUpperCase()}</Text>
-                                <Text style={styles.resultTitle}>{item.title}</Text>
-                                <Text style={styles.resultMeta}>{item.author}</Text>
-                            </TouchableOpacity>
+                            <View style={displayMode === 'standard' ? styles.gridItemWrap : undefined}>
+                                {displayMode === 'list' ? (
+                                    <HeadlineRow
+                                        post={item}
+                                        timeLabel={formatRelativeTime(item.publishedDate)}
+                                        onPress={() => router.push(`/article/${item.slug}`)}
+                                    />
+                                ) : displayMode === 'standard' ? (
+                                    <StoryGridCard
+                                        post={item}
+                                        timeLabel={formatRelativeTime(item.publishedDate)}
+                                        onPress={() => router.push(`/article/${item.slug}`)}
+                                    />
+                                ) : (
+                                    <StoryFeatureCard
+                                        post={item}
+                                        timeLabel={formatRelativeTime(item.publishedDate)}
+                                        onPress={() => router.push(`/article/${item.slug}`)}
+                                    />
+                                )}
+                            </View>
                         )}
+                        numColumns={displayMode === 'standard' ? 2 : 1}
+                        key={`search-${displayMode}`}
+                        columnWrapperStyle={displayMode === 'standard' ? styles.gridRow : undefined}
                         ListEmptyComponent={
                             <View style={styles.empty}>
                                 <Text style={styles.emptyText}>
@@ -125,6 +162,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         lineHeight: 22,
         marginTop: spacing.sm,
+        marginBottom: spacing.md,
     },
     searchBar: {
         flexDirection: 'row',
@@ -146,32 +184,12 @@ const styles = StyleSheet.create({
         marginLeft: spacing.sm,
     },
     list: { paddingHorizontal: spacing.md, paddingBottom: spacing.xxl },
-    resultCard: {
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: radius.md,
-        backgroundColor: colors.backgroundElevated,
-        padding: spacing.md,
+    gridRow: {
+        gap: spacing.sm,
+    },
+    gridItemWrap: {
+        flex: 1,
         marginBottom: spacing.sm,
-    },
-    resultCategory: {
-        color: colors.accent,
-        fontFamily: 'Oswald_500Medium',
-        fontSize: 11,
-        letterSpacing: 1,
-        marginBottom: 4,
-    },
-    resultTitle: {
-        color: colors.text,
-        fontFamily: 'Inter_600SemiBold',
-        fontSize: 17,
-        lineHeight: 23,
-    },
-    resultMeta: {
-        color: colors.textDim,
-        fontFamily: 'Inter_400Regular',
-        fontSize: 12,
-        marginTop: 8,
     },
     center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     empty: { padding: spacing.xxl, alignItems: 'center' },

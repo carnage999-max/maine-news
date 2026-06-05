@@ -52,12 +52,12 @@ export default function SectionsScreen() {
                 ))}
             </View>
 
-            <TouchableOpacity style={styles.featureCard} activeOpacity={0.84} onPress={() => router.push('/video-hub')}>
+            <TouchableOpacity style={styles.featureCard} activeOpacity={0.84} onPress={() => router.push('/maine-minute')}>
                 <View style={styles.featureCardLeft}>
                     <Tv2 size={22} color={colors.accent} />
                     <View style={{ flex: 1 }}>
-                        <Text style={styles.featureCardTitle}>Watch Maine Minute & Video Hub</Text>
-                        <Text style={styles.featureCardText}>Head to the latest clips, specials, and newsroom video coverage.</Text>
+                        <Text style={styles.featureCardTitle}>The Maine Minute</Text>
+                        <Text style={styles.featureCardText}>Open the daily Maine Minute digest and catch up quickly.</Text>
                     </View>
                 </View>
                 <ChevronRight size={20} color={colors.textDim} />

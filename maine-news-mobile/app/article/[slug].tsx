@@ -11,12 +11,13 @@ import {
     Image
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
-import { fetchPostBySlug, getImageUrl } from '../../services/api';
+import { fetchPostBySlug, fetchPosts, getImageUrl, type Post } from '../../services/api';
 import { colors, typography, spacing, fontSize, radius } from '../../constants/theme';
-import { Share2, Volume2, Type, Facebook, Instagram, Youtube } from 'lucide-react-native';
+import { Share2, Volume2, Type, Facebook, Instagram, Youtube, Clock3, ChevronRight } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 import { Linking } from 'react-native';
 import { Svg, Path } from 'react-native-svg';
+import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -36,8 +37,10 @@ const EDITORIAL_DISCLAIMER_SHORT =
     "This editorial reflects the author's opinions and commentary on matters of public concern. Statements are expressions of opinion, not assertions of fact, and are protected under the First Amendment.";
 
 export default function ArticleDetail() {
+    const router = useRouter();
     const { slug } = useLocalSearchParams();
     const [post, setPost] = useState<any>(null);
+    const [relatedPosts, setRelatedPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSpeaking, setIsSpeaking] = useState(false);
     const speakingRef = useRef(false);
@@ -192,8 +195,31 @@ export default function ArticleDetail() {
     useEffect(() => {
         async function getPost() {
             if (typeof slug === 'string') {
-                const data = await fetchPostBySlug(slug);
+                const [data, allPosts] = await Promise.all([
+                    fetchPostBySlug(slug),
+                    fetchPosts(),
+                ]);
+
                 setPost(data);
+
+                if (data) {
+                    const related = allPosts
+                        .filter((candidate) => candidate.slug !== slug)
+                        .filter((candidate) => {
+                            const candidateCategory = (candidate.category || '').toLowerCase();
+                            const currentCategory = (data.category || '').toLowerCase();
+                            if (candidateCategory && currentCategory && candidateCategory === currentCategory) {
+                                return true;
+                            }
+                            return candidate.isNational === data.isNational;
+                        })
+                        .slice(0, 4);
+
+                    setRelatedPosts(related);
+                } else {
+                    setRelatedPosts([]);
+                }
+
                 setLoading(false);
             }
         }
@@ -326,6 +352,7 @@ export default function ArticleDetail() {
                 title: '',
                 headerStyle: { backgroundColor: colors.backgroundElevated },
                 headerTintColor: colors.text,
+                headerBackButtonDisplayMode: 'minimal',
                 headerRight: () => (
                     <View style={styles.headerActions}>
                         <TouchableOpacity onPress={toggleTextSize} style={styles.headerIcon}>
@@ -376,6 +403,52 @@ export default function ArticleDetail() {
                 )}
 
                 {renderSocialBar()}
+
+                {relatedPosts.length ? (
+                    <View style={styles.relatedSection}>
+                        <View style={styles.relatedHead}>
+                            <View>
+                                <Text style={styles.relatedKicker}>More Coverage</Text>
+                                <Text style={styles.relatedTitle}>Related Posts</Text>
+                            </View>
+                        </View>
+                        {relatedPosts.map((relatedPost) => {
+                            const relatedImage = getImageUrl(relatedPost.image);
+                            return (
+                                <TouchableOpacity
+                                    key={relatedPost.slug}
+                                    style={styles.relatedRow}
+                                    activeOpacity={0.86}
+                                    onPress={() => router.push(`/article/${relatedPost.slug}`)}
+                                >
+                                    <Image
+                                        source={relatedImage ? { uri: relatedImage } : require('../../assets/hero-fallback.jpeg')}
+                                        style={styles.relatedImage}
+                                        resizeMode="cover"
+                                    />
+                                    <View style={styles.relatedContent}>
+                                        <Text style={styles.relatedCategory}>
+                                            {(relatedPost.category || 'news').toUpperCase()}
+                                        </Text>
+                                        <Text style={styles.relatedRowTitle} numberOfLines={2}>
+                                            {relatedPost.title}
+                                        </Text>
+                                        <View style={styles.relatedMeta}>
+                                            <Clock3 size={12} color={colors.textDim} />
+                                            <Text style={styles.relatedMetaText}>
+                                                {new Date(relatedPost.publishedDate).toLocaleDateString('en-US', {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                })}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    <ChevronRight size={18} color={colors.textFaint} />
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                ) : null}
 
                 <View style={styles.footer}>
                     <Text style={styles.footerBranding}>MAINE NEWS NOW</Text>
@@ -570,6 +643,71 @@ const styles = StyleSheet.create({
         fontSize: 11,
         color: colors.textDim,
         lineHeight: 16,
+    },
+    relatedSection: {
+        marginTop: spacing.xl,
+        marginHorizontal: spacing.md,
+        padding: spacing.lg,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.lg,
+        backgroundColor: colors.backgroundElevated,
+    },
+    relatedHead: {
+        marginBottom: spacing.md,
+    },
+    relatedKicker: {
+        color: colors.textDim,
+        fontFamily: 'Oswald_500Medium',
+        fontSize: 12,
+        letterSpacing: 1,
+        marginBottom: 4,
+    },
+    relatedTitle: {
+        color: colors.text,
+        fontFamily: 'Oswald_700Bold',
+        fontSize: 24,
+    },
+    relatedRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.md,
+        paddingVertical: spacing.md,
+        borderTopWidth: 1,
+        borderTopColor: colors.borderDim,
+    },
+    relatedImage: {
+        width: 88,
+        height: 68,
+        borderRadius: radius.sm,
+        backgroundColor: colors.backgroundSoft,
+    },
+    relatedContent: {
+        flex: 1,
+    },
+    relatedCategory: {
+        color: colors.accent,
+        fontFamily: 'Oswald_500Medium',
+        fontSize: 11,
+        letterSpacing: 0.8,
+        marginBottom: 4,
+    },
+    relatedRowTitle: {
+        color: colors.text,
+        fontFamily: 'Inter_600SemiBold',
+        fontSize: 16,
+        lineHeight: 21,
+    },
+    relatedMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        marginTop: 6,
+    },
+    relatedMetaText: {
+        color: colors.textDim,
+        fontFamily: 'Inter_400Regular',
+        fontSize: 12,
     },
     footer: {
         marginTop: spacing.xl,
