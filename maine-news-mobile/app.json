@@ -70,13 +70,13 @@
     "extra": {
       "router": {},
       "appleAppSiteAssociationAppIDs": [
-        "TEAMID.com.mainenewstoday.app"
+        "J4PDJ9UH55.com.mainenewstoday.app"
       ],
       "androidAssetStatements": [
         {
           "package_name": "com.mainenewstoday.app",
           "sha256_cert_fingerprints": [
-            "REPLACE_WITH_PLAY_SIGNING_SHA256"
+            "8A:E9:CD:54:97:B5:A2:DA:EB:B5:2B:33:FA:70:A6:2E:48:A6:A6:98:10:F1:CD:4D:AD:4F:F5:BF:78:0C:6F:DB"
           ]
         }
       ],
