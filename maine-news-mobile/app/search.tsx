@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { ChevronUp, Search as SearchIcon } from 'lucide-react-native';
-import SponsorBanner from '../components/common/SponsorBanner';
 import StoryDisplayToggle, { type StoryDisplayMode } from '../components/common/StoryDisplayToggle';
 import StoryFeatureCard from '../components/common/StoryFeatureCard';
 import StoryGridCard from '../components/common/StoryGridCard';
@@ -28,6 +27,8 @@ export default function SearchScreen() {
     const [showScrollTop, setShowScrollTop] = useState(false);
     const [displayMode, setDisplayMode] = usePersistedStoryDisplayMode('story-display-search');
     const flatListRef = React.useRef<FlatList>(null);
+    const scrollOffsetRef = React.useRef(0);
+    const previousDisplayModeRef = React.useRef<StoryDisplayMode>(displayMode);
     const router = useRouter();
 
     useEffect(() => {
@@ -48,6 +49,20 @@ export default function SearchScreen() {
         setFilteredPosts(query.trim() ? searchPosts(allPosts, query) : []);
     }, [query, allPosts]);
 
+    useEffect(() => {
+        if (previousDisplayModeRef.current === displayMode) {
+            return;
+        }
+
+        previousDisplayModeRef.current = displayMode;
+        requestAnimationFrame(() => {
+            flatListRef.current?.scrollToOffset({
+                offset: scrollOffsetRef.current,
+                animated: false,
+            });
+        });
+    }, [displayMode]);
+
     return (
         <View style={styles.container}>
             <Stack.Screen
@@ -64,7 +79,6 @@ export default function SearchScreen() {
                 <Text style={styles.title}>Find Stories Fast</Text>
                 <Text style={styles.subtitle}>Search headlines, authors, or topics across Maine News Now.</Text>
                 <StoryDisplayToggle mode={displayMode} onChange={setDisplayMode} />
-                <SponsorBanner compact />
             </View>
 
             <View style={styles.searchBar}>
@@ -90,7 +104,11 @@ export default function SearchScreen() {
                         ref={flatListRef}
                         data={filteredPosts}
                         keyExtractor={(item) => item.slug}
-                        onScroll={(event) => setShowScrollTop(event.nativeEvent.contentOffset.y > 420)}
+                        onScroll={(event) => {
+                            const offsetY = event.nativeEvent.contentOffset.y;
+                            scrollOffsetRef.current = offsetY;
+                            setShowScrollTop(offsetY > 420);
+                        }}
                         scrollEventThrottle={16}
                         contentContainerStyle={styles.list}
                         renderItem={({ item }) => (

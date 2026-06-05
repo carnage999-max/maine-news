@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronUp } from 'lucide-react-native';
-import SponsorBanner from '../../components/common/SponsorBanner';
 import StoryDisplayToggle, { type StoryDisplayMode } from '../../components/common/StoryDisplayToggle';
 import StoryFeatureCard from '../../components/common/StoryFeatureCard';
 import StoryGridCard from '../../components/common/StoryGridCard';
@@ -28,11 +27,13 @@ export default function CountyFeedScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [showScrollTop, setShowScrollTop] = useState(false);
     const flatListRef = React.useRef<FlatList>(null);
+    const scrollOffsetRef = React.useRef(0);
 
     const countySlug = typeof county === 'string' ? county : '';
     const [displayMode, setDisplayMode] = usePersistedStoryDisplayMode(
         `story-display-county-${countySlug || 'default'}`
     );
+    const previousDisplayModeRef = React.useRef<StoryDisplayMode>(displayMode);
 
     const loadFeed = async () => {
         try {
@@ -51,6 +52,20 @@ export default function CountyFeedScreen() {
             void loadFeed();
         }
     }, [countySlug]);
+
+    useEffect(() => {
+        if (previousDisplayModeRef.current === displayMode) {
+            return;
+        }
+
+        previousDisplayModeRef.current = displayMode;
+        requestAnimationFrame(() => {
+            flatListRef.current?.scrollToOffset({
+                offset: scrollOffsetRef.current,
+                animated: false,
+            });
+        });
+    }, [displayMode]);
 
     if (loading) {
         return (
@@ -75,7 +90,11 @@ export default function CountyFeedScreen() {
                 ref={flatListRef}
                 data={feed?.posts || []}
                 keyExtractor={(item) => item.slug}
-                onScroll={(event) => setShowScrollTop(event.nativeEvent.contentOffset.y > 420)}
+                onScroll={(event) => {
+                    const offsetY = event.nativeEvent.contentOffset.y;
+                    scrollOffsetRef.current = offsetY;
+                    setShowScrollTop(offsetY > 420);
+                }}
                 scrollEventThrottle={16}
                 contentContainerStyle={styles.content}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void loadFeed(); }} tintColor={colors.accent} />}
@@ -90,7 +109,6 @@ export default function CountyFeedScreen() {
                             <Text style={styles.switchButtonText}>Switch County</Text>
                         </TouchableOpacity>
                         <StoryDisplayToggle mode={displayMode} onChange={setDisplayMode} />
-                        <SponsorBanner compact />
                     </View>
                 }
                 renderItem={({ item }) => (

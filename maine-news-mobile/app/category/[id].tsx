@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { ChevronUp } from 'lucide-react-native';
-import SponsorBanner from '../../components/common/SponsorBanner';
 import StoryDisplayToggle, { type StoryDisplayMode } from '../../components/common/StoryDisplayToggle';
 import StoryFeatureCard from '../../components/common/StoryFeatureCard';
 import StoryGridCard from '../../components/common/StoryGridCard';
@@ -31,6 +30,8 @@ export default function CategoryScreen() {
         `story-display-category-${typeof id === 'string' ? id : 'all'}`
     );
     const flatListRef = React.useRef<FlatList>(null);
+    const scrollOffsetRef = React.useRef(0);
+    const previousDisplayModeRef = React.useRef<StoryDisplayMode>(displayMode);
 
     const categoryName = useMemo(
         () => (typeof id === 'string' ? id.replace(/-/g, ' ') : 'section'),
@@ -53,6 +54,20 @@ export default function CategoryScreen() {
     useEffect(() => {
         void loadPosts();
     }, [id]);
+
+    useEffect(() => {
+        if (previousDisplayModeRef.current === displayMode) {
+            return;
+        }
+
+        previousDisplayModeRef.current = displayMode;
+        requestAnimationFrame(() => {
+            flatListRef.current?.scrollToOffset({
+                offset: scrollOffsetRef.current,
+                animated: false,
+            });
+        });
+    }, [displayMode]);
 
     if (loading) {
         return (
@@ -77,7 +92,11 @@ export default function CategoryScreen() {
                 ref={flatListRef}
                 data={posts}
                 keyExtractor={(item) => item.slug}
-                onScroll={(event) => setShowScrollTop(event.nativeEvent.contentOffset.y > 420)}
+                onScroll={(event) => {
+                    const offsetY = event.nativeEvent.contentOffset.y;
+                    scrollOffsetRef.current = offsetY;
+                    setShowScrollTop(offsetY > 420);
+                }}
                 scrollEventThrottle={16}
                 contentContainerStyle={styles.content}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void loadPosts(); }} tintColor={colors.accent} />}
@@ -89,7 +108,6 @@ export default function CategoryScreen() {
                             Latest reporting, updates, and headlines from the {categoryName} desk.
                         </Text>
                         <StoryDisplayToggle mode={displayMode} onChange={setDisplayMode} />
-                        <SponsorBanner compact />
                     </View>
                 }
                 renderItem={({ item }) => (

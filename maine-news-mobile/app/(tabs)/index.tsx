@@ -18,7 +18,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HeadlineRow from '../../components/home/HeadlineRow';
 import NewsTicker from '../../components/home/NewsTicker';
-import SponsorBanner from '../../components/common/SponsorBanner';
 import StoryDisplayToggle, { type StoryDisplayMode } from '../../components/common/StoryDisplayToggle';
 import StoryFeatureCard from '../../components/common/StoryFeatureCard';
 import StoryGridCard from '../../components/common/StoryGridCard';
@@ -152,6 +151,7 @@ export default function HomeScreen() {
     const flatListRef = useRef<FlatList<Post>>(null);
     const heroScrollRef = useRef<ScrollView>(null);
     const heroTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const scrollOffsetRef = useRef(0);
 
     const [posts, setPosts] = useState<Post[]>([]);
     const [traffic, setTraffic] = useState<TrafficReport | null>(null);
@@ -166,6 +166,7 @@ export default function HomeScreen() {
     const [showScrollTop, setShowScrollTop] = useState(false);
     const [tickerSpeed, setTickerSpeed] = useState<TickerSpeed>('normal');
     const [headlineMode, setHeadlineMode] = usePersistedStoryDisplayMode('story-display-home');
+    const previousHeadlineModeRef = useRef<StoryDisplayMode>(headlineMode);
 
     useEffect(() => {
         AsyncStorage.getItem(TICKER_STORAGE_KEY).then((saved) => {
@@ -178,6 +179,20 @@ export default function HomeScreen() {
     useEffect(() => {
         AsyncStorage.setItem(TICKER_STORAGE_KEY, tickerSpeed).catch(() => undefined);
     }, [tickerSpeed]);
+
+    useEffect(() => {
+        if (previousHeadlineModeRef.current === headlineMode) {
+            return;
+        }
+
+        previousHeadlineModeRef.current = headlineMode;
+        requestAnimationFrame(() => {
+            flatListRef.current?.scrollToOffset({
+                offset: scrollOffsetRef.current,
+                animated: false,
+            });
+        });
+    }, [headlineMode]);
 
     const loadHome = async () => {
         try {
@@ -255,6 +270,7 @@ export default function HomeScreen() {
 
     const handleScroll = (event: any) => {
         const offsetY = event.nativeEvent.contentOffset.y;
+        scrollOffsetRef.current = offsetY;
         setShowScrollTop(offsetY > 520);
     };
 
@@ -403,7 +419,6 @@ export default function HomeScreen() {
         <View style={styles.tickerSpeedRow}>
             <View>
                 <Text style={styles.tickerSpeedEyebrow}>Ticker controls</Text>
-                <Text style={styles.tickerSpeedLabel}>Adjust marquee speed</Text>
             </View>
             <View style={styles.tickerSpeedButtons}>
                 {(['slow', 'normal', 'fast'] as const).map((speedOption) => (
@@ -496,9 +511,6 @@ export default function HomeScreen() {
                         </View>
                         {renderHero()}
                         {renderQuickLinks()}
-                        <View style={styles.sponsorSlot}>
-                            <SponsorBanner />
-                        </View>
                         <View style={styles.latestSection}>
                             <View style={styles.breakingPanel}>
                                 <View style={styles.breakingPanelHead}>
@@ -573,11 +585,6 @@ export default function HomeScreen() {
                                 <ChevronRight size={18} color={colors.text} />
                             </TouchableOpacity>
                         ) : null}
-
-                        <View style={styles.footerSponsorSlot}>
-                            <SponsorBanner compact />
-                        </View>
-
                         {renderNewsroomPreview()}
 
                         <View style={styles.footerPanel}>
@@ -823,10 +830,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.md,
         paddingTop: spacing.xl,
     },
-    sponsorSlot: {
-        marginTop: spacing.lg,
-        marginHorizontal: spacing.md,
-    },
     breakingPanel: {
         padding: spacing.md,
         borderWidth: 1,
@@ -860,7 +863,7 @@ const styles = StyleSheet.create({
     tickerSpeedEyebrow: {
         color: colors.textFaint,
         fontFamily: 'Oswald_500Medium',
-        fontSize: 10,
+        fontSize: 13,
         letterSpacing: 1,
         marginBottom: 2,
     },
@@ -969,10 +972,6 @@ const styles = StyleSheet.create({
         color: colors.text,
         fontFamily: 'Oswald_500Medium',
         fontSize: 16,
-    },
-    footerSponsorSlot: {
-        marginHorizontal: spacing.md,
-        marginTop: spacing.lg,
     },
     newsroomPanel: {
         marginHorizontal: spacing.md,

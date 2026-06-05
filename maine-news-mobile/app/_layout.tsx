@@ -116,8 +116,18 @@ export default function RootLayout() {
                     options={{ title: 'Search' }}
                 />
                 <Stack.Screen
+                    name="category/[id]"
+                    options={{
+                        title: 'Section',
+                        headerBackButtonDisplayMode: 'minimal',
+                    }}
+                />
+                <Stack.Screen
                     name="maine-minute"
-                    options={{ title: 'The Maine Minute' }}
+                    options={{
+                        title: 'The Maine Minute',
+                        headerBackButtonDisplayMode: 'minimal',
+                    }}
                 />
                 <Stack.Screen
                     name="local"

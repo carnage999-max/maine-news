@@ -16,10 +16,11 @@ const getApiBaseUrl = () => {
     }
 
     // Default to the live production server
-    return 'https://mainenewsnow.com';
+    return 'https://www.mainenewsnow.com';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
+const CANONICAL_PROD_API_BASE_URL = 'https://www.mainenewsnow.com';
 
 export interface Post {
     slug: string;
@@ -406,6 +407,9 @@ export async function fetchCountyFeed(county: string): Promise<CountyFeedRespons
 export async function fetchMaineMinuteReport(date?: string): Promise<MaineMinuteReport | null> {
     const cacheKey = date ? `cached_maine_minute_${date}` : 'cached_maine_minute_latest';
     const url = date ? `${API_BASE_URL}/api/maine-minute?date=${date}` : `${API_BASE_URL}/api/maine-minute`;
+    const fallbackUrl = date
+        ? `${CANONICAL_PROD_API_BASE_URL}/api/maine-minute?date=${date}`
+        : `${CANONICAL_PROD_API_BASE_URL}/api/maine-minute`;
 
     try {
         const response = await axios.get<MaineMinuteReport>(url);
@@ -416,6 +420,20 @@ export async function fetchMaineMinuteReport(date?: string): Promise<MaineMinute
         return report || null;
     } catch (error) {
         console.error('Failed to fetch Maine Minute report:', error);
+
+        if (url !== fallbackUrl) {
+            try {
+                const fallbackResponse = await axios.get<MaineMinuteReport>(fallbackUrl);
+                const fallbackReport = fallbackResponse.data;
+                if (fallbackReport) {
+                    await AsyncStorage.setItem(cacheKey, JSON.stringify(fallbackReport));
+                }
+                return fallbackReport || null;
+            } catch (fallbackError) {
+                console.error('Fallback Maine Minute report fetch failed:', fallbackError);
+            }
+        }
+
         const cached = await AsyncStorage.getItem(cacheKey);
         if (cached) {
             try {
