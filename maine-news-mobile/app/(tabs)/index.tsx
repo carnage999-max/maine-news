@@ -2,12 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { CircleAlert, CloudSun, Landmark, Map, Radio, ScrollText, Search, Shield, TriangleAlert, Tv2, Building2, Menu, ChevronUp, ChevronRight } from 'lucide-react-native';
+import { CircleAlert, CloudSun, Landmark, Map, MapPinned, Radio, ScrollText, Search, Shield, TriangleAlert, Tv2, Building2, Menu, ChevronUp, ChevronRight, X } from 'lucide-react-native';
 import {
     ActivityIndicator,
     Dimensions,
     FlatList,
     Image,
+    Modal,
     RefreshControl,
     ScrollView,
     StyleSheet,
@@ -15,6 +16,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import Svg, { G, Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HeadlineRow from '../../components/home/HeadlineRow';
 import NewsTicker from '../../components/home/NewsTicker';
@@ -25,12 +27,14 @@ import usePersistedStoryDisplayMode from '../../components/common/usePersistedSt
 import { colors, fontSize, radius, spacing } from '../../constants/theme';
 import {
     API_BASE_URL,
+    fetchCountyMap,
     fetchLotterySummary,
     fetchNewsroomProfiles,
     fetchPosts,
     fetchTrafficReport,
     fetchWeatherReport,
     getImageUrl,
+    type CountyFeatureCollection,
     type LotterySummary,
     type NewsroomProfile,
     type Post,
@@ -41,6 +45,8 @@ import {
 const { width } = Dimensions.get('window');
 const HERO_HEIGHT = 438;
 const HERO_SLIDE_WIDTH = width - spacing.md * 2;
+const COUNTY_MAP_WIDTH = 320;
+const COUNTY_MAP_HEIGHT = 420;
 const TICKER_STORAGE_KEY = 'mobileTickerSpeed';
 
 type TickerSpeed = 'slow' | 'normal' | 'fast';
@@ -145,6 +151,79 @@ function hasUsableHeroImage(post: Post) {
     return !post.image.includes('hero-fallback');
 }
 
+const COUNTY_SLUGS: Record<string, string> = {
+    aroostook: 'aroostook',
+    washington: 'washington',
+    penobscot: 'penobscot',
+    hancock: 'hancock',
+    piscataquis: 'piscataquis',
+    somerset: 'somerset',
+    franklin: 'franklin',
+    oxford: 'oxford',
+    androscoggin: 'androscoggin',
+    kennebec: 'kennebec',
+    waldo: 'waldo',
+    knox: 'knox',
+    lincoln: 'lincoln',
+    sagadahoc: 'sagadahoc',
+    cumberland: 'cumberland',
+    york: 'york',
+};
+
+function getCountySlug(name?: string) {
+    if (!name) return null;
+    return COUNTY_SLUGS[name.trim().toLowerCase()] || null;
+}
+
+function flattenCoordinates(feature: any) {
+    if (feature.geometry.type === 'Polygon') {
+        return feature.geometry.coordinates.flat(1) as number[][];
+    }
+    return feature.geometry.coordinates.flat(2) as number[][];
+}
+
+function buildCountyPaths(collection: CountyFeatureCollection, widthValue: number, heightValue: number) {
+    const allPoints = collection.features.flatMap(flattenCoordinates);
+    const longitudes = allPoints.map((point) => point[0]);
+    const latitudes = allPoints.map((point) => point[1]);
+
+    const minLon = Math.min(...longitudes);
+    const maxLon = Math.max(...longitudes);
+    const minLat = Math.min(...latitudes);
+    const maxLat = Math.max(...latitudes);
+    const lonSpan = maxLon - minLon || 1;
+    const latSpan = maxLat - minLat || 1;
+
+    const padding = 12;
+    const usableWidth = widthValue - padding * 2;
+    const usableHeight = heightValue - padding * 2;
+
+    const scalePoint = ([lon, lat]: number[]) => {
+        const x = padding + ((lon - minLon) / lonSpan) * usableWidth;
+        const y = padding + (1 - (lat - minLat) / latSpan) * usableHeight;
+        return [x, y] as const;
+    };
+
+    return collection.features.map((feature) => {
+        const polygons = feature.geometry.type === 'Polygon'
+            ? [feature.geometry.coordinates as number[][][]]
+            : (feature.geometry.coordinates as number[][][][]);
+
+        const path = polygons.map((polygon) => polygon.map((ring) => {
+            return ring.map((point, index) => {
+                const [x, y] = scalePoint(point);
+                return `${index === 0 ? 'M' : 'L'}${x.toFixed(2)} ${y.toFixed(2)}`;
+            }).join(' ') + ' Z';
+        }).join(' ')).join(' ');
+
+        return {
+            path,
+            name: feature.properties.county || 'County',
+            slug: getCountySlug(feature.properties.county),
+        };
+    });
+}
+
 export default function HomeScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
@@ -166,6 +245,9 @@ export default function HomeScreen() {
     const [showScrollTop, setShowScrollTop] = useState(false);
     const [tickerSpeed, setTickerSpeed] = useState<TickerSpeed>('normal');
     const [headlineMode, setHeadlineMode] = usePersistedStoryDisplayMode('story-display-home');
+    const [countyMap, setCountyMap] = useState<CountyFeatureCollection | null>(null);
+    const [countyMapLoading, setCountyMapLoading] = useState(false);
+    const [showCountyModal, setShowCountyModal] = useState(false);
     const previousHeadlineModeRef = useRef<StoryDisplayMode>(headlineMode);
 
     useEffect(() => {
@@ -242,6 +324,10 @@ export default function HomeScreen() {
         }
         return latestFeedSource.length ? latestFeedSource : posts;
     }, [latestFeedSource, latestFilter, posts]);
+    const countyPaths = useMemo(() => {
+        if (!countyMap) return [];
+        return buildCountyPaths(countyMap, COUNTY_MAP_WIDTH, COUNTY_MAP_HEIGHT);
+    }, [countyMap]);
 
     useEffect(() => {
         if (heroStories.length <= 1) {
@@ -266,6 +352,23 @@ export default function HomeScreen() {
     const onRefresh = () => {
         setRefreshing(true);
         void loadHome();
+    };
+
+    const openCountyModal = async () => {
+        setShowCountyModal(true);
+        if (countyMap || countyMapLoading) {
+            return;
+        }
+
+        setCountyMapLoading(true);
+        try {
+            const data = await fetchCountyMap();
+            setCountyMap(data);
+        } catch (error) {
+            console.error('Failed to load county map for quick action modal:', error);
+        } finally {
+            setCountyMapLoading(false);
+        }
     };
 
     const handleScroll = (event: any) => {
@@ -398,10 +501,16 @@ export default function HomeScreen() {
                         resizeMode="cover"
                     />
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.quickCard, styles.quickCardLarge]} onPress={() => router.push('/category/editorial')}>
-                    <ScrollText size={26} color={colors.purple} />
-                    <Text style={styles.quickCardLabelLarge}>Editorial</Text>
-                </TouchableOpacity>
+                <View style={styles.quickMiddleActions}>
+                    <TouchableOpacity style={[styles.quickCard, styles.quickCardCompact]} onPress={() => router.push('/category/editorial')}>
+                        <ScrollText size={22} color={colors.purple} />
+                        <Text style={styles.quickCardLabelCompact}>Editorial</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.quickCard, styles.quickCardCompact]} onPress={() => void openCountyModal()}>
+                        <MapPinned size={22} color={colors.info} />
+                        <Text style={styles.quickCardLabelCompact}>Counties</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <View style={styles.quickGridRow}>
@@ -607,6 +716,59 @@ export default function HomeScreen() {
                     <ChevronUp size={22} color={colors.text} />
                 </TouchableOpacity>
             ) : null}
+
+            <Modal
+                visible={showCountyModal}
+                animationType="slide"
+                transparent
+                onRequestClose={() => setShowCountyModal(false)}
+            >
+                <View style={styles.modalBackdrop}>
+                    <View style={styles.modalSheet}>
+                        <View style={styles.modalHeader}>
+                            <View>
+                                <Text style={styles.modalKicker}>Local Coverage</Text>
+                                <Text style={styles.modalTitle}>Maine County Map</Text>
+                            </View>
+                            <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShowCountyModal(false)}>
+                                <X size={18} color={colors.text} />
+                            </TouchableOpacity>
+                        </View>
+                        <Text style={styles.modalCopy}>Tap a county to open local coverage for that area.</Text>
+
+                        {countyMapLoading ? (
+                            <View style={styles.modalLoadingWrap}>
+                                <ActivityIndicator color={colors.accent} />
+                            </View>
+                        ) : countyPaths.length ? (
+                            <View style={styles.modalMapWrap}>
+                                <Svg width="100%" height="100%" viewBox={`0 0 ${COUNTY_MAP_WIDTH} ${COUNTY_MAP_HEIGHT}`}>
+                                    <G>
+                                        {countyPaths.map((county) => (
+                                            <Path
+                                                key={county.slug || county.name}
+                                                d={county.path}
+                                                fill="#1f8b24"
+                                                stroke="rgba(12,14,16,0.96)"
+                                                strokeWidth={1.4}
+                                                onPress={() => {
+                                                    if (!county.slug) return;
+                                                    setShowCountyModal(false);
+                                                    router.push(`/county/${county.slug}` as any);
+                                                }}
+                                            />
+                                        ))}
+                                    </G>
+                                </Svg>
+                            </View>
+                        ) : (
+                            <View style={styles.modalLoadingWrap}>
+                                <Text style={styles.modalEmptyText}>County map unavailable right now.</Text>
+                            </View>
+                        )}
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -787,6 +949,11 @@ const styles = StyleSheet.create({
         alignItems: 'stretch',
         height: 104,
     },
+    quickMiddleActions: {
+        flex: 1,
+        flexDirection: 'column',
+        gap: spacing.sm,
+    },
     quickCard: {
         flex: 1,
         minHeight: 74,
@@ -803,6 +970,13 @@ const styles = StyleSheet.create({
         minHeight: 104,
         height: 104,
     },
+    quickCardCompact: {
+        minHeight: 48,
+        height: 48,
+        flex: 1,
+        paddingVertical: spacing.sm,
+        gap: 4,
+    },
     quickCardLabel: {
         color: colors.textMuted,
         fontFamily: 'Inter_400Regular',
@@ -813,6 +987,13 @@ const styles = StyleSheet.create({
         fontFamily: 'Oswald_500Medium',
         fontSize: 18,
         letterSpacing: 0.4,
+    },
+    quickCardLabelCompact: {
+        color: colors.text,
+        fontFamily: 'Oswald_500Medium',
+        fontSize: 13,
+        letterSpacing: 0.3,
+        textAlign: 'center',
     },
     minuteImageWrap: {
         flex: 1.2,
@@ -1081,5 +1262,72 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 14,
         elevation: 6,
+    },
+    modalBackdrop: {
+        flex: 1,
+        backgroundColor: 'rgba(6,7,8,0.84)',
+        justifyContent: 'center',
+        padding: spacing.md,
+    },
+    modalSheet: {
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.lg,
+        backgroundColor: colors.backgroundElevated,
+        padding: spacing.lg,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        marginBottom: spacing.sm,
+    },
+    modalKicker: {
+        color: colors.accent,
+        fontFamily: 'Oswald_500Medium',
+        fontSize: 12,
+        letterSpacing: 1,
+        marginBottom: 4,
+    },
+    modalTitle: {
+        color: colors.text,
+        fontFamily: 'Oswald_700Bold',
+        fontSize: 25,
+    },
+    modalCloseButton: {
+        width: 38,
+        height: 38,
+        borderRadius: radius.pill,
+        borderWidth: 1,
+        borderColor: colors.border,
+        backgroundColor: colors.cardBg,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalCopy: {
+        color: colors.textMuted,
+        fontFamily: 'Inter_400Regular',
+        fontSize: 13,
+        lineHeight: 20,
+        marginBottom: spacing.md,
+    },
+    modalMapWrap: {
+        width: '100%',
+        aspectRatio: COUNTY_MAP_WIDTH / COUNTY_MAP_HEIGHT,
+        borderWidth: 1,
+        borderColor: colors.borderDim,
+        borderRadius: radius.md,
+        backgroundColor: 'rgba(255,255,255,0.02)',
+        overflow: 'hidden',
+    },
+    modalLoadingWrap: {
+        minHeight: 280,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalEmptyText: {
+        color: colors.textDim,
+        fontFamily: 'Inter_400Regular',
+        fontSize: 13,
     },
 });

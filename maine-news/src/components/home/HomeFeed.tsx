@@ -20,6 +20,7 @@ import {
     Instagram,
     Landmark,
     Map,
+    MapPinned,
     Radio,
     ScrollText,
     Shield,
@@ -123,7 +124,7 @@ const QUICK_LINK_TOP: QuickLinkIconItem[] = [
 
 const QUICK_LINK_MIDDLE: QuickLinkItem[] = [
     { href: '/the-maine-minute', label: 'Maine Minute', imageSrc: '/maine-minutes.png', imageAlt: 'The Maine Minute', imageOnly: true },
-    { href: '/editorial', label: 'Editorial', icon: ScrollText, iconClassName: styles.iconEditorial, large: true, highlightClassName: styles.quickLinkEditorial },
+    { href: '/editorial', label: 'Editorial', icon: ScrollText, iconClassName: styles.iconEditorial, highlightClassName: styles.quickLinkEditorial },
 ];
 
 const QUICK_LINK_BOTTOM: QuickLinkIconItem[] = [
@@ -166,6 +167,7 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
     const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
     const [visibleCount, setVisibleCount] = useState(15);
     const [mobileVisibleCount, setMobileVisibleCount] = useState(6);
+    const [showCountyMapModal, setShowCountyMapModal] = useState(false);
     const [tickerSpeed, setTickerSpeed] = useState<TickerSpeed>(() => {
         if (typeof window === 'undefined') return 'normal';
         const savedSpeed = window.localStorage.getItem('mobileTickerSpeed');
@@ -194,6 +196,28 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
     useEffect(() => {
         window.localStorage.setItem('mobileTickerSpeed', tickerSpeed);
     }, [tickerSpeed]);
+
+    useEffect(() => {
+        if (!showCountyMapModal) {
+            document.body.style.overflow = '';
+            return;
+        }
+
+        document.body.style.overflow = 'hidden';
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setShowCountyMapModal(false);
+            }
+        };
+
+        window.addEventListener('keydown', handleEscape);
+
+        return () => {
+            document.body.style.overflow = '';
+            window.removeEventListener('keydown', handleEscape);
+        };
+    }, [showCountyMapModal]);
 
     useEffect(() => {
         if (heroStories.length <= 1) return;
@@ -487,7 +511,7 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
                             className={
                                 'imageOnly' in link && link.imageOnly
                                     ? styles.quickLinkImageOnly
-                                    : `${styles.quickLinkCard} ${styles.quickLinkCardLarge} ${link.highlightClassName || ''}`
+                                    : `${styles.quickLinkCard} ${styles.quickLinkCardCompact} ${link.highlightClassName || ''}`
                             }
                         >
                             {'imageSrc' in link ? (
@@ -499,11 +523,19 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
                                     className={'imageOnly' in link && link.imageOnly ? styles.quickLinkFeatureImage : styles.quickLinkBrandImage}
                                 />
                             ) : (
-                                <link.icon size={22} className={link.iconClassName} />
+                                <link.icon size={18} className={link.iconClassName} />
                             )}
                             {(!('imageOnly' in link) || !link.imageOnly) && <span>{link.label}</span>}
                         </Link>
                     ))}
+                    <button
+                        type="button"
+                        className={`${styles.quickLinkCard} ${styles.quickLinkCardCompact} ${styles.quickLinkCounties}`}
+                        onClick={() => setShowCountyMapModal(true)}
+                    >
+                        <MapPinned size={18} className={styles.iconCounties} />
+                        <span>Counties</span>
+                    </button>
                 </div>
                 <div className={styles.quickLinkRow}>
                     {QUICK_LINK_BOTTOM.map((link) => (
@@ -514,6 +546,34 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
                     ))}
                 </div>
             </section>
+
+            {showCountyMapModal && (
+                <div
+                    className={styles.countyModalOverlay}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="county-map-modal-title"
+                    onClick={() => setShowCountyMapModal(false)}
+                >
+                    <div className={styles.countyModalDialog} onClick={(event) => event.stopPropagation()}>
+                        <div className={styles.countyModalHeader}>
+                            <div>
+                                <span className={styles.countyModalEyebrow}>Local coverage</span>
+                                <h2 id="county-map-modal-title">Maine county map</h2>
+                            </div>
+                            <button
+                                type="button"
+                                className={styles.countyModalClose}
+                                aria-label="Close county map"
+                                onClick={() => setShowCountyMapModal(false)}
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <CountyMapPanel />
+                    </div>
+                </div>
+            )}
 
             <div
                 className={styles.featuredSponsorSlot}

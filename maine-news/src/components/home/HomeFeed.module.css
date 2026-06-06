@@ -420,7 +420,7 @@
 
 .quickLinkFeatureRow {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.75rem;
 }
 
@@ -454,10 +454,42 @@
     text-transform: uppercase;
 }
 
+.quickLinkCardCompact {
+    min-height: 94px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.8rem 0.45rem;
+    text-align: center;
+}
+
+.quickLinkCardCompact span {
+    color: var(--color-text-dim);
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: 0;
+    text-transform: none;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+}
+
 .quickLinkEditorial {
     background:
         linear-gradient(140deg, rgba(246, 196, 83, 0.16), rgba(20, 23, 27, 0.98) 60%),
         rgba(255, 255, 255, 0.04);
+}
+
+.quickLinkCounties {
+    appearance: none;
+    border: 1px solid rgba(110, 188, 255, 0.22);
+    background:
+        linear-gradient(140deg, rgba(80, 199, 255, 0.14), rgba(20, 23, 27, 0.98) 62%),
+        rgba(255, 255, 255, 0.04);
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
 }
 
 .quickLinkImage {
@@ -474,6 +506,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    grid-column: span 2;
     min-height: 94px;
     padding: 0.35rem 0.25rem;
 }
@@ -519,6 +552,64 @@
 
 .iconEditorial {
     color: #f6c453;
+}
+
+.iconCounties {
+    color: #68c9ff;
+}
+
+.countyModalOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(3, 4, 5, 0.78);
+    backdrop-filter: blur(10px);
+}
+
+.countyModalDialog {
+    width: min(100%, 430px);
+}
+
+.countyModalHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.countyModalEyebrow {
+    display: inline-flex;
+    margin-bottom: 0.32rem;
+    color: var(--color-accent);
+    font-family: var(--font-heading);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.countyModalHeader h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.45rem;
+    letter-spacing: -0.03em;
+}
+
+.countyModalClose {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    background: rgba(16, 18, 21, 0.96);
+    color: var(--color-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 }
 
 .utilityDeck {
