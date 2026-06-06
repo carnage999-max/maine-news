@@ -161,7 +161,7 @@ function detectRegion(locations: string[]): string | undefined {
     return undefined;
 }
 
-function categorizeStory(title: string, feedType: string): 'local' | 'national' | 'politics' | 'opinion' | 'top-stories' | 'health' | 'sports' | 'weather' | 'entertainment' | 'obituaries' {
+function categorizeStory(title: string, feedType: string): 'local' | 'national' | 'politics' | 'opinion' | 'top-stories' | 'health' | 'sports' | 'weather' | 'entertainment' | 'obituaries' | 'business' | 'crime' | 'lifestyle' {
     const lowerTitle = title.toLowerCase();
 
     // STRICT CHECK FOR OBITUARIES FIRST
@@ -175,7 +175,7 @@ function categorizeStory(title: string, feedType: string): 'local' | 'national' 
     }
 
     let maxScore = 0;
-    let category: 'local' | 'national' | 'politics' | 'opinion' | 'top-stories' | 'health' | 'sports' | 'weather' | 'entertainment' | 'obituaries' = feedType === 'national' ? 'national' : 'local';
+    let category: 'local' | 'national' | 'politics' | 'opinion' | 'top-stories' | 'health' | 'sports' | 'weather' | 'entertainment' | 'obituaries' | 'business' | 'crime' | 'lifestyle' = feedType === 'national' ? 'national' : 'local';
 
     for (const [cat, keywords] of Object.entries(TOPIC_KEYWORDS)) {
         if (cat === 'obituaries') continue; // Handled above
@@ -183,7 +183,7 @@ function categorizeStory(title: string, feedType: string): 'local' | 'national' 
         const score = keywords.filter(kw => lowerTitle.includes(kw)).length;
         if (score > maxScore) {
             maxScore = score;
-            category = cat as any;
+            category = cat as typeof category;
         }
     }
 
@@ -252,12 +252,19 @@ function extractFirstImageFromMarkdown(markdown: string, baseUrl?: string): stri
     return normalizeImageUrl(match[1], baseUrl);
 }
 
-function extractMediaUrl(value: any, baseUrl?: string): string | undefined {
+function extractMediaUrl(value: unknown, baseUrl?: string): string | undefined {
     if (!value) return undefined;
     const candidates = Array.isArray(value) ? value : [value];
 
     for (const entry of candidates) {
-        const url = entry?.$?.url || entry?.url || entry?.href;
+        if (!entry || typeof entry !== 'object') continue;
+
+        const candidateRecord = entry as {
+            $?: { url?: string };
+            url?: string;
+            href?: string;
+        };
+        const url = candidateRecord.$?.url || candidateRecord.url || candidateRecord.href;
         const normalized = normalizeImageUrl(url, baseUrl);
         if (normalized) return normalized;
     }
@@ -265,8 +272,12 @@ function extractMediaUrl(value: any, baseUrl?: string): string | undefined {
     return undefined;
 }
 
-function extractStoryImage(item: Record<string, any>, rawHtml: string, baseUrl?: string): string | undefined {
-    const enclosureUrl = normalizeImageUrl(item.enclosure?.url, baseUrl);
+function extractStoryImage(item: Record<string, unknown>, rawHtml: string, baseUrl?: string): string | undefined {
+    const enclosure =
+        item.enclosure && typeof item.enclosure === 'object'
+            ? (item.enclosure as { url?: string })
+            : undefined;
+    const enclosureUrl = normalizeImageUrl(enclosure?.url, baseUrl);
     if (enclosureUrl) return enclosureUrl;
 
     const mediaContent = extractMediaUrl(item['media:content'], baseUrl);
@@ -282,6 +293,246 @@ function extractStoryImage(item: Record<string, any>, rawHtml: string, baseUrl?:
     if (htmlImage) return htmlImage;
 
     return extractFirstImageFromMarkdown(rawHtml, baseUrl);
+}
+
+function stripHtmlTags(text: string) {
+    return text
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&amp;/gi, '&')
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function countWords(text: string) {
+    return stripHtmlTags(text).split(/\s+/).filter(Boolean).length;
+}
+
+function decodeJsonLikeString(value: string) {
+    return value
+        .replace(/\\n/g, ' ')
+        .replace(/\\"/g, '"')
+        .replace(/\\u003c/g, '<')
+        .replace(/\\u003e/g, '>')
+        .replace(/\\u0026/g, '&')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function cleanStoryText(text: string, storyTitle: string) {
+    let cleaned = text;
+
+    const junkPatterns = [
+        /\[Local News\]\(.*?\)/gi,
+        /!\[x\]\(.*?\)/gi,
+        /!\[WCSH\]\(.*?\)/gi,
+        /Download the NCM app/g,
+        /To stream NCM on your phone, you need the (NCM|NEWS CENTER Maine) app\.?/g,
+        /stream NCM on your phone/g,
+        /\[!\[Download on the App Store\].*?\]\(.*?\)/g,
+        /\[!\[Get it on Google Play\].*?\]\(.*?\)/g,
+        /#### More Videos[\s\S]*?Next up in \d+/g,
+        /Example video title will go here/g,
+        /\[!\[Facebook\].*?\]\(.*?\)/g,
+        /Author:.*?Staff/gi,
+        /Published:.*?\d{4}/gi,
+        /Updated:.*?\d{4}/gi,
+        /Related Articles[\s\S]*?$/i,
+        /Close Ad/gi,
+        /\[\s*\]\(\/\)/g,
+        /\*\*\*+/g,
+        /===+/g,
+        /For the latest breaking news, weather, and traffic alerts, download the NEWS CENTER Maine mobile app\./gi
+    ];
+
+    junkPatterns.forEach(pattern => {
+        cleaned = cleaned.replace(pattern, '');
+    });
+
+    const escapedTitle = storyTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    cleaned = cleaned.replace(new RegExp(`^\\s*${escapedTitle}\\s*`, 'i'), '');
+    cleaned = cleaned.replace(/([\.=-]){2,}/g, '$1');
+    cleaned = cleaned.replace(/!\[.*?\]\((?:\/assets\/|http).*?(?:icon|logo|badge|close-menu|amp|shared-images).*?\)/gi, '');
+    cleaned = cleaned.replace(/^\s*[\*\-]\s*$/gm, '');
+    cleaned = cleaned.replace(/^\s*[\*\-]\s*!\[\].*?$/gm, '');
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+
+    return cleaned.trim();
+}
+
+function splitIntoSentences(text: string) {
+    return text
+        .replace(/\s+/g, ' ')
+        .trim()
+        .match(/[^.!?]+[.!?]+|[^.!?]+$/g)
+        ?.map(sentence => sentence.trim())
+        .filter(Boolean) || [];
+}
+
+function buildExcerpt(content: string, fallbackTitle: string, minLength = 180, maxLength = 360) {
+    const plainText = stripHtmlTags(content).replace(/[\\#\\*]/g, '').trim();
+    if (!plainText) return fallbackTitle;
+
+    const sentences = splitIntoSentences(plainText);
+    if (sentences.length === 0) {
+        return plainText.slice(0, maxLength).trim() + (plainText.length > maxLength ? '...' : '');
+    }
+
+    let excerpt = '';
+    for (const sentence of sentences) {
+        const candidate = excerpt ? `${excerpt} ${sentence}` : sentence;
+        if (candidate.length > maxLength && excerpt.length >= minLength) {
+            break;
+        }
+        excerpt = candidate;
+        if (excerpt.length >= minLength && excerpt.length <= maxLength) {
+            break;
+        }
+    }
+
+    if (!excerpt) {
+        excerpt = sentences[0] || plainText.slice(0, maxLength);
+    }
+
+    if (excerpt.length > maxLength) {
+        excerpt = excerpt.slice(0, maxLength).trim() + '...';
+    }
+
+    return excerpt.trim();
+}
+
+function extractMetaContent(html: string, key: string, attribute: 'name' | 'property' = 'property') {
+    const pattern = new RegExp(`<meta[^>]+${attribute}=["']${key}["'][^>]+content=["']([^"']+)["'][^>]*>`, 'i');
+    const reversePattern = new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+${attribute}=["']${key}["'][^>]*>`, 'i');
+    return pattern.exec(html)?.[1] || reversePattern.exec(html)?.[1];
+}
+
+function extractJsonLdPayloads(html: string) {
+    const matches = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi) || [];
+    const payloads: unknown[] = [];
+
+    for (const match of matches) {
+        const raw = match.replace(/^<script[^>]*>/i, '').replace(/<\/script>$/i, '').trim();
+        if (!raw) continue;
+        try {
+            const parsed: unknown = JSON.parse(raw);
+            payloads.push(parsed);
+        } catch {
+            continue;
+        }
+    }
+
+    return payloads.flatMap((payload) => {
+        if (Array.isArray(payload)) return payload;
+        if (payload && typeof payload === 'object') {
+            const record = payload as { '@graph'?: unknown[] };
+            if (Array.isArray(record['@graph'])) {
+                return record['@graph'];
+            }
+        }
+        return [payload];
+    });
+}
+
+function extractArticleBodyFromHtml(html: string) {
+    const jsonLdPayloads = extractJsonLdPayloads(html);
+    for (const payload of jsonLdPayloads) {
+        const articleBody = typeof payload?.articleBody === 'string' ? decodeJsonLikeString(payload.articleBody) : '';
+        if (countWords(articleBody) >= 80) {
+            return articleBody;
+        }
+    }
+
+    const containerPatterns = [
+        /<article[^>]*>([\s\S]*?)<\/article>/i,
+        /<main[^>]*>([\s\S]*?)<\/main>/i,
+        /<(div|section)[^>]+class=["'][^"']*(?:article-body|article__body|entry-content|story-body|post-content|content-body|article-content)[^"']*["'][^>]*>([\s\S]*?)<\/\1>/i
+    ];
+
+    for (const pattern of containerPatterns) {
+        const match = pattern.exec(html);
+        const rawSection = match?.[2] || match?.[1] || '';
+        if (!rawSection) continue;
+
+        const markdown = turndown.turndown(rawSection);
+        const cleaned = cleanStoryText(markdown, '');
+        if (countWords(cleaned) >= 80) {
+            return cleaned;
+        }
+    }
+
+    const paragraphMatches = [...html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)];
+    const paragraphText = paragraphMatches
+        .map((match) => stripHtmlTags(match[1] || ''))
+        .filter((paragraph) => paragraph.length >= 60)
+        .join('\n\n');
+
+    return countWords(paragraphText) >= 80 ? paragraphText : '';
+}
+
+async function enrichStoryFromSourcePage(story: Pick<ScrapedStory, 'title' | 'sourceUrl' | 'content' | 'excerpt' | 'image'>) {
+    const shouldHydrate =
+        countWords(story.content) < 90 ||
+        story.excerpt.length < 140 ||
+        stripHtmlTags(story.content).length < 420;
+
+    if (!shouldHydrate || !story.sourceUrl) {
+        return {
+            content: story.content,
+            excerpt: story.excerpt,
+            image: story.image,
+        };
+    }
+
+    try {
+        const response = await fetchWithRetry(story.sourceUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            }
+        }, 1, 750, 12000);
+
+        if (!response.ok) {
+            return {
+                content: story.content,
+                excerpt: story.excerpt,
+                image: story.image,
+            };
+        }
+
+        const html = await response.text();
+        const extractedBody = extractArticleBodyFromHtml(html);
+        const metaDescription = extractMetaContent(html, 'og:description') || extractMetaContent(html, 'description', 'name') || '';
+        const bodyText = extractedBody || decodeJsonLikeString(metaDescription);
+        const mergedContent = bodyText && countWords(bodyText) > countWords(story.content) ? bodyText : story.content;
+        const cleanedContent = cleanStoryText(mergedContent, story.title);
+        const normalizedImage =
+            story.image && story.image !== '/hero-fallback.jpeg'
+                ? story.image
+                : normalizeImageUrl(
+                    extractMetaContent(html, 'og:image') ||
+                    extractMetaContent(html, 'twitter:image'),
+                    story.sourceUrl
+                ) || story.image;
+
+        return {
+            content: cleanedContent || story.content,
+            excerpt: buildExcerpt(cleanedContent || story.content, story.title),
+            image: normalizedImage,
+        };
+    } catch (error) {
+        console.warn(`Failed to enrich story from source page ${story.sourceUrl}:`, error);
+        return {
+            content: story.content,
+            excerpt: story.excerpt,
+            image: story.image,
+        };
+    }
 }
 
 async function parseRSSFeed(feedUrl: string, sourceName: string, feedType: 'maine' | 'national' | 'health'): Promise<ScrapedStory[]> {
@@ -322,66 +573,21 @@ async function parseRSSFeed(feedUrl: string, sourceName: string, feedType: 'main
                 item.contentSnippet
             ].filter(Boolean).join(' ');
             const baseUrl = link || feedUrl;
-            const image = extractStoryImage(item as Record<string, any>, rawHtml, baseUrl);
+            const image = extractStoryImage(item as Record<string, unknown>, rawHtml, baseUrl);
             const contentSource = item['content:encoded'] || item.content || item.contentSnippet || item.summary || '';
-            let content = turndown.turndown(contentSource);
+            let content = cleanStoryText(turndown.turndown(contentSource), title);
+            let excerpt = buildExcerpt(content, title);
 
-            // Robust cleaning for future scrapes
-            const cleanText = (text: string, storyTitle: string) => {
-                let cleaned = text;
+            const hydrated = await enrichStoryFromSourcePage({
+                title,
+                sourceUrl: link || feedUrl,
+                content,
+                excerpt,
+                image,
+            });
 
-                // 1. Remove specific junk blocks by pattern (ads, app links, etc)
-                const junkPatterns = [
-                    /\[Local News\]\(.*?\)/gi,
-                    /!\[x\]\(.*?\)/gi,
-                    /!\[WCSH\]\(.*?\)/gi,
-                    /Download the NCM app/g,
-                    /To stream NCM on your phone, you need the (NCM|NEWS CENTER Maine) app\.?/g,
-                    /stream NCM on your phone/g,
-                    /\[!\[Download on the App Store\].*?\]\(.*?\)/g,
-                    /\[!\[Get it on Google Play\].*?\]\(.*?\)/g,
-                    /#### More Videos[\s\S]*?Next up in \d+/g,
-                    /Example video title will go here/g,
-                    /\[!\[Facebook\].*?\]\(.*?\)/g,
-                    /Author:.*?Staff/gi,
-                    /Published:.*?\d{4}/gi,
-                    /Updated:.*?\d{4}/gi,
-                    /Related Articles[\s\S]*?$/i, // Cut off everything after Related Articles
-                    /Close Ad/gi,
-                    /\[\s*\]\(\/\)/g, // Remove empty links
-                    /\*\*\*+/g, // Remove horizontal rules with too many stars
-                    /===+/g, // Remove excessive headers
-                    /For the latest breaking news, weather, and traffic alerts, download the NEWS CENTER Maine mobile app\./gi
-                ];
-
-                junkPatterns.forEach(pattern => {
-                    cleaned = cleaned.replace(pattern, '');
-                });
-
-                // 2. Remove redundant title at the start
-                const escapedTitle = storyTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                cleaned = cleaned.replace(new RegExp(`^\\s*${escapedTitle}\\s*`, 'i'), '');
-
-                // 3. Remove excessive punctuation/formatting
-                cleaned = cleaned.replace(/([\.=-]){2,}/g, '$1');
-
-                // 4. Remove ONLY UI/Icon images, KEEP story images
-                cleaned = cleaned.replace(/!\[.*?\]\((?:\/assets\/|http).*?(?:icon|logo|badge|close-menu|amp|shared-images).*?\)/gi, '');
-
-                // 5. Remove widowed bullet points and fragments
-                cleaned = cleaned.replace(/^\s*[\*\-]\s*$/gm, '');
-                cleaned = cleaned.replace(/^\s*[\*\-]\s*!\[\].*?$/gm, '');
-
-                return cleaned.trim();
-            };
-
-            content = cleanText(content, title);
-
-            let excerpt = content.replace(/!\[.*?\]\(.*?\)/g, '').substring(0, 300).replace(/[\\#\\*]/g, '') + (content.length > 300 ? '...' : '');
-
-            // Final polish to ensure no trailing junk or weird formatting
-            content = content.replace(/\n{3,}/g, '\n\n').trim();
-            excerpt = excerpt.replace(/\s+/g, ' ').trim();
+            content = hydrated.content.replace(/\n{3,}/g, '\n\n').trim();
+            excerpt = hydrated.excerpt.replace(/\s+/g, ' ').trim();
 
             stories.push({
                 title,
@@ -394,7 +600,7 @@ async function parseRSSFeed(feedUrl: string, sourceName: string, feedType: 'main
                 publishedDate: item.pubDate || new Date().toISOString(),
                 urgency: 0,
                 author: item.creator || sourceName,
-                image: image || '/hero-fallback.jpeg',
+                image: hydrated.image || image || '/hero-fallback.jpeg',
                 feedType,
                 isNational: feedType !== 'maine'
             });
