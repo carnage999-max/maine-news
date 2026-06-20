@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, Newspaper, Video, Users, Home, Ticket, Clock } from 'lucide-react';
+import { LayoutDashboard, Newspaper, ScrollText, Video, Users, Home, Ticket, Clock } from 'lucide-react';
 import { auth } from '@/auth';
 import SignOutButton from '@/components/admin/SignOutButton';
 import Image from 'next/image';
@@ -65,6 +65,7 @@ export default async function AdminLayout({
                             <nav className="flex-1 px-4 py-2" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                 <AdminNavLink href="/admin" icon={<LayoutDashboard size={18} />} label="Dashboard" />
                                 <AdminNavLink href="/admin/posts" icon={<Newspaper size={18} />} label="Exclusives" />
+                                <AdminNavLink href="/admin/editorials" icon={<ScrollText size={18} />} label="Editorials" />
                                 <AdminNavLink href="/admin/maine-minute" icon={<Clock size={18} />} label="Minute" />
                                 <AdminNavLink href="/admin/lottery" icon={<Ticket size={18} />} label="Lottery" />
                                 <AdminNavLink href="/admin/videos" icon={<Video size={18} />} label="Videos" />

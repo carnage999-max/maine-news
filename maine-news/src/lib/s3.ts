@@ -8,13 +8,14 @@ const s3Client = new S3Client({
     },
 });
 
-export async function uploadToS3(file: Buffer, fileName: string, contentType: string) {
+export async function uploadToS3(file: Buffer, fileName: string, contentType: string, folder = 'submissions') {
     const bucketName = process.env.AWS_BUCKET_NAME;
     if (!bucketName) throw new Error("AWS_BUCKET_NAME is not defined");
 
     // Generate timestamp once to ensure consistency
     const timestamp = Date.now();
-    const key = `submissions/${timestamp}-${fileName}`;
+    const safeFolder = folder.replace(/^\/+|\/+$/g, '') || 'submissions';
+    const key = `${safeFolder}/${timestamp}-${fileName}`;
 
     const command = new PutObjectCommand({
         Bucket: bucketName,

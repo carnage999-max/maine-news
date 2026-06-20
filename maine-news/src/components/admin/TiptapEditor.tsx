@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef, useState } from 'react';
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -9,7 +10,7 @@ import {
     Bold, Italic, Underline as UnderlineIcon,
     List, ListOrdered, Quote, Heading1, Heading2,
     Link as LinkIcon, Image as ImageIcon,
-    Undo, Redo
+    Loader2, Undo, Redo
 } from 'lucide-react';
 
 interface TiptapEditorProps {
@@ -18,12 +19,43 @@ interface TiptapEditorProps {
 }
 
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
+
     if (!editor) return null;
 
     const addImage = () => {
-        const url = window.prompt('Enter image URL');
-        if (url) {
-            editor.chain().focus().setImage({ src: url }).run();
+        fileInputRef.current?.click();
+    };
+
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const payload = new FormData();
+        payload.append('image', file);
+
+        setIsUploadingImage(true);
+
+        try {
+            const response = await fetch('/api/admin/uploads/image', {
+                method: 'POST',
+                body: payload,
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.url) {
+                throw new Error(result.error || 'Failed to upload image');
+            }
+
+            editor.chain().focus().setImage({ src: result.url }).run();
+        } catch (error) {
+            console.error('Image upload failed:', error);
+            window.alert(error instanceof Error ? error.message : 'Failed to upload image');
+        } finally {
+            setIsUploadingImage(false);
+            event.target.value = '';
         }
     };
 
@@ -84,19 +116,44 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
             />
             <div className="w-px h-6 bg-dim mx-1 self-center" />
             <MenuButton onClick={setLink} active={editor.isActive('link')} icon={<LinkIcon size={18} />} title="Add Link" />
-            <MenuButton onClick={addImage} icon={<ImageIcon size={18} />} title="Add Image" />
+            <MenuButton
+                onClick={addImage}
+                icon={isUploadingImage ? <Loader2 size={18} className="animate-spin" /> : <ImageIcon size={18} />}
+                title="Upload Image"
+                disabled={isUploadingImage}
+            />
             <div className="w-px h-6 bg-dim mx-1 self-center" />
             <MenuButton onClick={() => editor.chain().focus().undo().run()} icon={<Undo size={18} />} title="Undo" />
             <MenuButton onClick={() => editor.chain().focus().redo().run()} icon={<Redo size={18} />} title="Redo" />
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
+            />
         </div>
     );
 };
 
-const MenuButton = ({ onClick, active, icon, title }: { onClick: () => void, active?: boolean, icon: React.ReactNode, title?: string }) => (
+const MenuButton = ({
+    onClick,
+    active,
+    icon,
+    title,
+    disabled = false,
+}: {
+    onClick: () => void;
+    active?: boolean;
+    icon: React.ReactNode;
+    title?: string;
+    disabled?: boolean;
+}) => (
     <button
         type="button"
         onClick={onClick}
         title={title}
+        disabled={disabled}
         className={`tiptap-menu-btn ${active ? 'active' : ''}`}
     >
         {icon}
