@@ -1,84 +1,158 @@
 .page {
-  padding: 2.5rem 0 4rem;
+  padding: 2.25rem 0 4rem;
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 2rem;
 }
 
 .hero {
+  position: relative;
+  overflow: hidden;
   border-radius: 28px;
   border: 1px solid var(--border-color-dim);
-  background: radial-gradient(circle at top left, rgba(191, 155, 48, 0.18), transparent 55%),
-    linear-gradient(140deg, rgba(17, 24, 39, 0.95), rgba(10, 10, 10, 0.95));
+  background:
+    radial-gradient(circle at top right, rgba(74, 111, 184, 0.24), transparent 26%),
+    radial-gradient(circle at top left, rgba(239, 43, 45, 0.14), transparent 34%),
+    linear-gradient(180deg, rgba(22, 28, 45, 0.98), rgba(7, 9, 14, 0.98));
   padding: 2.5rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 120px;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.18));
+  pointer-events: none;
 }
 
 .heroRow {
+  position: relative;
+  z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
   gap: 2rem;
   align-items: center;
 }
 
 .kicker {
   text-transform: uppercase;
-  letter-spacing: 0.3rem;
+  letter-spacing: 0.28rem;
   font-size: 0.75rem;
-  color: var(--color-accent);
+  color: rgba(247, 247, 244, 0.74);
 }
 
 .title {
-  font-size: clamp(2rem, 4vw, 3.4rem);
-  margin-bottom: 0.5rem;
+  margin: 0.35rem 0 0.6rem;
+  font-size: clamp(2.2rem, 4vw, 3.8rem);
+  line-height: 0.94;
 }
 
 .meta {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(247, 247, 244, 0.78);
 }
 
 .source {
-  margin-top: 0.75rem;
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.6);
+  margin-top: 0.7rem;
+  max-width: 60ch;
+  font-size: 0.96rem;
+  line-height: 1.55;
+  color: rgba(247, 247, 244, 0.6);
+}
+
+.heroHighlights {
+  margin-top: 1.15rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.heroHighlight {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.65rem 0.95rem;
+  font-size: 0.88rem;
+  color: rgba(247, 247, 244, 0.76);
 }
 
 .heroCard {
-  border-radius: 20px;
-  border: 1px solid var(--border-color-dim);
-  background: rgba(8, 8, 8, 0.8);
-  padding: 1.5rem;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(8, 10, 18, 0.82);
+  padding: 1.45rem;
+  backdrop-filter: blur(10px);
 }
 
 .heroCardLabel {
   text-transform: uppercase;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   letter-spacing: 0.18rem;
-  color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 0.75rem;
+  color: rgba(247, 247, 244, 0.6);
+  margin-bottom: 0.85rem;
+}
+
+.heroTempRow {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
 }
 
 .heroTemp {
-  font-size: 3rem;
+  font-size: clamp(3rem, 4vw, 4.2rem);
+  line-height: 0.9;
   font-weight: 700;
 }
 
+.heroSummaryBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
 .heroSummary {
-  font-size: 1.1rem;
-  margin-top: 0.5rem;
+  font-size: 1.16rem;
+  line-height: 1.2;
 }
 
 .heroDetails {
-  margin-top: 0.75rem;
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.92rem;
+  color: rgba(247, 247, 244, 0.66);
+}
+
+.heroMetricRow {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.heroMetricChip {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.7rem 0.8rem;
+  font-size: 0.83rem;
+  color: rgba(247, 247, 244, 0.78);
 }
 
 .shareBox {
   border-radius: 18px;
   border: 1px solid var(--border-color-dim);
-  background: rgba(255, 255, 255, 0.03);
-  padding: 1.25rem 1.5rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+  padding: 1.2rem 1.4rem;
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
@@ -92,8 +166,9 @@
 }
 
 .shareLink {
+  margin-top: 0.22rem;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(247, 247, 244, 0.62);
   word-break: break-all;
 }
 
@@ -108,21 +183,24 @@
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-height: 40px;
   border-radius: 999px;
   border: 1px solid var(--border-color-dim);
   background: transparent;
   color: var(--color-text);
   padding: 0.55rem 1rem;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   text-transform: uppercase;
   letter-spacing: 0.08rem;
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
 }
 
 .shareButton:hover,
 .copyButton:hover {
   border-color: var(--color-accent);
   color: var(--color-accent);
+  background: rgba(239, 43, 45, 0.06);
 }
 
 .socialRow {
@@ -133,8 +211,8 @@
 }
 
 .socialButton {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 999px;
   border: 1px solid var(--border-color-dim);
   display: inline-flex;
@@ -153,16 +231,15 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
 }
 
 .tabButton {
   border-radius: 999px;
   border: 1px solid var(--border-color-dim);
-  background: transparent;
-  color: rgba(255, 255, 255, 0.8);
-  padding: 0.6rem 1.1rem;
-  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(247, 247, 244, 0.78);
+  padding: 0.68rem 1.15rem;
+  font-size: 0.84rem;
   text-transform: uppercase;
   letter-spacing: 0.08rem;
   transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
@@ -171,72 +248,324 @@
 .tabButtonActive {
   border-color: var(--color-accent);
   color: var(--color-accent);
-  background: rgba(191, 155, 48, 0.08);
+  background: rgba(239, 43, 45, 0.1);
 }
 
 .regionHeader {
+  margin-top: 1.4rem;
+  margin-bottom: 1.2rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  margin-bottom: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .regionName {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   text-transform: uppercase;
-  letter-spacing: 0.06rem;
+  letter-spacing: 0.05rem;
 }
 
 .regionLocation {
+  margin-top: 0.3rem;
+  font-size: 0.98rem;
+  color: rgba(247, 247, 244, 0.62);
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.currentCard,
+.metricCard,
+.hourlyCard,
+.forecastCard,
+.outlookRow,
+.alerts,
+.errorState {
+  border-radius: 20px;
+  border: 1px solid var(--border-color-dim);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    rgba(12, 14, 20, 0.95);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.currentCard {
+  padding: 1.35rem;
+}
+
+.cardEyebrow {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16rem;
+  color: var(--color-accent);
+}
+
+.currentCardTop {
+  margin-top: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.currentTemp {
+  font-size: clamp(3rem, 4.5vw, 4.8rem);
+  line-height: 0.92;
+  font-weight: 700;
+}
+
+.currentSummary {
+  margin-top: 0.45rem;
+  font-size: 1.26rem;
+  line-height: 1.2;
+}
+
+.currentSubline {
+  margin-top: 0.55rem;
+  font-size: 0.96rem;
+  color: rgba(247, 247, 244, 0.64);
+}
+
+.currentIconWrap {
+  flex-shrink: 0;
+  width: 104px;
+  height: 104px;
+  border-radius: 24px;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.currentIcon {
+  width: auto;
+  height: auto;
+}
+
+.currentStats {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.statPill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.78rem 0.85rem;
+  font-size: 0.9rem;
+  color: rgba(247, 247, 244, 0.76);
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.metricCard {
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 180px;
+}
+
+.metricLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12rem;
+  color: rgba(247, 247, 244, 0.7);
+}
+
+.metricValue {
+  margin-top: 1rem;
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  line-height: 1;
+  font-weight: 700;
+}
+
+.metricSupporting {
+  margin-top: 0.45rem;
+  font-size: 1rem;
+  color: rgba(247, 247, 244, 0.76);
+}
+
+.metricFootnote {
+  margin-top: auto;
+  padding-top: 0.85rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: rgba(247, 247, 244, 0.58);
+}
+
+.sunRow {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.sunItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.98rem;
+}
+
+.sectionTitleRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1.18rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08rem;
+}
+
+.sectionHint {
+  font-size: 0.88rem;
+  color: rgba(247, 247, 244, 0.56);
+}
+
+.hourlySection {
+  margin-top: 1.8rem;
+}
+
+.hourlyScroller {
+  margin-top: 1rem;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(148px, 1fr);
+  gap: 0.8rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  scrollbar-width: thin;
+}
+
+.hourlyCard {
+  padding: 1rem;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.hourlyTime {
+  font-size: 0.86rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08rem;
+  color: rgba(247, 247, 244, 0.62);
+}
+
+.hourlyIcon {
+  width: 42px;
+  height: 42px;
+}
+
+.fallbackHourlyIcon {
+  color: var(--color-accent);
+}
+
+.hourlyTemp {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.hourlyForecast {
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.35;
+  color: rgba(247, 247, 244, 0.88);
+}
+
+.hourlyMeta {
+  margin-top: auto;
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: rgba(247, 247, 244, 0.58);
 }
 
 .forecastGrid {
+  margin-top: 1.8rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
 }
 
 .forecastCard {
-  border-radius: 18px;
-  border: 1px solid var(--border-color-dim);
-  background: rgba(17, 17, 17, 0.9);
   padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 340px;
+}
+
+.forecastHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .forecastLabelRow {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   text-transform: uppercase;
   letter-spacing: 0.08rem;
   color: var(--color-accent);
-  margin-bottom: 0.5rem;
 }
 
 .forecastIcon {
   color: var(--color-accent);
 }
 
+.periodIcon {
+  width: 44px;
+  height: 44px;
+}
+
 .forecastTemp {
+  margin-top: 0.55rem;
   font-size: 2rem;
   font-weight: 700;
 }
 
 .forecastSummary {
   margin-top: 0.35rem;
-  font-size: 1rem;
+  font-size: 1.05rem;
+}
+
+.forecastNarrative {
+  margin-top: 0.7rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(247, 247, 244, 0.68);
 }
 
 .forecastDetails {
-  margin-top: 0.75rem;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.65);
+  margin-top: auto;
+  padding-top: 1rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
+  font-size: 0.88rem;
+  color: rgba(247, 247, 244, 0.64);
 }
 
 .detailItem {
@@ -246,102 +575,175 @@
 }
 
 .outlook {
-  margin-top: 2rem;
+  margin-top: 1.8rem;
 }
 
-.sectionTitle {
-  font-size: 1.2rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08rem;
-  margin-bottom: 1rem;
-}
-
-.outlookGrid {
+.outlookList {
+  margin-top: 1rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.75rem;
+  gap: 0.8rem;
 }
 
-.outlookCard {
-  border-radius: 16px;
-  border: 1px solid var(--border-color-dim);
-  background: rgba(255, 255, 255, 0.04);
-  padding: 1rem;
-}
-
-.outlookLabelRow {
-  display: inline-flex;
+.outlookRow {
+  padding: 0.95rem 1rem;
+  display: grid;
+  grid-template-columns: minmax(110px, 0.7fr) minmax(0, 1.8fr) minmax(80px, 0.55fr) minmax(90px, 0.6fr);
+  gap: 0.85rem;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08rem;
-  color: rgba(255, 255, 255, 0.65);
-  margin-bottom: 0.35rem;
 }
 
-.outlookTemp {
-  font-size: 1.35rem;
-  font-weight: 700;
+.outlookDay {
+  font-size: 1rem;
+  font-weight: 600;
 }
 
-.outlookSummary {
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin-top: 0.35rem;
+.outlookCondition {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  font-size: 0.94rem;
+  color: rgba(247, 247, 244, 0.78);
+}
+
+.outlookCondition span:last-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.outlookWeatherIcon {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+.outlookReading {
+  text-align: right;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.outlookReadingMuted {
+  text-align: right;
+  font-size: 0.9rem;
+  color: rgba(247, 247, 244, 0.58);
 }
 
 .alerts {
-  border-radius: 18px;
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  background: rgba(239, 68, 68, 0.08);
   padding: 1.5rem;
+  border-color: rgba(239, 68, 68, 0.32);
+  background:
+    linear-gradient(180deg, rgba(239, 68, 68, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(12, 14, 20, 0.95);
 }
 
 .alertItem {
   padding-top: 1rem;
   margin-top: 1rem;
-  border-top: 1px solid rgba(239, 68, 68, 0.35);
+  border-top: 1px solid rgba(239, 68, 68, 0.24);
 }
 
 .alertTitle {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   text-transform: uppercase;
   letter-spacing: 0.08rem;
 }
 
 .alertHeadline {
-  margin-top: 0.5rem;
-  color: rgba(255, 255, 255, 0.75);
+  margin-top: 0.4rem;
+  line-height: 1.5;
+  color: rgba(247, 247, 244, 0.8);
 }
 
 .alertMeta {
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.65);
+  margin-top: 0.45rem;
+  font-size: 0.86rem;
+  color: rgba(247, 247, 244, 0.62);
 }
 
 .disclaimer {
   border-top: 1px solid var(--border-color-dim);
-  padding-top: 1.5rem;
+  padding-top: 1.4rem;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  color: rgba(247, 247, 244, 0.58);
 }
 
 .errorState {
-  border-radius: 16px;
-  border: 1px solid var(--border-color-dim);
-  background: rgba(255, 255, 255, 0.03);
   padding: 2rem;
   text-align: center;
 }
 
-@media (max-width: 900px) {
-  .heroRow {
+@media (max-width: 1100px) {
+  .heroRow,
+  .dashboardGrid,
+  .forecastGrid {
     grid-template-columns: 1fr;
   }
 
-  .heroCard {
-    width: 100%;
+  .metricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .page {
+    padding-top: 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .hero {
+    padding: 1.4rem;
+    border-radius: 22px;
+  }
+
+  .title {
+    font-size: 2.1rem;
+  }
+
+  .heroTempRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .heroMetricRow,
+  .currentStats,
+  .metricGrid,
+  .forecastGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .shareBox {
+    padding: 1rem;
+  }
+
+  .sectionTitleRow,
+  .regionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .currentCardTop {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hourlyScroller {
+    grid-auto-columns: minmax(138px, 1fr);
+  }
+
+  .forecastCard {
+    min-height: 0;
+  }
+
+  .outlookRow {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .outlookReading,
+  .outlookReadingMuted {
+    text-align: left;
   }
 }

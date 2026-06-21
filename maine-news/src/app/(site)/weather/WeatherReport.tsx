@@ -1,4 +1,5 @@
 import type { WeatherReport as WeatherReportData } from '@/lib/weather';
+import { CloudMoon, Droplets, ShieldAlert, Thermometer, Wind } from 'lucide-react';
 import WeatherRegions from './WeatherRegions';
 import ShareTools from './ShareTools';
 import styles from './WeatherReport.module.css';
@@ -20,6 +21,11 @@ function formatWind(speed?: string, direction?: string) {
 function formatTemp(temp?: number, unit?: string) {
     if (temp === null || temp === undefined) return 'N/A';
     return unit ? `${temp}${unit}` : `${temp}`;
+}
+
+function formatMetricValue(value?: number, suffix = '') {
+    if (value === null || value === undefined || Number.isNaN(value)) return 'N/A';
+    return `${Math.round(value)}${suffix}`;
 }
 
 function formatAlertTime(value?: string) {
@@ -46,6 +52,7 @@ export default function WeatherReport({ report }: WeatherReportProps) {
     const headlineLabel = headlineRegion?.id === 'statewide'
         ? 'Statewide Snapshot'
         : `${headlineRegion?.label || 'Forecast'} Snapshot`;
+    const headlineMetrics = headlineRegion?.metrics;
 
     return (
         <main className={`container ${styles.page}`}>
@@ -58,18 +65,49 @@ export default function WeatherReport({ report }: WeatherReportProps) {
                             {report.displayDate} · Updated {report.generatedAt}
                         </div>
                         <div className={styles.source}>{report.source}</div>
+                        <div className={styles.heroHighlights}>
+                            <div className={styles.heroHighlight}>
+                                <ShieldAlert size={16} />
+                                <span>{report.alerts.length} active alerts statewide</span>
+                            </div>
+                            <div className={styles.heroHighlight}>
+                                <CloudMoon size={16} />
+                                <span>{headlineRegion?.location || 'Regional forecast tracking'}</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div className={styles.heroCard}>
                         <div className={styles.heroCardLabel}>{headlineLabel}</div>
                         {headlineForecast ? (
                             <>
-                                <div className={styles.heroTemp}>
-                                    {formatTemp(headlineForecast.temperature, headlineForecast.temperatureUnit)}
+                                <div className={styles.heroTempRow}>
+                                    <div className={styles.heroTemp}>
+                                        {formatTemp(
+                                            headlineMetrics?.temperature ?? headlineForecast.temperature,
+                                            headlineMetrics?.temperatureUnit ?? headlineForecast.temperatureUnit
+                                        )}
+                                    </div>
+                                    <div className={styles.heroSummaryBlock}>
+                                        <div className={styles.heroSummary}>{headlineForecast.shortForecast}</div>
+                                        <div className={styles.heroDetails}>
+                                            {formatWind(headlineForecast.windSpeed, headlineForecast.windDirection)} · {formatPrecip(headlineForecast.precipitationChance)}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className={styles.heroSummary}>{headlineForecast.shortForecast}</div>
-                                <div className={styles.heroDetails}>
-                                    {formatWind(headlineForecast.windSpeed, headlineForecast.windDirection)} · {formatPrecip(headlineForecast.precipitationChance)}
+                                <div className={styles.heroMetricRow}>
+                                    <div className={styles.heroMetricChip}>
+                                        <Thermometer size={15} />
+                                        <span>Feels like {formatMetricValue(headlineMetrics?.feelsLike, 'F')}</span>
+                                    </div>
+                                    <div className={styles.heroMetricChip}>
+                                        <Droplets size={15} />
+                                        <span>Humidity {formatMetricValue(headlineMetrics?.humidity, '%')}</span>
+                                    </div>
+                                    <div className={styles.heroMetricChip}>
+                                        <Wind size={15} />
+                                        <span>Wind {formatMetricValue(headlineMetrics?.windSpeed, ' mph')}</span>
+                                    </div>
                                 </div>
                             </>
                         ) : (

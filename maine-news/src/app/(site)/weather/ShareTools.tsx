@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Facebook, Instagram, Youtube } from 'lucide-react';
 import styles from './WeatherReport.module.css';
 
@@ -11,16 +11,15 @@ interface ShareToolsProps {
 }
 
 export default function ShareTools({ permalinkPath, title }: ShareToolsProps) {
-    const [shareUrl, setShareUrl] = useState('');
     const [copied, setCopied] = useState(false);
 
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            setShareUrl(`${window.location.origin}${permalinkPath}`);
+    const finalUrl = useMemo(() => {
+        if (typeof window === 'undefined') {
+            return permalinkPath;
         }
-    }, [permalinkPath]);
 
-    const finalUrl = shareUrl || permalinkPath;
+        return `${window.location.origin}${permalinkPath}`;
+    }, [permalinkPath]);
     const encodedUrl = useMemo(() => encodeURIComponent(finalUrl), [finalUrl]);
     const encodedTitle = useMemo(() => encodeURIComponent(title), [title]);
 
