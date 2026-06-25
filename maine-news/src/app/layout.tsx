@@ -10,8 +10,17 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  manifest: "/manifest.webmanifest",
     title: "Maine News Now",
     description: "Editorial Minimalism with Live Intelligence.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: ["/favicon.ico"],
+  },
 };
 
 const customAdsUrl = process.env.NEXT_PUBLIC_CUSTOM_ADS_URL;

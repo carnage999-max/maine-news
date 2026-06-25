@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  manifest: "/manifest.webmanifest",
   title: "Ads by Se7enInc",
   description: "Reusable ad management and delivery service by Se7enInc.",
   icons: {
