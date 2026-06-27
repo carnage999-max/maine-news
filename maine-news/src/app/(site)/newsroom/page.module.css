@@ -1,0 +1,31 @@
+.page {
+    padding: 2.2rem 0 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.hero {
+    border-bottom: 1px solid var(--border-color-dim);
+    padding-bottom: 1.25rem;
+}
+
+.kicker {
+    color: var(--color-accent);
+    font-family: var(--font-heading);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+}
+
+.title {
+    margin: 0.3rem 0 0.55rem;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+}
+
+.copy {
+    margin: 0;
+    max-width: 64ch;
+    color: var(--color-text-dim);
+    line-height: 1.65;
+}
