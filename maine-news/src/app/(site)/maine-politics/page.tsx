@@ -6,6 +6,8 @@ export const metadata: Metadata = {
     description: 'Follow Maine politics, state government, elections, policy updates, and public affairs news from Maine News Now.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function MainePoliticsCategoryPage() {
     return (
         <CategoryPage

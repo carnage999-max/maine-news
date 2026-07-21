@@ -1,18 +1,23 @@
-import { neon } from "@neondatabase/serverless";
+import postgres, { type Sql } from "postgres";
 
 let schemaReady = false;
 let schemaPromise: Promise<void> | null = null;
-let client: ReturnType<typeof neon> | null = null;
+let client: Sql | null = null;
 
 export function assertDatabaseUrl() {
   if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL is required. Set it to your Neon connection string.");
+    throw new Error("DATABASE_URL is required. Set it to your Postgres connection string.");
   }
 }
 
 export function getSql() {
   assertDatabaseUrl();
-  client ||= neon(process.env.DATABASE_URL!);
+  client ||= postgres(process.env.DATABASE_URL!, {
+    prepare: false,
+    max: 5,
+    idle_timeout: 20,
+    connect_timeout: 15,
+  });
   return client;
 }
 

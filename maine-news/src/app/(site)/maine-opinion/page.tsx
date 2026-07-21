@@ -6,6 +6,8 @@ export const metadata: Metadata = {
     description: 'Read community perspectives, editorials, letters to the editor, and columns from Maine News Now.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function MaineOpinionCategoryPage() {
     return (
         <CategoryPage

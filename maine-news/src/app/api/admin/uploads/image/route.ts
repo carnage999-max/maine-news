@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { uploadToS3 } from '@/lib/s3';
+import { uploadToLocalMedia } from '@/lib/mediaStorage';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
         }
 
         const buffer = Buffer.from(await imageFile.arrayBuffer());
-        const url = await uploadToS3(buffer, imageFile.name, imageFile.type, 'editorial-inline');
+        const url = await uploadToLocalMedia(buffer, imageFile.name, imageFile.type, 'editorial-inline');
 
         return NextResponse.json({ url });
     } catch (error) {

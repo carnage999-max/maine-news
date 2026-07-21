@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { posts } from '@/db/schema';
 import { desc } from 'drizzle-orm';
-import { uploadToS3 } from '@/lib/s3';
+import { uploadToLocalMedia } from '@/lib/mediaStorage';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
 
         if (imageFile && imageFile.size > 0) {
             const buffer = Buffer.from(await imageFile.arrayBuffer());
-            imageUrl = await uploadToS3(buffer, imageFile.name, imageFile.type);
+            imageUrl = await uploadToLocalMedia(buffer, imageFile.name, imageFile.type);
         }
 
         const newPost = await db.insert(posts).values({

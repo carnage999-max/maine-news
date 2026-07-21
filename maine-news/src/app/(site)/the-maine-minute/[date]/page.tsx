@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import MaineMinuteBrief from '@/components/minute/MaineMinuteBrief';
 import { buildMaineMinuteReport } from '@/lib/maineMinuteReport';
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 1800;
 
 interface MaineMinuteDatePageProps {

@@ -7,6 +7,7 @@ export const metadata: Metadata = {
     description: 'Live Maine traffic incidents and corridor alerts powered by TomTom Traffic.',
 };
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 60;
 
 export default async function TrafficPage() {

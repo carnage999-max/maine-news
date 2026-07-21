@@ -10,6 +10,7 @@ export const metadata: Metadata = {
     description: 'Meet the reporters and contributors behind Maine News Now coverage.',
 };
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 300;
 
 export default async function NewsroomPage() {

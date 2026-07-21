@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description: 'Maine News Now delivers local Maine news, weather, politics, crime, sports, business, opinion, and breaking stories across Maine.',
 };
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 60;
 
 export default async function Home() {

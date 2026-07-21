@@ -6,6 +6,8 @@ export const metadata: Metadata = {
     description: 'Get the latest Maine weather updates, forecasts, storm alerts, and local weather news from Maine News Now.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function MaineWeatherCategoryPage() {
     return (
         <CategoryPage

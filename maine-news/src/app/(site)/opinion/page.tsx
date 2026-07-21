@@ -4,6 +4,7 @@ import { posts as dbPosts } from '@/db/schema';
 import { desc, eq } from 'drizzle-orm';
 import styles from './Opinion.module.css';
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 300;
 
 export default async function OpinionPage() {

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getWeatherReport, isValidDateParam } from '@/lib/weather';
 import WeatherReport from '../WeatherReport';
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 86400;
 
 interface WeatherDatePageProps {

@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { neon } from "@neondatabase/serverless";
+import postgres from "postgres";
 
 const adRows = [
   {
@@ -108,7 +108,12 @@ if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is required to reset ads.");
 }
 
-const sql = neon(process.env.DATABASE_URL);
+const sql = postgres(process.env.DATABASE_URL, {
+  prepare: false,
+  max: 1,
+  idle_timeout: 20,
+  connect_timeout: 15,
+});
 const now = new Date().toISOString();
 
 for (const row of adRows) {
@@ -176,3 +181,4 @@ for (const row of adRows) {
 }
 
 console.log(`Reset complete. Inserted ${adRows.length} ads.`);
+await sql.end();

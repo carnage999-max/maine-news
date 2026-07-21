@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { uploadToS3 } from '@/lib/s3';
+import { uploadToLocalMedia } from '@/lib/mediaStorage';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
 
         for (const file of files) {
             const buffer = Buffer.from(await file.arrayBuffer());
-            const link = await uploadToS3(buffer, file.name, file.type);
+            const link = await uploadToLocalMedia(buffer, file.name, file.type);
             fileLinks.push(link);
         }
 

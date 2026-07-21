@@ -6,6 +6,8 @@ export const metadata: Metadata = {
     description: 'Get the latest Maine business news, local economic updates, and industry developments from Maine News Now.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function MaineBusinessCategoryPage() {
     return (
         <CategoryPage

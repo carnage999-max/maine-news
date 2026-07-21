@@ -8,6 +8,7 @@ import { getCountyBySlug, MAINE_COUNTIES, matchesCounty } from '@/lib/maineCount
 import { stripContent } from '@/lib/maineMinute';
 import styles from '@/components/county/CountyFeed.module.css';
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 300;
 
 export async function generateMetadata(

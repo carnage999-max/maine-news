@@ -6,6 +6,8 @@ export const metadata: Metadata = {
     description: 'Read the latest Maine news from Maine News Now, covering local stories, community updates, public safety, politics, weather, business, and more.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function MaineNewsCategoryPage() {
     return (
         <CategoryPage

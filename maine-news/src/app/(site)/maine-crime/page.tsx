@@ -6,6 +6,8 @@ export const metadata: Metadata = {
     description: 'Follow local crime reports, public safety updates, and police news from Maine News Now.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function MaineCrimeCategoryPage() {
     return (
         <CategoryPage

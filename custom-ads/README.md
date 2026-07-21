@@ -17,7 +17,7 @@ Standalone ad management and delivery service for Maine News and future sites.
 Copy `.env.example` to `.env.local` and fill these values:
 
 ```bash
-DATABASE_URL="postgresql://USER:PASSWORD@HOST.neon.tech/DB?sslmode=require"
+DATABASE_URL="postgresql://USER:PASSWORD@POSTGRES_CONTAINER:5432/DB"
 CUSTOM_ADS_ADMIN_USERNAME="admin"
 CUSTOM_ADS_ADMIN_PASSWORD="change-this-password"
 CUSTOM_ADS_AUTH_SECRET="use-a-long-random-secret"
@@ -27,7 +27,7 @@ ADS_NOTIFICATION_EMAILS="admin@example.com,ops@example.com"
 ADS_FROM_EMAIL="Ads by Se7enInc <ads@yourdomain.com>"
 ```
 
-`DATABASE_URL` is required at runtime. The service creates its Neon table automatically as `custom_ads_ads`.
+`DATABASE_URL` is required at runtime. Use a standard Postgres connection string; Coolify-provisioned Postgres works. The service creates its tables automatically as `custom_ads_ads` and `custom_ads_sites`.
 
 `CUSTOM_ADS_ADMIN_USERNAME` and `CUSTOM_ADS_ADMIN_PASSWORD` protect `/admin` and `/api/admin/*` through the designed `/login` page. If `CUSTOM_ADS_ADMIN_PASSWORD` is missing, local auth is disabled. `CUSTOM_ADS_AUTH_SECRET` signs the HTTP-only session cookie; set it to a long random value in production.
 
