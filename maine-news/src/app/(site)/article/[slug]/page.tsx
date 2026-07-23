@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import ArticleActions from '@/components/article/ArticleActions';
+import ArticleContent from '@/components/article/ArticleContent';
 import TextResizer from '@/components/article/TextResizer';
 import StoryCard from '@/components/ui/StoryCard';
 import styles from './Article.module.css';
@@ -26,12 +27,17 @@ const getPostBySlug = cache(async (slug: string) => {
 
 function getCleanDescription(htmlContent: string): string {
     if (!htmlContent) return '';
-    // Strip HTML tags
-    const cleanText = htmlContent.replace(/<[^>]*>/g, '');
-    // Strip markdown indicators
-    const cleanMd = cleanText.replace(/[*#_~`\[\]()\-+]/g, '');
+    const cleanText = htmlContent
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/!\[[^\]]*]\([^)]+\)/g, ' ')
+        .replace(/\[([^\]]+)]\([^)]+\)/g, '$1')
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/__([^_]+)__/g, '$1')
+        .replace(/[*#_~`>]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
     // Limit to 155 chars
-    return cleanMd.slice(0, 155).trim() + (cleanMd.length > 155 ? '...' : '');
+    return cleanText.slice(0, 155).trim() + (cleanText.length > 155 ? '...' : '');
 }
 
 function formatCategoryName(category: string): string {
@@ -204,7 +210,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 </div>
 
                 <div className={styles.body} data-article-body>
-                    <div dangerouslySetInnerHTML={{ __html: dbPost.content }} />
+                    <ArticleContent content={dbPost.content} />
                 </div>
 
                 {isEditorial && (

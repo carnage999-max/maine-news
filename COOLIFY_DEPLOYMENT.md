@@ -27,8 +27,8 @@ Set the Coolify base directory to the app folder being deployed.
 Recommended Coolify app settings:
 
 - Base directory: `custom-ads`
-- Host port: `3001`
-- Port mapping: `127.0.0.1:3001:3000`
+- Host port: `3019`
+- Port mapping: `127.0.0.1:3019:3000`
 - Database: Coolify-provisioned Postgres 17
 - Persistent storage: none required
 
@@ -56,7 +56,7 @@ The service creates its own `custom_ads_ads` and `custom_ads_sites` tables at ru
 Nginx can use the standard helper after DNS points to `68.68.239.212`:
 
 ```bash
-~/add-site.sh ads.example.com 3001
+~/add-site.sh ads.example.com 3019
 sudo certbot --nginx -d ads.example.com
 ```
 
@@ -65,8 +65,8 @@ sudo certbot --nginx -d ads.example.com
 Recommended Coolify app settings:
 
 - Base directory: `maine-news`
-- Host port: `3002`
-- Port mapping: `127.0.0.1:3002:3000`
+- Host port: `3020`
+- Port mapping: `127.0.0.1:3020:3000`
 - Database: Coolify-provisioned Postgres 17
 - Media mount source: `/mnt/data/media/maine-news/`
 - Media mount destination: `/app/media`
@@ -127,7 +127,7 @@ server {
     }
 
     location / {
-        proxy_pass http://localhost:3002;
+        proxy_pass http://localhost:3020;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
