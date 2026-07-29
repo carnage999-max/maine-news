@@ -37,9 +37,6 @@ export default async function EditorialPage() {
                 {formattedAuthored.length > 0 ? (
                     formattedAuthored.map((post) => (
                         <Link key={post.slug} href={`/article/${post.slug}`} className={styles.card}>
-                            <div className={styles.authorBadge}>
-                                <div className={styles.avatarPlaceholder} />
-                            </div>
                             <div className={styles.content}>
                                 <h2 className={styles.headline}>{post.title}</h2>
                                 <p className={styles.author}>{post.author}</p>

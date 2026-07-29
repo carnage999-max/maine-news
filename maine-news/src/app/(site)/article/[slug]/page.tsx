@@ -6,7 +6,7 @@ import TextResizer from '@/components/article/TextResizer';
 import StoryCard from '@/components/ui/StoryCard';
 import styles from './Article.module.css';
 import { db } from '@/db';
-import { posts as dbPosts } from '@/db/schema';
+import { authors as dbAuthors, posts as dbPosts } from '@/db/schema';
 import { eq, and, ne, desc } from 'drizzle-orm';
 import { EDITORIAL_DISCLAIMER_PARAGRAPHS } from '@/lib/editorialDisclaimer';
 import { cache } from 'react';
@@ -129,6 +129,27 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           }
         };
 
+        let authorProfile: {
+            name: string;
+            role: string;
+            avatar: string | null;
+            bio: string | null;
+        } | null = null;
+
+        try {
+            authorProfile = await db.query.authors.findFirst({
+                where: eq(dbAuthors.name, dbPost.author),
+                columns: {
+                    name: true,
+                    role: true,
+                    avatar: true,
+                    bio: true,
+                },
+            }) || null;
+        } catch (error) {
+            console.error('Failed to query author profile:', error);
+        }
+
         // Fetch Related Stories (3 posts in same category, excluding current one)
         let relatedPosts: any[] = [];
         try {
@@ -212,6 +233,27 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <div className={styles.body} data-article-body>
                     <ArticleContent content={dbPost.content} />
                 </div>
+
+                <section className={styles.authorSection} aria-label="Author">
+                    {authorProfile?.avatar && (
+                        <div className={styles.authorAvatar}>
+                            <Image
+                                src={authorProfile.avatar}
+                                alt={authorProfile.name}
+                                fill
+                                className={styles.authorAvatarImage}
+                                sizes="72px"
+                                unoptimized
+                            />
+                        </div>
+                    )}
+                    <div className={styles.authorInfo}>
+                        <p className={styles.authorLabel}>Author</p>
+                        <h2 className={styles.authorName}>{authorProfile?.name || dbPost.author}</h2>
+                        <p className={styles.authorRole}>{authorProfile?.role || (dbPost.isNational ? dbPost.author : 'Maine News Now')}</p>
+                        {authorProfile?.bio && <p className={styles.authorBio}>{authorProfile.bio}</p>}
+                    </div>
+                </section>
 
                 {isEditorial && (
                     <aside className={styles.editorialDisclaimer}>
