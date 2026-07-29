@@ -7,6 +7,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 
+interface AuthorOption {
+    id: string;
+    name: string;
+    role?: string | null;
+}
+
 const TiptapEditor = dynamic(() => import('@/components/admin/TiptapEditor'), {
     ssr: false,
     loading: () => <div className="h-[500px] w-full bg-[#111] animate-pulse rounded-2xl border border-[#1a1a1a]" />
@@ -17,6 +23,7 @@ export default function NewEditorialPage() {
     const [loading, setLoading] = useState(false);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
+    const [authors, setAuthors] = useState<AuthorOption[]>([]);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -26,6 +33,36 @@ export default function NewEditorialPage() {
         content: '',
         publishedDate: new Date().toISOString().split('T')[0],
     });
+
+    useEffect(() => {
+        let active = true;
+
+        async function loadAuthors() {
+            try {
+                const response = await fetch('/api/admin/authors', { cache: 'no-store' });
+                if (!response.ok) return;
+                const data = await response.json();
+                if (!active || !Array.isArray(data)) return;
+
+                const authorOptions = data
+                    .filter((author): author is AuthorOption => typeof author?.id === 'string' && typeof author?.name === 'string')
+                    .sort((left, right) => left.name.localeCompare(right.name));
+
+                setAuthors(authorOptions);
+                if (authorOptions.length > 0 && !authorOptions.some((author) => author.name === formData.author)) {
+                    setFormData((prev) => ({ ...prev, author: authorOptions[0].name }));
+                }
+            } catch (error) {
+                console.error('Failed to load authors:', error);
+            }
+        }
+
+        loadAuthors();
+
+        return () => {
+            active = false;
+        };
+    }, []);
 
     useEffect(() => {
         if (!formData.title) return;
@@ -90,8 +127,8 @@ export default function NewEditorialPage() {
     };
 
     return (
-        <div style={{ maxWidth: '1400px', margin: '0 auto' }} className="space-y-8 animate-in fade-in">
-            <div className="flex items-center justify-between border-b pb-6" style={{ position: 'sticky', top: 0, backdropFilter: 'blur(16px)', backgroundColor: 'rgba(5, 5, 5, 0.9)', zIndex: 20, paddingTop: '1rem' }}>
+        <div className="admin-composer-shell space-y-8 animate-in fade-in">
+            <div className="admin-composer-header border-b pb-6">
                 <div className="flex items-center gap-4">
                     <Link href="/admin/editorials" className="btn-icon">
                         <ChevronLeft size={24} />
@@ -113,7 +150,7 @@ export default function NewEditorialPage() {
                 </button>
             </div>
 
-            <form className="grid gap-8" style={{ gridTemplateColumns: '1fr 340px' }}>
+            <form className="admin-composer-grid">
                 <div className="space-y-6">
                     <div className="space-y-6">
                         <div>
@@ -122,19 +159,7 @@ export default function NewEditorialPage() {
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                 placeholder="Your editorial headline..."
-                                className="oswald"
-                                style={{
-                                    width: '100%',
-                                    background: 'transparent',
-                                    border: 'none',
-                                    fontSize: '3.5rem',
-                                    fontWeight: 700,
-                                    color: '#fff',
-                                    outline: 'none',
-                                    lineHeight: 1.1,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '-0.02em'
-                                }}
+                                className="admin-composer-title oswald"
                                 required
                             />
                             <div style={{ height: '2px', background: 'linear-gradient(to right, var(--accent), transparent)', marginTop: '1rem', opacity: 0.3 }} />
@@ -148,7 +173,7 @@ export default function NewEditorialPage() {
                 </div>
 
                 <div className="space-y-6">
-                    <div className="bg-card border-all rounded-2xl p-6 shadow-xl space-y-6" style={{ position: 'sticky', top: '120px' }}>
+                    <div className="admin-composer-sidebar bg-card border-all rounded-2xl p-6 shadow-xl space-y-6">
                         <div>
                             <h3 className="oswald" style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-dim)', marginBottom: '1.5rem', letterSpacing: '0.15rem' }}>
                                 <Settings size={18} style={{ display: 'inline-block', marginRight: '0.5rem', verticalAlign: 'middle' }} />
@@ -182,9 +207,19 @@ export default function NewEditorialPage() {
                                     fontWeight: 500
                                 }}
                             >
-                                <option value="Nathan Reardon">Nathan Reardon</option>
-                                <option value="Maine News Now">Maine News Now</option>
-                                <option value="Staff">Staff</option>
+                                {authors.length > 0 ? (
+                                    authors.map((author) => (
+                                        <option key={author.id} value={author.name}>
+                                            {author.name}{author.role ? ` - ${author.role}` : ''}
+                                        </option>
+                                    ))
+                                ) : (
+                                    <>
+                                        <option value="Nathan Reardon">Nathan Reardon</option>
+                                        <option value="Maine News Now">Maine News Now</option>
+                                        <option value="Staff">Staff</option>
+                                    </>
+                                )}
                             </select>
                         </div>
 

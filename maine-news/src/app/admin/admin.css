@@ -347,6 +347,75 @@ label {
 .hover-white:hover { color: #fff !important; }
 .hover-accent-border:hover { border-color: var(--accent) !important; }
 
+/* Admin composer layouts */
+.admin-composer-shell {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.admin-composer-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background-color: rgba(5, 5, 5, 0.9);
+}
+
+.admin-composer-title {
+  width: 100%;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 700;
+  color: #fff;
+  outline: none;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.admin-composer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.admin-composer-sidebar {
+  position: sticky;
+  top: 120px;
+}
+
+@media (max-width: 1100px) {
+  .admin-composer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-composer-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-composer-header {
+    position: static;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-composer-header .btn-primary {
+    width: 100%;
+  }
+}
+
 /* Tiptap Specific */
 .tiptap-menu-btn {
   padding: 0.5rem;
