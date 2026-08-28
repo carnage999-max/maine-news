@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { ChevronUp, Play, Share2, Tv2, X } from 'lucide-react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
+import { getTrackingPermissionsAsync, requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import { colors, radius, spacing } from '../../constants/theme';
 import { fetchVideos, type Video } from '../../services/api';
 
@@ -41,6 +42,14 @@ export default function VideoHub() {
         void loadVideos();
     }, []);
 
+    const playVideo = async (item: Video) => {
+        const { status } = await getTrackingPermissionsAsync();
+        if (status === 'undetermined') {
+            await requestTrackingPermissionsAsync();
+        }
+        setPlayingVideo(item);
+    };
+
     const getYoutubeId = (url: string) => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
         const match = url.match(regExp);
@@ -58,7 +67,7 @@ export default function VideoHub() {
         const thumbUrl = item.thumbnail || (getYoutubeId(item.videoUrl) ? `https://img.youtube.com/vi/${getYoutubeId(item.videoUrl)}/hqdefault.jpg` : null);
 
         return (
-            <TouchableOpacity style={styles.videoCard} activeOpacity={0.88} onPress={() => setPlayingVideo(item)}>
+            <TouchableOpacity style={styles.videoCard} activeOpacity={0.88} onPress={() => void playVideo(item)}>
                 <View style={styles.thumbnailContainer}>
                     {thumbUrl ? (
                         <Image source={{ uri: thumbUrl }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />

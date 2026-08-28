@@ -65,7 +65,13 @@
       "expo-font",
       "expo-secure-store",
       "expo-web-browser",
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-tracking-transparency",
+        {
+          "userTrackingPermission": "This lets us show YouTube video content and measure how it performs."
+        }
+      ]
     ],
     "extra": {
       "router": {},
