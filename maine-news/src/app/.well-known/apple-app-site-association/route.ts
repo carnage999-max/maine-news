@@ -8,7 +8,7 @@ function getAppIDs() {
         return raw.split(',').map((value) => value.trim()).filter(Boolean);
     }
 
-    return ['J4PDJ9UH55.com.mainenewstoday.app'];
+    return ['X666JJUSW5.com.themainenewsnow.ios'];
 }
 
 export async function GET() {

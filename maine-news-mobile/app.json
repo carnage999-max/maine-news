@@ -17,7 +17,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mainenewstoday.app",
+      "bundleIdentifier": "com.themainenewsnow.ios",
       "associatedDomains": [
         "applinks:mainenewsnow.com",
         "applinks:www.mainenewsnow.com"
@@ -70,7 +70,7 @@
     "extra": {
       "router": {},
       "appleAppSiteAssociationAppIDs": [
-        "J4PDJ9UH55.com.mainenewstoday.app"
+        "X666JJUSW5.com.themainenewsnow.ios"
       ],
       "androidAssetStatements": [
         {
