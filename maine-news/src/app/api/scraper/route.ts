@@ -869,6 +869,14 @@ ${story.region ? `\n*Region: ${story.region}*` : ''}
     }
 }
 
+function dedupeBySlug<T extends { slug: string }>(records: T[]): T[] {
+    const bySlug = new Map<string, T>();
+    for (const record of records) {
+        bySlug.set(record.slug, record);
+    }
+    return [...bySlug.values()];
+}
+
 function chunkArray<T>(items: T[], chunkSize: number) {
     const chunks: T[][] = [];
     for (let i = 0; i < items.length; i += chunkSize) {
@@ -909,7 +917,7 @@ function buildPostRecord(story: ScrapedStory) {
 
 async function saveStoriesToDatabase(stories: ScrapedStory[]) {
     if (stories.length === 0) return 0;
-    const records = stories.map(buildPostRecord);
+    const records = dedupeBySlug(stories.map(buildPostRecord));
     const chunks = chunkArray(records, 50);
 
     for (const chunk of chunks) {
@@ -937,7 +945,7 @@ async function saveStoriesToDatabase(stories: ScrapedStory[]) {
 
 async function saveVideosToDatabase(videos: ScrapedVideo[]) {
     if (videos.length === 0) return 0;
-    const records = videos.map(video => ({
+    const records = dedupeBySlug(videos.map(video => ({
         title: video.title,
         slug: sanitizeForFilename(video.title),
         videoUrl: video.videoUrl,
@@ -947,7 +955,7 @@ async function saveVideosToDatabase(videos: ScrapedVideo[]) {
         category: video.category || 'local',
         publishedDate: normalizePublishedDate(video.publishedDate),
         description: video.description,
-    }));
+    })));
 
     const chunks = chunkArray(records, 50);
     for (const chunk of chunks) {
