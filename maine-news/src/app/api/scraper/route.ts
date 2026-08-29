@@ -898,7 +898,7 @@ function buildPostRecord(story: ScrapedStory) {
         title: story.title,
         slug,
         image: story.image || null,
-        author: story.author || story.source || 'Staff',
+        author: 'Maine News Now',
         publishedDate,
         category: story.category || 'local',
         content: story.content || story.excerpt || '',

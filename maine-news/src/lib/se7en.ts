@@ -1,4 +1,4 @@
-const SE7EN_AI_BASE_URL = 'https://ai.se7eninc.com';
+const SE7EN_AI_BASE_URL = process.env.SE7EN_AI_URL || 'https://ai.se7eninc.com';
 const PROJECT_ID = 'maine-news';
 const TASK_VERSION = 'summary-v1';
 
