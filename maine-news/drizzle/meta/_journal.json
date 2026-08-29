@@ -15,6 +15,13 @@
       "when": 1780332000000,
       "tag": "0001_newsroom_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787963485870,
+      "tag": "0002_add_post_summary",
+      "breakpoints": true
     }
   ]
 }

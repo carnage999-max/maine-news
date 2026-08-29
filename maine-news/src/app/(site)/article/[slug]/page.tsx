@@ -57,7 +57,8 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
     }
 
     if (dbPost) {
-        const cleanDesc = getCleanDescription(dbPost.content) || 
+        const displayContent = !dbPost.isOriginal && dbPost.summary ? dbPost.summary : dbPost.content;
+        const cleanDesc = getCleanDescription(displayContent) ||
             `Read the latest news update from Maine News Now: ${dbPost.title}`;
         return {
             title: dbPost.title,
@@ -99,7 +100,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
     if (dbPost) {
         const isEditorial = dbPost.category === 'editorial';
-        const cleanDesc = getCleanDescription(dbPost.content);
+        const displayContent = !dbPost.isOriginal && dbPost.summary ? dbPost.summary : dbPost.content;
+        const cleanDesc = getCleanDescription(displayContent);
         
         // Structured Data NewsArticle schema
         const authorType = dbPost.author && dbPost.author.toLowerCase() !== 'staff' && dbPost.author.toLowerCase() !== 'maine news now' ? 'Person' : 'Organization';
@@ -231,7 +233,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 </div>
 
                 <div className={styles.body} data-article-body>
-                    <ArticleContent content={dbPost.content} />
+                    <ArticleContent content={displayContent} />
                 </div>
 
                 <section className={styles.authorSection} aria-label="Author">

@@ -17,8 +17,10 @@ export async function GET(request: Request) {
             });
 
             if (dbPost) {
+                const displayContent = !dbPost.isOriginal && dbPost.summary ? dbPost.summary : dbPost.content;
                 return NextResponse.json({
                     ...dbPost,
+                    content: displayContent,
                     publishedDate: dbPost.publishedDate.toISOString(),
                     createdAt: dbPost.createdAt.toISOString(),
                 });

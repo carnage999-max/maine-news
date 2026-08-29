@@ -9,6 +9,7 @@ export const posts = pgTable('posts', {
     publishedDate: timestamp('published_date').defaultNow().notNull(),
     category: text('category').notNull().default('local'),
     content: text('content').notNull(), // Markdown or HTML content
+    summary: text('summary'), // AI-generated summary for scraped (non-original) posts
     sourceUrl: text('source_url'),
     isOriginal: boolean('is_original').default(true).notNull(),
     isNational: boolean('is_national').default(false).notNull(),
