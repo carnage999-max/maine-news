@@ -2,16 +2,22 @@ const SE7EN_AI_BASE_URL = process.env.SE7EN_AI_URL || 'https://ai.se7eninc.com';
 const PROJECT_ID = 'maine-news';
 const TASK_VERSION = 'summary-v1';
 
-interface Se7enJobResponse {
+interface Se7enEnqueueResponse {
     job_id: string;
     status: 'queued' | 'running' | 'complete' | 'failed';
     status_url: string;
     response?: string;
+}
+
+interface Se7enJobStatus {
+    job_id: string;
+    status: 'queued' | 'running' | 'streaming' | 'complete' | 'failed';
+    response?: string;
     error?: string;
 }
 
-type EnqueueOutcome =
-    | { ok: true; job: Se7enJobResponse }
+type ConfigurableOutcome<T> =
+    | { ok: true; data: T }
     | { ok: false; configError: true; reason: string }
     | { ok: false; configError: false; reason: string };
 
@@ -37,11 +43,18 @@ async function fetchWithRetry(url: string, init: RequestInit, retries = 3): Prom
     }
 }
 
-async function enqueueSummary(postId: string, postUpdatedAt: string, body: string): Promise<EnqueueOutcome> {
+function missingApiKeyError(): { reason: string } | null {
     const apiKey = process.env.SE7EN_AI_API_KEY;
     if (!apiKey) {
-        return { ok: false, configError: true, reason: 'SE7EN_AI_API_KEY is not set' };
+        return { reason: 'SE7EN_AI_API_KEY is not set' };
     }
+    return null;
+}
+
+async function enqueueSummary(postId: string, postUpdatedAt: string, body: string): Promise<ConfigurableOutcome<Se7enEnqueueResponse>> {
+    const missingKey = missingApiKeyError();
+    if (missingKey) return { ok: false, configError: true, reason: missingKey.reason };
+    const apiKey = process.env.SE7EN_AI_API_KEY!;
 
     const idempotencyKey = `${PROJECT_ID}:${postId}:${postUpdatedAt}:${TASK_VERSION}`;
 
@@ -79,53 +92,33 @@ async function enqueueSummary(postId: string, postUpdatedAt: string, body: strin
         return { ok: false, configError: false, reason: `Enqueue failed with HTTP ${res.status}` };
     }
 
-    return { ok: true, job: await res.json() };
+    return { ok: true, data: await res.json() };
 }
 
-async function pollSummaryJob(statusUrl: string, timeoutMs = 60_000, intervalMs = 2000): Promise<Se7enJobResponse | null> {
-    const apiKey = process.env.SE7EN_AI_API_KEY;
-    if (!apiKey) return null;
-
-    const deadline = Date.now() + timeoutMs;
-
-    while (Date.now() < deadline) {
-        const res = await fetchWithRetry(statusUrl, {
-            headers: { 'x-api-key': apiKey },
-        });
-
-        if (res?.ok) {
-            const job: Se7enJobResponse = await res.json();
-            if (job.status === 'complete' || job.status === 'failed') {
-                return job;
-            }
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, intervalMs));
-    }
-
-    console.error(`[SE7EN] Poll timed out for ${statusUrl}`);
-    return null;
-}
-
-export interface SummarizeInput {
+export interface PendingSummaryInput {
     id: string;
     updatedAt: string;
     body: string;
 }
 
-export interface SummarizeResult {
+export interface EnqueueResult {
     id: string;
-    summary: string | null;
+    jobId: string | null;
 }
 
-export interface SummarizeBatchResult {
-    results: SummarizeResult[];
+export interface EnqueueBatchResult {
+    results: EnqueueResult[];
     /** Set when a config/auth-level problem was detected (e.g. missing or invalid API key) — worth alerting a human, not just logging. */
     systemicError: string | null;
 }
 
-export async function summarizePosts(items: SummarizeInput[], concurrency = 3): Promise<SummarizeBatchResult> {
-    const results: SummarizeResult[] = [];
+/**
+ * Enqueues a summary job per post and records the job id — does NOT wait for completion.
+ * A separate lightweight poller checks on outstanding jobs later, so this stays fast
+ * regardless of how long the se7en AI worker takes to actually run inference.
+ */
+export async function enqueuePendingSummaries(items: PendingSummaryInput[], concurrency = 3): Promise<EnqueueBatchResult> {
+    const results: EnqueueResult[] = [];
     let cursor = 0;
     let systemicError: string | null = null;
 
@@ -140,25 +133,53 @@ export async function summarizePosts(items: SummarizeInput[], concurrency = 3): 
                     return; // stop this worker; no point burning through the rest of the batch on a broken key
                 }
                 console.error(`[SE7EN] Enqueue failed for post ${item.id}: ${enqueued.reason}`);
-                results.push({ id: item.id, summary: null });
+                results.push({ id: item.id, jobId: null });
                 continue;
             }
 
-            let job = enqueued.job;
-            if (job.status !== 'complete') {
-                const polled = await pollSummaryJob(job.status_url);
-                if (!polled || polled.status !== 'complete') {
-                    console.error(`[SE7EN] Summary failed or timed out for post ${item.id}`);
-                    results.push({ id: item.id, summary: null });
-                    continue;
-                }
-                job = polled;
-            }
-
-            results.push({ id: item.id, summary: job.response?.trim() || null });
+            results.push({ id: item.id, jobId: enqueued.data.job_id });
         }
     }
 
     await Promise.all(Array.from({ length: concurrency }, () => worker()));
     return { results, systemicError };
+}
+
+export interface JobCheckResult {
+    jobs: Se7enJobStatus[];
+    missingJobIds: string[];
+    systemicError: string | null;
+}
+
+/** Batch-checks up to 100 job ids at once via se7en AI's /api/infer/jobs?ids=... endpoint. */
+export async function checkSummaryJobs(jobIds: string[]): Promise<JobCheckResult> {
+    if (jobIds.length === 0) {
+        return { jobs: [], missingJobIds: [], systemicError: null };
+    }
+
+    const missingKey = missingApiKeyError();
+    if (missingKey) {
+        return { jobs: [], missingJobIds: [], systemicError: missingKey.reason };
+    }
+    const apiKey = process.env.SE7EN_AI_API_KEY!;
+
+    const res = await fetchWithRetry(`${SE7EN_AI_BASE_URL}/api/infer/jobs?ids=${jobIds.join(',')}`, {
+        headers: { 'x-api-key': apiKey },
+    });
+
+    if (!res) {
+        return { jobs: [], missingJobIds: [], systemicError: 'Network error reaching se7en AI' };
+    }
+
+    if (res.status === 401 || res.status === 403) {
+        return { jobs: [], missingJobIds: [], systemicError: `se7en AI rejected the API key (HTTP ${res.status})` };
+    }
+
+    if (!res.ok) {
+        console.error(`[SE7EN] Job status check failed with HTTP ${res.status}`);
+        return { jobs: [], missingJobIds: [], systemicError: null };
+    }
+
+    const data: { jobs: Se7enJobStatus[]; missing_job_ids: string[] } = await res.json();
+    return { jobs: data.jobs, missingJobIds: data.missing_job_ids, systemicError: null };
 }

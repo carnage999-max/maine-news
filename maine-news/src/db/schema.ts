@@ -10,6 +10,7 @@ export const posts = pgTable('posts', {
     category: text('category').notNull().default('local'),
     content: text('content').notNull(), // Markdown or HTML content
     summary: text('summary'), // AI-generated summary for scraped (non-original) posts
+    summaryJobId: text('summary_job_id'), // se7en AI job id while a summary is pending; cleared once resolved
     sourceUrl: text('source_url'),
     isOriginal: boolean('is_original').default(true).notNull(),
     isNational: boolean('is_national').default(false).notNull(),
