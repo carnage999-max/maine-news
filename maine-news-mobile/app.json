@@ -71,6 +71,14 @@
         {
           "userTrackingPermission": "This lets us show YouTube video content and measure how it performs."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Maine News Now to access your photos so you can attach images or video to a news tip you submit to our newsroom.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
       ]
     ],
     "extra": {

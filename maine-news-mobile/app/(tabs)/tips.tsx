@@ -1,17 +1,44 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import axios from 'axios';
-import { Camera, CheckCircle2, Send, ShieldCheck } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { Camera, CheckCircle2, Send, ShieldCheck, X } from 'lucide-react-native';
 import { API_BASE_URL } from '../../services/api';
 import { colors, radius, spacing } from '../../constants/theme';
+
+const MAX_ATTACHMENTS = 5;
 
 export default function TipsScreen() {
     const [headline, setHeadline] = useState('');
     const [details, setDetails] = useState('');
     const [isAnonymous, setIsAnonymous] = useState(false);
+    const [attachments, setAttachments] = useState<ImagePicker.ImagePickerAsset[]>([]);
     const [submitted, setSubmitted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+
+    const handlePickMedia = async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permission Needed', 'Allow photo library access to attach images or video to your tip.');
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images', 'videos'],
+            allowsMultipleSelection: true,
+            selectionLimit: MAX_ATTACHMENTS - attachments.length,
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            setAttachments((prev) => [...prev, ...result.assets].slice(0, MAX_ATTACHMENTS));
+        }
+    };
+
+    const handleRemoveAttachment = (uri: string) => {
+        setAttachments((prev) => prev.filter((asset) => asset.uri !== uri));
+    };
 
     const handleSubmit = async () => {
         if (!headline || !details) {
@@ -21,7 +48,24 @@ export default function TipsScreen() {
 
         setIsSubmitting(true);
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/tips`, { headline, details, isAnonymous });
+            const formData = new FormData();
+            formData.append('headline', headline);
+            formData.append('details', details);
+            formData.append('isAnonymous', String(isAnonymous));
+
+            attachments.forEach((asset, index) => {
+                const extension = asset.uri.split('.').pop() || (asset.type === 'video' ? 'mp4' : 'jpg');
+                const name = asset.fileName || `attachment-${index}.${extension}`;
+                const type = asset.mimeType || (asset.type === 'video' ? 'video/mp4' : 'image/jpeg');
+
+                formData.append(`file-${index}`, {
+                    uri: asset.uri,
+                    name,
+                    type,
+                } as unknown as Blob);
+            });
+
+            const response = await axios.post(`${API_BASE_URL}/api/tips`, formData);
             if (response.data.success) {
                 setSubmitted(true);
             } else {
@@ -43,7 +87,7 @@ export default function TipsScreen() {
                 <Text style={styles.successText}>
                     Thank you. Our editors will review this submission as quickly as possible.
                 </Text>
-                <TouchableOpacity style={styles.secondaryButton} onPress={() => { setSubmitted(false); setHeadline(''); setDetails(''); }}>
+                <TouchableOpacity style={styles.secondaryButton} onPress={() => { setSubmitted(false); setHeadline(''); setDetails(''); setAttachments([]); }}>
                     <Text style={styles.secondaryButtonText}>Send Another Tip</Text>
                 </TouchableOpacity>
             </View>
@@ -95,13 +139,39 @@ export default function TipsScreen() {
                         </View>
                     </TouchableOpacity>
 
-                    <View style={styles.uploadPanel}>
+                    <TouchableOpacity
+                        style={styles.uploadPanel}
+                        onPress={handlePickMedia}
+                        activeOpacity={0.8}
+                        disabled={attachments.length >= MAX_ATTACHMENTS}
+                    >
                         <Camera size={22} color={colors.textMuted} />
                         <View style={{ flex: 1 }}>
                             <Text style={styles.uploadTitle}>Attach Photos or Video</Text>
-                            <Text style={styles.uploadText}>Media upload wiring can be added in the next pass.</Text>
+                            <Text style={styles.uploadText}>
+                                {attachments.length >= MAX_ATTACHMENTS
+                                    ? `Maximum ${MAX_ATTACHMENTS} attachments reached.`
+                                    : `Tap to choose from your photo library (up to ${MAX_ATTACHMENTS}).`}
+                            </Text>
                         </View>
-                    </View>
+                    </TouchableOpacity>
+
+                    {attachments.length > 0 && (
+                        <View style={styles.attachmentRow}>
+                            {attachments.map((asset) => (
+                                <View key={asset.uri} style={styles.attachmentThumb}>
+                                    <Image source={{ uri: asset.uri }} style={styles.attachmentImage} />
+                                    <TouchableOpacity
+                                        style={styles.attachmentRemove}
+                                        onPress={() => handleRemoveAttachment(asset.uri)}
+                                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                    >
+                                        <X size={12} color="#fff" />
+                                    </TouchableOpacity>
+                                </View>
+                            ))}
+                        </View>
+                    )}
 
                     <View style={styles.securityRow}>
                         <ShieldCheck size={16} color={colors.accent} />
@@ -172,6 +242,20 @@ const styles = StyleSheet.create({
     },
     uploadTitle: { color: colors.text, fontFamily: 'Inter_600SemiBold', fontSize: 14 },
     uploadText: { color: colors.textDim, fontFamily: 'Inter_400Regular', fontSize: 12, marginTop: 2 },
+    attachmentRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md },
+    attachmentThumb: { width: 64, height: 64, borderRadius: radius.md, overflow: 'hidden', position: 'relative' },
+    attachmentImage: { width: '100%', height: '100%' },
+    attachmentRemove: {
+        position: 'absolute',
+        top: 4,
+        right: 4,
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: 'rgba(0,0,0,0.65)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     securityRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: spacing.lg },
     securityText: { color: colors.textDim, fontFamily: 'Inter_400Regular', fontSize: 12 },
     submitButton: {

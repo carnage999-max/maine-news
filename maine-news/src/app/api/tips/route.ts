@@ -2,16 +2,31 @@ import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import fs from 'fs/promises';
 import path from 'path';
+import { uploadToLocalMedia } from '@/lib/mediaStorage';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
     try {
-        const data = await request.json();
-        const { headline, details, isAnonymous } = data;
+        const formData = await request.formData();
+        const headline = formData.get('headline') as string;
+        const details = formData.get('details') as string;
+        const isAnonymous = formData.get('isAnonymous') === 'true';
 
         if (!headline || !details) {
             return NextResponse.json({ error: 'Headline and details are required' }, { status: 400 });
+        }
+
+        // Handle File Uploads
+        const fileLinks: string[] = [];
+        const files = Array.from(formData.entries())
+            .filter(([key]) => key.startsWith('file-'))
+            .map(([, value]) => value as File);
+
+        for (const file of files) {
+            const buffer = Buffer.from(await file.arrayBuffer());
+            const link = await uploadToLocalMedia(buffer, file.name, file.type, 'tips');
+            fileLinks.push(link);
         }
 
         const timestamp = new Date().getTime();
@@ -33,6 +48,14 @@ export async function POST(request: Request) {
                         <p><strong>Submitted:</strong> ${submittedAt}</p>
                         <p><strong>IP:</strong> ${ip}</p>
                         <p><strong>User Agent:</strong> ${userAgent}</p>
+                        ${fileLinks.length > 0 ? `
+                            <div style="margin: 20px 0; padding: 15px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 4px;">
+                                <h4 style="margin-top:0;">Attached Media:</h4>
+                                <ul style="margin-bottom:0;">
+                                    ${fileLinks.map(link => `<li><a href="${link}">${link}</a></li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
                         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
                         <div style="background: #f9f9f9; padding: 15px; border-radius: 4px; white-space: pre-wrap;">
                             ${details}
@@ -64,6 +87,7 @@ export async function POST(request: Request) {
             headline,
             details,
             isAnonymous,
+            fileLinks,
             submittedAt,
             ip,
             userAgent
