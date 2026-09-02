@@ -24,6 +24,7 @@ export default async function NewsroomPage() {
             bio: true,
             email: true,
             contactInfo: true,
+            moreInfoUrl: true,
         },
     });
 

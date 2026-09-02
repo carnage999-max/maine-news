@@ -59,6 +59,7 @@ export async function POST(
         const bio = String(formData.get('bio') || '').trim();
         const email = String(formData.get('email') || '').trim();
         const contactInfo = String(formData.get('contactInfo') || '').trim();
+        const moreInfoUrl = String(formData.get('moreInfoUrl') || '').trim();
         const existingAvatar = String(formData.get('existingAvatar') || '').trim();
         const removeAvatar = String(formData.get('removeAvatar') || '') === 'true';
         const imageFile = formData.get('image') as File | null;
@@ -80,6 +81,7 @@ export async function POST(
                 bio: bio || null,
                 email: email || null,
                 contactInfo: contactInfo || null,
+                moreInfoUrl: moreInfoUrl || null,
             })
             .where(eq(authors.id, id))
             .returning();

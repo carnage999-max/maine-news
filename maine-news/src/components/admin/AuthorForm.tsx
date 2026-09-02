@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Loader2, Mail, Phone, Save, User, X } from 'lucide-react';
+import { Link2, Loader2, Mail, Phone, Save, User, X } from 'lucide-react';
 
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
 
@@ -16,6 +16,7 @@ interface AuthorFormProps {
         bio: string | null;
         email: string | null;
         contactInfo: string | null;
+        moreInfoUrl: string | null;
     };
     isEditing?: boolean;
 }
@@ -33,6 +34,7 @@ export default function AuthorForm({ authorId, initialData, isEditing = false }:
         bio: initialData?.bio || '',
         email: initialData?.email || '',
         contactInfo: initialData?.contactInfo || '',
+        moreInfoUrl: initialData?.moreInfoUrl || '',
     });
 
     const actionUrl = isEditing && authorId ? `/api/admin/authors/${authorId}` : '/api/admin/authors';
@@ -49,6 +51,7 @@ export default function AuthorForm({ authorId, initialData, isEditing = false }:
             data.append('bio', formData.bio);
             data.append('email', formData.email);
             data.append('contactInfo', formData.contactInfo);
+            data.append('moreInfoUrl', formData.moreInfoUrl);
             data.append('existingAvatar', formData.avatar.startsWith('blob:') ? '' : formData.avatar);
             data.append('removeAvatar', removeAvatar ? 'true' : 'false');
 
@@ -215,6 +218,21 @@ export default function AuthorForm({ authorId, initialData, isEditing = false }:
                             className="w-full bg-muted border-all rounded-xl px-4 py-3 text-white focus-accent outline-none resize-none"
                             placeholder="Short contributor bio for the public newsroom section..."
                         />
+                    </label>
+
+                    <label className="block">
+                        <span className="text-sm font-bold text-dim uppercase tracking-widest mb-2 block">More Info URL</span>
+                        <div className="relative">
+                            <Link2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-dim" />
+                            <input
+                                type="url"
+                                value={formData.moreInfoUrl}
+                                onChange={(e) => setFormData({ ...formData, moreInfoUrl: e.target.value })}
+                                className="w-full bg-muted border-all rounded-xl pl-11 pr-4 py-3 text-white focus-accent outline-none"
+                                placeholder="https://example.com/staff/jane-doe"
+                            />
+                        </div>
+                        <span className="text-xs text-dim mt-1 block">Shown as a &quot;For more information&quot; link on the public profile. The raw URL is never displayed.</span>
                     </label>
                 </div>
 

@@ -58,6 +58,7 @@ export default async function EditAuthorPage(
                     bio: author.bio,
                     email: author.email,
                     contactInfo: author.contactInfo,
+                    moreInfoUrl: author.moreInfoUrl,
                 }}
             />
         </div>

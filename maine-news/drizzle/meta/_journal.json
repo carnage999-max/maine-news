@@ -29,6 +29,13 @@
       "when": 1788093814248,
       "tag": "0003_add_summary_job_id",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788283200000,
+      "tag": "0004_add_author_more_info_url",
+      "breakpoints": true
     }
   ]
 }

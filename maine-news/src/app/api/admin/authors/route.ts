@@ -47,6 +47,7 @@ export async function POST(request: Request) {
         const bio = String(formData.get('bio') || '').trim();
         const email = String(formData.get('email') || '').trim();
         const contactInfo = String(formData.get('contactInfo') || '').trim();
+        const moreInfoUrl = String(formData.get('moreInfoUrl') || '').trim();
         const imageFile = formData.get('image') as File | null;
 
         if (!name) {
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
             bio: bio || null,
             email: email || null,
             contactInfo: contactInfo || null,
+            moreInfoUrl: moreInfoUrl || null,
         }).returning();
 
         return NextResponse.json(newAuthor);

@@ -26,6 +26,7 @@ export const authors = pgTable('authors', {
     bio: text('bio'),
     email: text('email'),
     contactInfo: text('contact_info'),
+    moreInfoUrl: text('more_info_url'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
