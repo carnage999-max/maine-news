@@ -13,7 +13,7 @@ const contentTypeExtensions: Record<string, string> = {
     'application/pdf': '.pdf',
 };
 
-function getMediaRoot() {
+export function getMediaRoot() {
     return process.env.MEDIA_ROOT || path.join(process.cwd(), 'public', 'media');
 }
 
