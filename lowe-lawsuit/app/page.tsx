@@ -129,7 +129,15 @@ export default function Page() {
 
                         <p>
                             That ruling did not establish final liability and did not guarantee any damages award.
-                            What it did was preserve the case for trial.
+                            What it did was preserve the case for trial &mdash; and only part of it. The court was
+                            explicit that what survives on common-sense causation alone is &quot;the immediate
+                            consequences of the injury, namely pain in his thumb.&quot; Whether the incident also
+                            caused Reardon&apos;s later tendon surgery is a separate, unresolved question. Lowe&apos;s
+                            own expert, orthopedic surgeon Dr. Bruce M. Leslie, has opined that the injury documented
+                            in Lowe&apos;s own video footage was not consistent with the kind of tear that would
+                            require surgery, and that the surgery was more likely caused by a chronic condition
+                            unrelated to the incident. That dispute, unlike the thumb-pain question, may turn on
+                            expert testimony Reardon has not offered.
                         </p>
 
                         <h2>Then: Put the Plaintiff&apos;s Criminal Record on the Trial List</h2>
@@ -213,6 +221,21 @@ export default function Page() {
 
                         <section className="sources">
                             <h2>Source Record</h2>
+                            <div className="sourcebox">
+                                <strong className="sourceboxLabel">Primary Source</strong>
+                                <p className="sourceboxText">
+                                    Order on Motion for Summary Judgment, Reardon v. Lowe&apos;s Home Centers, LLC,
+                                    Case No. 1:25-cv-00099-JAW, filed July 28, 2026.
+                                </p>
+                                <div className="sourceboxActions">
+                                    <a href="/reardon-v-lowes-summary-judgment-order.pdf" target="_blank" rel="noopener noreferrer">
+                                        View PDF
+                                    </a>
+                                    <a href="/reardon-v-lowes-summary-judgment-order.pdf" download>
+                                        Download
+                                    </a>
+                                </div>
+                            </div>
                             <ol>
                                 {SOURCES.map((s) => (
                                     <li key={s}>{s}</li>

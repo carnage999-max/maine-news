@@ -263,6 +263,30 @@ h3 {
     color: #cdd3d9;
 }
 
+.sourcebox {
+    margin-bottom: 24px;
+}
+
+.sourceboxLabel {
+    display: block;
+    color: var(--red2);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+}
+
+.sourceboxText {
+    margin: 0 0 14px;
+    font-size: 15px;
+    color: #d6dbe0;
+}
+
+.sourceboxActions {
+    display: flex;
+    gap: 16px;
+}
+
 .sources {
     margin-top: 55px;
     border-top: 1px solid var(--line);
