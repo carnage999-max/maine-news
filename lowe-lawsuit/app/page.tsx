@@ -1,4 +1,41 @@
 import Image from 'next/image';
+import { SITE_URL, SITE_TITLE, SITE_DESCRIPTION } from '@/lib/site';
+
+const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    image: [`${SITE_URL}/image-2.jpeg`],
+    datePublished: '2026-09-03',
+    dateModified: '2026-09-03',
+    author: {
+        '@type': 'Organization',
+        name: 'Maine News Now',
+    },
+    publisher: {
+        '@type': 'Organization',
+        name: 'Maine News Now',
+    },
+    mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': SITE_URL,
+    },
+    about: [
+        {
+            '@type': 'Organization',
+            name: "Lowe's Home Centers, LLC",
+        },
+        {
+            '@type': 'Person',
+            name: 'Nathan Reardon',
+        },
+    ],
+    mentions: {
+        '@type': 'Legislation',
+        name: 'Federal Rule of Evidence 609',
+    },
+};
 
 const CASES = [
     {
@@ -51,6 +88,11 @@ const SOURCE_LINKS = [
 export default function Page() {
     return (
         <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+            />
+
             <header className="topbar">
                 <div className="wrap">
                     <div className="brand">
