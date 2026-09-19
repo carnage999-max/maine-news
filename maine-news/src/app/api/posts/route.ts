@@ -1,9 +1,23 @@
 import { NextResponse } from 'next/server';
+import Markdoc from '@markdoc/markdoc';
 import { db } from '@/db';
 import { posts as dbPosts } from '@/db/schema';
 import { desc } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
+
+function looksLikeHtml(content: string) {
+    return /<\/?[a-z][\s\S]*>/i.test(content);
+}
+
+// Mobile clients render content as plain HTML only (no Markdoc AST walker),
+// so non-HTML (Markdoc/markdown-flavored) content is rendered to HTML here.
+function toHtml(content: string) {
+    if (looksLikeHtml(content)) return content;
+    const ast = Markdoc.parse(content);
+    const transformed = Markdoc.transform(ast);
+    return Markdoc.renderers.html(transformed);
+}
 
 export async function GET(request: Request) {
     try {
@@ -20,7 +34,7 @@ export async function GET(request: Request) {
                 const displayContent = !dbPost.isOriginal && dbPost.summary ? dbPost.summary : dbPost.content;
                 return NextResponse.json({
                     ...dbPost,
-                    content: displayContent,
+                    content: toHtml(displayContent),
                     publishedDate: dbPost.publishedDate.toISOString(),
                     createdAt: dbPost.createdAt.toISOString(),
                 });

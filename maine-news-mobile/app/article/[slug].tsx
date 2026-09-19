@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import RenderHtml from 'react-native-render-html';
 import {
     View,
     Text,
@@ -47,152 +48,6 @@ export default function ArticleDetail() {
     const [isSpeaking, setIsSpeaking] = useState(false);
     const speakingRef = useRef(false);
     const [sizeKey, setSizeKey] = useState<'S' | 'M' | 'L'>('M');
-
-    // Proper Markdoc Node Renderer for React Native
-    const renderNode = (node: any, index: number): React.ReactNode => {
-        if (!node) return null;
-
-        if (typeof node === 'string') {
-            return <Text key={index} style={[styles.paragraph, { fontSize: FONT_SIZES[sizeKey] }]}>{node}</Text>;
-        }
-
-        const { type, children, attributes } = node;
-
-        const isInline = (n: any) =>
-            typeof n === 'string' ||
-            ['text', 'strong', 'em', 'link', 's', 'code'].includes(n.type);
-
-        const renderInlineChildren = (childs: any[]) => {
-            if (!childs) return null;
-            return childs.map((child, i) => {
-                if (!child) return null;
-                if (typeof child === 'string') return child;
-                if (child.type === 'text') return child.attributes?.content || (typeof child.children?.[0] === 'string' ? child.children[0] : '');
-
-                // Handle nested inline formatting
-                const nestedStyle: any = {};
-                if (child.type === 'strong') nestedStyle.fontFamily = 'Inter_600SemiBold';
-                if (child.type === 'em') nestedStyle.fontStyle = 'italic';
-                if (child.type === 'link') nestedStyle.color = colors.accent;
-
-                return (
-                    <Text key={i} style={nestedStyle}>
-                        {child.children ? renderInlineChildren(child.children) : (child.attributes?.content || '')}
-                    </Text>
-                );
-            });
-        };
-
-        switch (type) {
-            case 'document':
-                return children?.map((child: any, i: number) => renderNode(child, i));
-
-            case 'text':
-                return (
-                    <Text key={index} style={[styles.paragraph, { fontSize: FONT_SIZES[sizeKey] }]}>
-                        {attributes?.content || (children ? renderInlineChildren(children) : '')}
-                    </Text>
-                );
-
-            case 'paragraph':
-                // Check if paragraph contains any block-level children (like images)
-                const hasBlock = children?.some((c: any) => !isInline(c));
-
-                if (!hasBlock) {
-                    return (
-                        <View key={index} style={styles.paragraphContainer}>
-                            <Text style={[styles.paragraph, { fontSize: FONT_SIZES[sizeKey] }]}>
-                                {renderInlineChildren(children)}
-                            </Text>
-                        </View>
-                    );
-                }
-
-                // If it has blocks, group consecutive inline nodes
-                const segments: React.ReactNode[] = [];
-                let currentInlines: any[] = [];
-
-                children?.forEach((child: any, i: number) => {
-                    if (isInline(child)) {
-                        currentInlines.push(child);
-                    } else {
-                        if (currentInlines.length > 0) {
-                            segments.push(
-                                <Text key={`inline-${i}`} style={[styles.paragraph, { fontSize: FONT_SIZES[sizeKey] }]}>
-                                    {renderInlineChildren(currentInlines)}
-                                </Text>
-                            );
-                            currentInlines = [];
-                        }
-                        segments.push(renderNode(child, i));
-                    }
-                });
-
-                if (currentInlines.length > 0) {
-                    segments.push(
-                        <Text key="inline-last" style={[styles.paragraph, { fontSize: FONT_SIZES[sizeKey] }]}>
-                            {renderInlineChildren(currentInlines)}
-                        </Text>
-                    );
-                }
-
-                return (
-                    <View key={index} style={styles.paragraphContainer}>
-                        {segments}
-                    </View>
-                );
-
-            case 'heading':
-                const level = attributes?.level || 1;
-                return (
-                    <Text key={index} style={[styles.heading, level === 1 && styles.h1, level === 2 && styles.h2]}>
-                        {renderInlineChildren(children)}
-                    </Text>
-                );
-
-            case 'image':
-                const imageUrl = getImageUrl(attributes?.src);
-                return (
-                    <View key={index} style={styles.imageContainer}>
-                        {imageUrl ? (
-                            <Image
-                                source={{ uri: imageUrl }}
-                                style={styles.inlineImage}
-                                resizeMode="cover"
-                            />
-                        ) : null}
-                        {(attributes?.alt || attributes?.title) ? (
-                            <Text style={styles.imageCaption}>{attributes?.alt || attributes?.title}</Text>
-                        ) : null}
-                    </View>
-                );
-
-            case 'list':
-                return (
-                    <View key={index} style={styles.list}>
-                        {children?.map((child: any, i: number) => renderNode(child, i))}
-                    </View>
-                );
-
-            case 'item':
-                return (
-                    <View key={index} style={styles.listItem}>
-                        <Text style={[styles.bullet, { fontSize: FONT_SIZES[sizeKey] }]}>• </Text>
-                        <View style={{ flex: 1 }}>
-                            <Text style={[styles.listItemText, { fontSize: FONT_SIZES[sizeKey] }]}>
-                                {renderInlineChildren(children)}
-                            </Text>
-                        </View>
-                    </View>
-                );
-
-            default:
-                if (children) {
-                    return children.map((child: any, i: number) => renderNode(child, i));
-                }
-                return null;
-        }
-    };
 
     const loadArticle = async () => {
         if (typeof slug !== 'string') {
@@ -280,15 +135,8 @@ export default function ArticleDetail() {
             Speech.stop();
             setIsSpeaking(false);
         } else {
-            const extractText = (node: any): string => {
-                if (!node) return '';
-                if (typeof node === 'string') return node;
-                if (node.attributes?.content) return node.attributes.content;
-                if (node.children) return node.children.map(extractText).join(' ');
-                return '';
-            };
-
-            const fullText = `${post.title}. By ${post.author}. ${extractText(post.content)}`;
+            const bodyText = post.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            const fullText = `${post.title}. By ${post.author}. ${bodyText}`;
 
             // Chunking logic to avoid 4000 char limit
             const chunks: string[] = [];
@@ -404,7 +252,12 @@ export default function ArticleDetail() {
                 </View>
 
                 <View style={styles.content}>
-                    {renderNode(post.content, 0)}
+                    <RenderHtml
+                        contentWidth={width - spacing.lg * 2}
+                        source={{ html: post.content }}
+                        baseStyle={{ ...styles.paragraph, fontSize: FONT_SIZES[sizeKey] }}
+                        tagsStyles={{ a: { color: colors.accent } }}
+                    />
                 </View>
 
                 {post.category === 'editorial' && (
