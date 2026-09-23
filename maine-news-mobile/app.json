@@ -4,6 +4,10 @@
     "slug": "maine-news-mobile",
     "scheme": "maine-news",
     "version": "1.0.1",
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/34155bc3-3eb4-4c43-b278-7e0143fa49fc"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
