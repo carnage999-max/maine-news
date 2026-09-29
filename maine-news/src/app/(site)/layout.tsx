@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Oswald, Inter, Libre_Baskerville } from "next/font/google";
+import Script from "next/script";
 import Header from "@/components/layout/Header";
 import UtilityBar from "@/components/layout/UtilityBar";
 import BottomNav from "@/components/layout/BottomNav";
@@ -113,6 +114,11 @@ export default function RootLayout({
       </main>
       <Footer />
       <BottomNav />
+      <Script
+        src="https://now-hiring-eta.vercel.app/widget.js"
+        data-icon="Newspaper"
+        strategy="afterInteractive"
+      />
     </div>
   );
 }
