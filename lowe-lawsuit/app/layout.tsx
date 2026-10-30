@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import { SITE_URL, SITE_TITLE, SITE_DESCRIPTION } from '@/lib/site';
+import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from '@/lib/site';
 import './globals.css';
 
 export const metadata: Metadata = {
     metadataBase: new URL(SITE_URL),
-    title: `${SITE_TITLE} | Maine News Now`,
+    title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     keywords: [
         "Nathan Reardon Lowe's lawsuit",
@@ -30,8 +30,8 @@ export const metadata: Metadata = {
     },
     openGraph: {
         type: 'article',
-        siteName: 'Maine News Now',
-        title: `${SITE_TITLE} | Maine News Now`,
+        siteName: SITE_NAME,
+        title: SITE_TITLE,
         description: SITE_DESCRIPTION,
         url: SITE_URL,
         locale: 'en_US',
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: `${SITE_TITLE} | Maine News Now`,
+        title: SITE_TITLE,
         description: SITE_DESCRIPTION,
         images: ['/image-2.jpeg'],
     },

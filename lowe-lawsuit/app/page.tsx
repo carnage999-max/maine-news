@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { SITE_URL, SITE_TITLE, SITE_DESCRIPTION } from '@/lib/site';
+import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from '@/lib/site';
 
 const articleSchema = {
     '@context': 'https://schema.org',
@@ -9,14 +9,6 @@ const articleSchema = {
     image: [`${SITE_URL}/image-2.jpeg`],
     datePublished: '2026-09-03',
     dateModified: '2026-09-03',
-    author: {
-        '@type': 'Organization',
-        name: 'Maine News Now',
-    },
-    publisher: {
-        '@type': 'Organization',
-        name: 'Maine News Now',
-    },
     mainEntityOfPage: {
         '@type': 'WebPage',
         '@id': SITE_URL,
@@ -96,7 +88,7 @@ export default function Page() {
             <header className="topbar">
                 <div className="wrap">
                     <div className="brand">
-                        MAINE <span>NEWS NOW</span>
+                        LOWE&apos;S <span>LAWSUITS</span>
                     </div>
                     <div className="tag">Court Records • Accountability • Maine</div>
                 </div>
@@ -295,7 +287,7 @@ export default function Page() {
 
                         <div className="disclaimer">
                             <strong>Editorial disclosure:</strong> Nathan Reardon is the plaintiff in the pending
-                            Lowe&apos;s litigation and is associated with Maine News Now. This page is
+                            Lowe&apos;s litigation. This page is
                             advocacy-oriented editorial coverage based on public court records. Lowe&apos;s denies
                             negligence, causation, and damages. No prior case cited on this page establishes
                             liability in the pending Maine action.
@@ -338,7 +330,7 @@ export default function Page() {
                 </div>
             </main>
 
-            <footer className="footer">© 2026 Maine News Now • Court-record-based editorial coverage</footer>
+            <footer className="footer">© 2026 {SITE_NAME} • Court-record-based editorial coverage</footer>
         </>
     );
 }
