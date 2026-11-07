@@ -115,7 +115,7 @@ export default function RootLayout({
       <Footer />
       <BottomNav />
       <Script
-        src="https://now-hiring-eta.vercel.app/widget.js"
+        src="https://hiring.se7eninc.com/widget.js"
         data-icon="Newspaper"
         strategy="afterInteractive"
       />
