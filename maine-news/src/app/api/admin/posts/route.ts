@@ -1,10 +1,26 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { posts } from '@/db/schema';
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { uploadToLocalMedia } from '@/lib/mediaStorage';
 
 export const dynamic = 'force-dynamic';
+
+function getHeadlineSettings(isHeadlineValue: unknown, headlineUntilValue: unknown) {
+    const isHeadline = isHeadlineValue === true || isHeadlineValue === 'true';
+    const rawHeadlineUntil = typeof headlineUntilValue === 'string' ? headlineUntilValue : '';
+
+    if (!isHeadline) {
+        return { isHeadline: false, headlineUntil: null };
+    }
+
+    const headlineUntil = new Date(rawHeadlineUntil);
+    if (!rawHeadlineUntil || Number.isNaN(headlineUntil.getTime()) || headlineUntil <= new Date()) {
+        throw new Error('Choose a future expiry time for the homepage headline.');
+    }
+
+    return { isHeadline: true, headlineUntil };
+}
 
 export async function GET() {
     try {
@@ -47,6 +63,14 @@ export async function POST(request: Request) {
             imageUrl = await uploadToLocalMedia(buffer, imageFile.name, imageFile.type);
         }
 
+        const headlineSettings = getHeadlineSettings(formData.get('isHeadline'), formData.get('headlineUntil'));
+
+        if (headlineSettings.isHeadline) {
+            await db.update(posts)
+                .set({ isHeadline: false, headlineUntil: null })
+                .where(eq(posts.isHeadline, true));
+        }
+
         const newPost = await db.insert(posts).values({
             title,
             slug,
@@ -56,11 +80,13 @@ export async function POST(request: Request) {
             image: imageUrl,
             publishedDate: publishedDate ? new Date(publishedDate) : new Date(),
             isOriginal: true,
+                ...headlineSettings,
         }).returning();
 
         return NextResponse.json(newPost[0]);
     } catch (error) {
         console.error('Failed to create post:', error);
-        return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
+        const message = error instanceof Error ? error.message : 'Failed to create post';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

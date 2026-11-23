@@ -2,7 +2,7 @@ import React from 'react';
 import { db } from '@/db';
 import { posts } from '@/db/schema';
 import { desc } from 'drizzle-orm';
-import { Plus, Newspaper, Calendar, User, Search, Filter, Edit2, Trash2, ExternalLink } from 'lucide-react';
+import { Plus, Newspaper, Calendar, User, Search, Filter, ExternalLink, Pin } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import PostActions from '@/components/admin/PostActions';
@@ -20,6 +20,8 @@ export default async function PostsListPage() {
             author: true,
             publishedDate: true,
             slug: true,
+            isHeadline: true,
+            headlineUntil: true,
         }
     });
 
@@ -83,9 +85,17 @@ export default async function PostsListPage() {
 
                             <div className="flex-1 space-y-3">
                                 <div className="flex justify-between items-start">
-                                    <h2 className="text-xl font-bold text-white mb-0" style={{ margin: 0 }}>
-                                        {post.title}
-                                    </h2>
+                                    <div>
+                                        {post.isHeadline && post.headlineUntil && post.headlineUntil > new Date() && (
+                                            <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-accent mb-2">
+                                                <Pin size={12} fill="currentColor" />
+                                                Homepage headline until {post.headlineUntil.toLocaleString()}
+                                            </span>
+                                        )}
+                                        <h2 className="text-xl font-bold text-white mb-0" style={{ margin: 0 }}>
+                                            {post.title}
+                                        </h2>
+                                    </div>
                                     <PostActions postId={post.id} />
                                 </div>
 

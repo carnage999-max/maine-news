@@ -14,6 +14,8 @@ export const posts = pgTable('posts', {
     sourceUrl: text('source_url'),
     isOriginal: boolean('is_original').default(true).notNull(),
     isNational: boolean('is_national').default(false).notNull(),
+    isHeadline: boolean('is_headline').default(false).notNull(),
+    headlineUntil: timestamp('headline_until'),
     metadata: jsonb('metadata').default({}), // For extra fields like SEO tags
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });

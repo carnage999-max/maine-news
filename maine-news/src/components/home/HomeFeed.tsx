@@ -44,6 +44,9 @@ interface Post {
     publishedDate: string;
     author: string;
     isOriginal?: boolean;
+    isHeadline: boolean;
+    headlineUntil: string | null;
+    isActiveHeadline: boolean;
 }
 
 interface WeatherSnapshot {
@@ -160,7 +163,10 @@ function formatDisplayDate(dateString: string) {
 export default function HomeFeed({ initialPosts, weather, traffic, authors }: HomeFeedProps) {
     const latestEditorial = initialPosts.find(post => post.category === 'editorial');
     const topStories = initialPosts.filter(post => post.category !== 'obituaries');
-    const heroStories = topStories.slice(0, 7);
+    const activeHeadline = topStories.find((post) => post.isActiveHeadline);
+    const heroStories = activeHeadline
+        ? [activeHeadline, ...topStories.filter((post) => post.id !== activeHeadline.id).slice(0, 6)]
+        : topStories.slice(0, 7);
 
     const [activeCategory, setActiveCategory] = useState('all');
     const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
@@ -187,7 +193,7 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
         return !Number.isNaN(publishedAt) && publishedAt > lastSeen;
     });
 
-    const leadStory = heroStories[currentHeroIndex] || topStories[0];
+    const leadStory = activeHeadline || heroStories[currentHeroIndex] || topStories[0];
     const breakingNews = topStories.slice(1, 6);
     const liveFeed = topStories.slice(0, 4);
     const politicsStories = topStories.filter(post => post.category === 'politics');
@@ -221,14 +227,14 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
     }, [showCountyMapModal]);
 
     useEffect(() => {
-        if (heroStories.length <= 1) return;
+        if (activeHeadline || heroStories.length <= 1) return;
 
         const timer = window.setInterval(() => {
             setCurrentHeroIndex((prev) => (prev + 1) % heroStories.length);
         }, 5500);
 
         return () => window.clearInterval(timer);
-    }, [heroStories.length]);
+    }, [activeHeadline, heroStories.length]);
 
     useEffect(() => {
         if (topStories.length <= 1) return;
