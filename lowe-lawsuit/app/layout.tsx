@@ -37,9 +37,9 @@ export const metadata: Metadata = {
         locale: 'en_US',
         images: [
             {
-                url: '/image-2.jpeg',
-                width: 1536,
-                height: 1024,
+                url: '/verdict.png',
+                width: 1254,
+                height: 1254,
                 alt: SITE_TITLE,
             },
         ],
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
         card: 'summary_large_image',
         title: SITE_TITLE,
         description: SITE_DESCRIPTION,
-        images: ['/image-2.jpeg'],
+        images: ['/verdict.png'],
     },
 };
 

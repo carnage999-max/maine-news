@@ -75,6 +75,18 @@
   letter-spacing: 0.08em;
 }
 
+.topStoryBadge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  background-color: var(--color-accent);
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 800;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 .metaRow {
   display: flex;
   justify-content: space-between;

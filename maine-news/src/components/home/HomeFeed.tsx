@@ -163,10 +163,8 @@ function formatDisplayDate(dateString: string) {
 export default function HomeFeed({ initialPosts, weather, traffic, authors }: HomeFeedProps) {
     const latestEditorial = initialPosts.find(post => post.category === 'editorial');
     const topStories = initialPosts.filter(post => post.category !== 'obituaries');
-    const activeHeadline = topStories.find((post) => post.isActiveHeadline);
-    const heroStories = activeHeadline
-        ? [activeHeadline, ...topStories.filter((post) => post.id !== activeHeadline.id).slice(0, 6)]
-        : topStories.slice(0, 7);
+    const nonHeadlineStories = topStories.filter((post) => !post.isActiveHeadline);
+    const heroStories = nonHeadlineStories.slice(0, 7);
 
     const [activeCategory, setActiveCategory] = useState('all');
     const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
@@ -193,9 +191,9 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
         return !Number.isNaN(publishedAt) && publishedAt > lastSeen;
     });
 
-    const leadStory = activeHeadline || heroStories[currentHeroIndex] || topStories[0];
-    const breakingNews = topStories.slice(1, 6);
-    const liveFeed = topStories.slice(0, 4);
+    const leadStory = heroStories[currentHeroIndex] || nonHeadlineStories[0];
+    const breakingNews = nonHeadlineStories.slice(1, 6);
+    const liveFeed = nonHeadlineStories.slice(0, 4);
     const politicsStories = topStories.filter(post => post.category === 'politics');
     const politicsSpotlight = politicsStories[0] || topStories[2];
     const politicsSecondary = politicsStories.slice(1, 3);
@@ -227,27 +225,27 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
     }, [showCountyMapModal]);
 
     useEffect(() => {
-        if (activeHeadline || heroStories.length <= 1) return;
+        if (heroStories.length <= 1) return;
 
         const timer = window.setInterval(() => {
             setCurrentHeroIndex((prev) => (prev + 1) % heroStories.length);
         }, 5500);
 
         return () => window.clearInterval(timer);
-    }, [activeHeadline, heroStories.length]);
+    }, [heroStories.length]);
 
     useEffect(() => {
-        if (topStories.length <= 1) return;
+        if (nonHeadlineStories.length <= 1) return;
 
         const timer = window.setInterval(() => {
-            setTrendingIndex((prev) => (prev + 1) % topStories.length);
+            setTrendingIndex((prev) => (prev + 1) % nonHeadlineStories.length);
         }, 4200);
 
         return () => window.clearInterval(timer);
-    }, [topStories.length]);
+    }, [nonHeadlineStories.length]);
 
-    const rotatingTrendingStories = Array.from({ length: Math.min(5, topStories.length) }, (_, index) => (
-        topStories[(trendingIndex + index) % topStories.length]
+    const rotatingTrendingStories = Array.from({ length: Math.min(5, nonHeadlineStories.length) }, (_, index) => (
+        nonHeadlineStories[(trendingIndex + index) % nonHeadlineStories.length]
     )).filter(Boolean);
 
     const trafficAlerts: TrafficPreviewItem[] = (() => {
@@ -302,13 +300,18 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
         return post.category === activeCategory;
     });
 
-    const sortedPosts = [...filteredPosts].sort((a, b) => {
+    const pinnedLatestStories = activeCategory === 'all'
+        ? filteredPosts.filter((post) => post.isActiveHeadline)
+        : [];
+    const regularPosts = filteredPosts.filter((post) => !post.isActiveHeadline);
+    const sortedPosts = [...regularPosts].sort((a, b) => {
         const dateA = new Date(a.publishedDate).getTime();
         const dateB = new Date(b.publishedDate).getTime();
         return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
-    const visiblePosts = sortedPosts.slice(0, visibleCount);
+    const latestPosts = [...pinnedLatestStories, ...sortedPosts];
+    const visiblePosts = latestPosts.slice(0, visibleCount);
     const tickerSpeedStyles = {
         '--mobile-marquee-duration': TICKER_SPEEDS[tickerSpeed].primary,
         '--mobile-marquee-duration-alt': TICKER_SPEEDS[tickerSpeed].secondary,
@@ -358,7 +361,7 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
                     <span className={styles.mobileMarqueeLabel}>Trending</span>
                     <div className={styles.mobileMarqueeViewport}>
                         <div className={`${styles.mobileMarqueeTrack} ${styles.mobileMarqueeTrackAlt}`}>
-                            {[...topStories.slice(0, 6), ...topStories.slice(0, 6)].map((story, index) => (
+                            {[...nonHeadlineStories.slice(0, 6), ...nonHeadlineStories.slice(0, 6)].map((story, index) => (
                                 <Link
                                     key={`${story.id}-trending-${index}`}
                                     href={`/article/${story.slug}`}
@@ -815,6 +818,7 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
                                 publishedDate={story.publishedDate}
                                 category={story.category}
                                 isNational={story.isNational}
+                                isTopStory={story.isActiveHeadline}
                                 compact
                             />
                             {index === 2 ? (
@@ -874,7 +878,7 @@ export default function HomeFeed({ initialPosts, weather, traffic, authors }: Ho
                     stories={visiblePosts}
                 />
 
-                {visibleCount < sortedPosts.length && (
+                {visibleCount < latestPosts.length && (
                     <div className={styles.loadMoreWrapper}>
                         <button
                             onClick={() => setVisibleCount(prev => prev + 15)}
