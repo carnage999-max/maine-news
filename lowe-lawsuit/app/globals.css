@@ -115,6 +115,13 @@ h1 {
     margin-top: 32px;
 }
 
+.featureImage figcaption,
+.articleFigure figcaption {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 10px;
+}
+
 .wrapmain {
     max-width: var(--max);
     margin: auto;
@@ -161,6 +168,35 @@ h3 {
     margin: 30px 0;
     font-size: 21px;
     font-weight: 700;
+}
+
+.verdictCallout {
+    border-top: 4px solid var(--red2);
+    border-bottom: 1px solid var(--line);
+    margin: 0 0 34px;
+    padding: 22px 0 25px;
+}
+
+.verdictCallout h2 {
+    font-size: clamp(32px, 4vw, 48px);
+    margin: 8px 0 12px;
+}
+
+.verdictCallout p {
+    color: #dce2e8;
+    font-size: 19px;
+    margin: 0;
+}
+
+.articleFigure {
+    margin: 38px 0;
+}
+
+.articleFigure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
 }
 
 .factbox,
@@ -265,6 +301,10 @@ h3 {
 
 .sourcebox {
     margin-bottom: 24px;
+}
+
+.verdictSource {
+    border-left: 4px solid var(--red2);
 }
 
 .sourceboxLabel {

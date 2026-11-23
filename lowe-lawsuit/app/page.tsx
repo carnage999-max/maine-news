@@ -6,9 +6,9 @@ const articleSchema = {
     '@type': 'NewsArticle',
     headline: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    image: [`${SITE_URL}/image-2.jpeg`],
+    image: [`${SITE_URL}/verdict.png`],
     datePublished: '2026-09-03',
-    dateModified: '2026-09-03',
+    dateModified: '2026-11-19',
     mainEntityOfPage: {
         '@type': 'WebPage',
         '@id': SITE_URL,
@@ -63,6 +63,7 @@ const TIMELINE = [
     { date: 'July 28, 2026', text: "Judge Woodcock denies Lowe's motion for summary judgment." },
     { date: 'August 17, 2026', text: "Lowe's asks to continue the October trial period because defense counsel has another scheduled trial." },
     { date: 'September 1, 2026', text: "Lowe's files its Pre-Trial Memorandum, listing conviction evidence for possible Rule 609 impeachment." },
+    { date: 'November 19, 2026', text: "A federal jury returns a verdict. The supplied verdict update states that the jury found Lowe's negligent." },
 ];
 
 const SOURCES = [
@@ -96,37 +97,49 @@ export default function Page() {
 
             <section className="hero">
                 <div className="wrap">
-                    <div className="eyebrow">Special Report • Reardon v. Lowe&apos;s</div>
-                    <h1>The Lowe&apos;s Case That Wouldn&apos;t Go Away</h1>
+                    <div className="eyebrow">Verdict update • Reardon v. Lowe&apos;s</div>
+                    <h1>Jury Finds Lowe&apos;s Negligent</h1>
                     <div className="dek">
-                        A self-represented Maine plaintiff says a Lowe&apos;s employee injured his hand. Lowe&apos;s
-                        tried to end the case before trial. The federal court said no. Now the company&apos;s
-                        pretrial strategy includes an effort to use the plaintiff&apos;s criminal convictions for
-                        impeachment.
+                        After nearly seven years, a federal jury returned a verdict in Nathan Reardon&apos;s case
+                        against Lowe&apos;s Home Centers, LLC on November 19, 2026.
                     </div>
                     <div className="meta">
-                        Based on public court filings in Nathan Reardon v. Lowe&apos;s Home Centers, LLC, U.S.
-                        District Court for the District of Maine, Case No. 1:25-cv-00099-JAW.
+                        Verdict update for Nathan Reardon v. Lowe&apos;s Home Centers, LLC, U.S. District Court for
+                        the District of Maine, Case No. 1:25-cv-00099-JAW. This page will be updated with the
+                        official verdict form and judgment when available.
                     </div>
                 </div>
             </section>
 
             <figure className="featureImage">
                 <Image
-                    src="/image-2.jpeg"
-                    alt="The Big Company. The Real Person. The Truth Matters. — a summary graphic on the Reardon v. Lowe's case"
-                    width={1536}
-                    height={1024}
+                    src="/verdict.png"
+                    alt="Verdict graphic stating that a federal jury found Lowe's negligent in the Reardon case"
+                    width={1254}
+                    height={1254}
                     priority
                     sizes="(max-width: 1180px) 100vw, 1180px"
                 />
+                <figcaption>Verdict update graphic supplied for this coverage. The official court-filed verdict record will be linked here when available.</figcaption>
             </figure>
 
             <main className="wrapmain">
                 <div className="grid">
                     <article className="story">
+                        <div className="verdictCallout">
+                            <div className="eyebrow">Federal jury verdict • November 19, 2026</div>
+                            <h2>Lowe&apos;s found negligent</h2>
+                            <p>
+                                A jury has returned its verdict in Reardon v. Lowe&apos;s Home Centers, LLC. The
+                                supplied verdict update states that the jury found Lowe&apos;s negligent. No damages
+                                amount or further judgment detail is stated on this page until it can be tied to
+                                the official court record.
+                            </p>
+                        </div>
+
                         <p>
-                            Nathan Reardon alleges that he was injured in the checkout area of the Lowe&apos;s store
+                            This report was originally published as the case was approaching trial. Nathan Reardon
+                            alleged that he was injured in the checkout area of the Lowe&apos;s store
                             in Brewer, Maine, in December 2019 when a cashier mishandled a wooden fence post.
                             According to the court record, the post fell toward Reardon, he reached to catch or
                             deflect it, and it struck his thumb. Lowe&apos;s disputes negligence, medical causation,
@@ -140,12 +153,9 @@ export default function Page() {
                             hear the evidence.
                         </p>
 
-                        <div className="callout">
-                            The key fact is not that Reardon has already won. He has not. The key fact is that
-                            Lowe&apos;s asked the court to end the case before trial — and the court refused.
-                        </div>
+                        <div className="callout">Before the verdict, Lowe&apos;s asked the court to end the case before trial — and the court refused.</div>
 
-                        <h2>First: Try to End the Case</h2>
+                        <h2>Before Trial: The Attempt to End the Case</h2>
                         <p>
                             Lowe&apos;s moved for summary judgment. A central defense argument was that Reardon had
                             not disclosed his own medical expert and therefore could not establish medical causation
@@ -196,6 +206,17 @@ export default function Page() {
                             criminal history the jury should be allowed to hear.
                         </p>
 
+                        <figure className="articleFigure">
+                            <Image
+                                src="/courtroom-showdown.png"
+                                alt="Comparison graphic showing Lowe's counsel and self-represented plaintiff Nathan Reardon before trial"
+                                width={1254}
+                                height={1254}
+                                sizes="(max-width: 900px) 100vw, 760px"
+                            />
+                            <figcaption>Pretrial comparison graphic supplied for this coverage. It is an advocacy-oriented illustration, not a court record.</figcaption>
+                        </figure>
+
                         <h2>A Familiar Corporate Defense Move: Summary Judgment</h2>
                         <p>
                             Lowe&apos;s is fully entitled to contest lawsuits against it. But Reardon&apos;s case is
@@ -232,25 +253,22 @@ export default function Page() {
                             ))}
                         </div>
 
-                        <h2>What Happens Next</h2>
+                        <h2>What Happens After the Verdict</h2>
                         <p>
-                            The central questions remain for trial: whether Lowe&apos;s was negligent, what injury
-                            the incident caused, and what damages — if any — should be awarded. Lowe&apos;s intends
-                            to use surveillance video, medical evidence, and orthopedic expert Bruce M. Leslie, M.D.
-                            Reardon intends to present his own evidence concerning the incident, his hand injury, and
-                            its effect on his ability to perform skilled mechanical work.
+                            The jury has resolved the negligence question reflected in the verdict update. The court
+                            docket may next reflect the verdict form, any judgment, post-trial motions, and any appeal
+                            activity. This page will link those primary records as they become available.
                         </p>
 
                         <p>
-                            A federal jury may ultimately accept Lowe&apos;s defense, accept Reardon&apos;s case, or
-                            reach a result somewhere between the two. But one avenue has already closed: Lowe&apos;s
-                            did not succeed in ending the entire case through summary judgment.
+                            The earlier summary-judgment decision remains part of the public record: Lowe&apos;s did not
+                            succeed in ending the entire case before trial. The November 19 verdict is the latest
+                            reported development in the case.
                         </p>
 
                         <div className="callout">
-                            A customer does not have to be perfect to have a legal right to a fair trial. The
-                            jury&apos;s job is to decide the Lowe&apos;s case on the evidence the judge allows — not
-                            to decide whether it approves of the person who filed it.
+                            This verdict update concerns the jury&apos;s negligence finding. It does not state a damages
+                            award or resolve any post-verdict proceedings not yet reflected in the supplied materials.
                         </div>
 
                         <section className="sources">
@@ -270,6 +288,13 @@ export default function Page() {
                                     </a>
                                 </div>
                             </div>
+                            <div className="sourcebox verdictSource">
+                                <strong className="sourceboxLabel">Verdict record</strong>
+                                <p className="sourceboxText">
+                                    Official verdict form and judgment: pending upload. The verdict update on this page
+                                    is based on the supplied November 19, 2026 verdict information.
+                                </p>
+                            </div>
                             <ol>
                                 {SOURCES.map((s) => (
                                     <li key={s}>{s}</li>
@@ -286,11 +311,10 @@ export default function Page() {
                         </section>
 
                         <div className="disclaimer">
-                            <strong>Editorial disclosure:</strong> Nathan Reardon is the plaintiff in the pending
-                            Lowe&apos;s litigation. This page is
-                            advocacy-oriented editorial coverage based on public court records. Lowe&apos;s denies
-                            negligence, causation, and damages. No prior case cited on this page establishes
-                            liability in the pending Maine action.
+                            <strong>Editorial disclosure:</strong> Nathan Reardon is the plaintiff in the
+                            Lowe&apos;s litigation. This page is advocacy-oriented editorial coverage based on public
+                            court records and the supplied verdict update. No prior case cited on this page establishes
+                            liability in the Maine action.
                         </div>
                     </article>
 
@@ -308,8 +332,8 @@ export default function Page() {
                         <div className="factbox">
                             <strong>Current posture</strong>
                             <p>
-                                Summary judgment denied. Case proceeding toward trial, subject to scheduling and
-                                pretrial rulings.
+                                Jury verdict returned November 19, 2026. The supplied verdict update states that the
+                                jury found Lowe&apos;s negligent; official verdict and judgment records are pending upload.
                             </p>
                         </div>
                         <div className="factbox">

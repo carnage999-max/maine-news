@@ -10,6 +10,7 @@ interface Story {
     publishedDate: string;
     category?: string;
     isNational?: boolean;
+    isActiveHeadline?: boolean;
 }
 
 interface SectionProps {
@@ -34,6 +35,7 @@ export default function SectionList({ title, stories }: SectionProps) {
                             publishedDate={story.publishedDate}
                             category={story.category}
                             isNational={story.isNational}
+                            isTopStory={story.isActiveHeadline}
                         />
                         {index === 3 ? (
                             <div

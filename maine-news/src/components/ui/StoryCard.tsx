@@ -12,9 +12,10 @@ interface StoryCardProps {
     publishedDate?: string;
     priority?: boolean;
     compact?: boolean;
+    isTopStory?: boolean;
 }
 
-export default function StoryCard({ title, image, slug, category, isNational, publishedDate, priority = false, compact = false }: StoryCardProps) {
+export default function StoryCard({ title, image, slug, category, isNational, publishedDate, priority = false, compact = false, isTopStory = false }: StoryCardProps) {
     const fallbackImage = "/hero-fallback.jpeg";
 
     return (
@@ -31,6 +32,7 @@ export default function StoryCard({ title, image, slug, category, isNational, pu
             </div>
             <div className={styles.content}>
                 <div className={styles.metaRow}>
+                    {isTopStory && <span className={styles.topStoryBadge}>TOP STORY</span>}
                     {isNational && <span className={styles.nationalBadge}>NATIONAL</span>}
                     {category && <span className={styles.category}>{category}</span>}
                     {publishedDate && <span className={styles.date}>{formatTimeAgo(publishedDate)}</span>}
