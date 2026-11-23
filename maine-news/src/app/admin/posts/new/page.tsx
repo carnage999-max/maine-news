@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Send, X, Settings, Image as ImageIcon, Globe } from 'lucide-react';
+import { CalendarClock, ChevronLeft, Send, X, Settings, Image as ImageIcon, Globe } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
@@ -25,6 +25,8 @@ export default function NewPostPage() {
         category: 'local',
         content: '',
         publishedDate: new Date().toISOString().split('T')[0],
+        isHeadline: false,
+        headlineUntil: '',
     });
 
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -68,7 +70,7 @@ export default function NewPostPage() {
         try {
             const data = new FormData();
             Object.entries(formData).forEach(([key, value]) => {
-                data.append(key, value);
+                data.append(key, String(value));
             });
             if (imageFile) {
                 data.append('image', imageFile);
@@ -252,6 +254,50 @@ export default function NewPostPage() {
                         </div>
 
                         {/* Image Upload */}
+                        <div style={{ paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
+                            <label style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.isHeadline}
+                                    onChange={(event) => {
+                                        const isHeadline = event.target.checked;
+                                        setFormData((current) => ({
+                                            ...current,
+                                            isHeadline,
+                                            headlineUntil: isHeadline && !current.headlineUntil
+                                                ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16)
+                                                : current.headlineUntil,
+                                        }));
+                                    }}
+                                    style={{ marginTop: '0.25rem', width: '1rem', height: '1rem', accentColor: 'var(--accent)' }}
+                                />
+                                <span>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#fff', fontWeight: 700 }}>
+                                        <CalendarClock size={16} style={{ color: 'var(--accent)' }} />
+                                        Homepage headline
+                                    </span>
+                                    <span style={{ display: 'block', marginTop: '0.35rem', color: 'var(--text-muted)', fontSize: '0.8rem', lineHeight: 1.45 }}>
+                                        Keep this story at the top of the homepage until the time below.
+                                    </span>
+                                </span>
+                            </label>
+                            <div style={{ marginTop: '0.9rem' }}>
+                                <label htmlFor="headlineUntil" style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'block', fontSize: '0.8rem' }}>
+                                    Headline expires
+                                </label>
+                                <input
+                                    id="headlineUntil"
+                                    type="datetime-local"
+                                    value={formData.headlineUntil}
+                                    min={new Date().toISOString().slice(0, 16)}
+                                    disabled={!formData.isHeadline}
+                                    required={formData.isHeadline}
+                                    onChange={(event) => setFormData({ ...formData, headlineUntil: event.target.value })}
+                                    style={{ width: '100%', backgroundColor: 'var(--bg-muted)', border: '1px solid var(--border-color)', borderRadius: '0.75rem', padding: '0.875rem 1rem', color: formData.isHeadline ? '#fff' : 'var(--text-muted)', fontSize: '0.9rem', outline: 'none', opacity: formData.isHeadline ? 1 : 0.55, cursor: formData.isHeadline ? 'text' : 'not-allowed' }}
+                                />
+                            </div>
+                        </div>
+
                         <div style={{ paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
                             <label style={{ color: 'var(--text-muted)', marginBottom: '0.75rem' }}>Featured Image</label>
                             <div

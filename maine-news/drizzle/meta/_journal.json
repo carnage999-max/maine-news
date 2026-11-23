@@ -36,6 +36,13 @@
       "when": 1788283200000,
       "tag": "0004_add_author_more_info_url",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795414524534,
+      "tag": "0005_natural_nitro",
+      "breakpoints": true
     }
   ]
 }

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ChevronLeft, Send, X, Settings, Image as ImageIcon, Globe, Loader2 } from 'lucide-react';
+import { CalendarClock, ChevronLeft, Send, Settings, Globe, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
@@ -27,9 +27,9 @@ export default function EditPostPage() {
         category: 'local',
         content: '',
         publishedDate: new Date().toISOString().split('T')[0],
+        isHeadline: false,
+        headlineUntil: '',
     });
-
-    const [imageFile, setImageFile] = useState<File | null>(null);
 
     useEffect(() => {
         const fetchPost = async () => {
@@ -45,6 +45,8 @@ export default function EditPostPage() {
                         category: post.category,
                         content: post.content,
                         publishedDate: new Date(post.publishedDate).toISOString().split('T')[0],
+                        isHeadline: post.isHeadline ?? false,
+                        headlineUntil: post.headlineUntil ? new Date(post.headlineUntil).toISOString().slice(0, 16) : '',
                     });
                     if (post.image) {
                         setPreviewImage(post.image);
@@ -64,18 +66,6 @@ export default function EditPostPage() {
         fetchPost();
     }, [params.id, router]);
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setImageFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviewImage(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
     const handleContentChange = (newContent: string) => {
         setFormData(prev => ({ ...prev, content: newContent }));
     };
@@ -90,49 +80,12 @@ export default function EditPostPage() {
         setSaving(true);
 
         try {
-            // If there's a new image file, handle it differently or use formData if API supports it
-            // For updates, we can use JSON if no image, or FormData if image
-            const data = new FormData();
-            Object.entries(formData).forEach(([key, value]) => {
-                data.append(key, value);
-            });
-            if (imageFile) {
-                data.append('image', imageFile);
-            } else if (previewImage && previewImage.startsWith('http')) {
-                // Keep existing image URL
-                data.append('imageUrl', previewImage);
-            }
-
-            const response = await fetch(`/api/admin/posts/${params.id}`, {
+            const updateRes = await fetch(`/api/admin/posts/${params.id}`, {
                 method: 'PATCH',
                 body: JSON.stringify({
                     ...formData,
-                    image: previewImage?.startsWith('http') ? previewImage : undefined
-                    // Note: If new imageFile, you'd need the API to handle FormData for PATCH, 
-                    // or upload first. Our PATCH currently expects JSON.
-                    // Let's optimize the PATCH API to handle either or just use JSON with base64 for image?
-                    // Better to update PATCH to handle the same logic as POST for images if needed.
+                    image: previewImage?.startsWith('http') ? previewImage : undefined,
                 }),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            // Wait, our PATCH API only expects JSON. I should probably handle the image upload separately or update PATCH to be like POST.
-            // Let's simplify: if there's a NEW image file, we should probably upload it.
-
-            let imageUrl = previewImage?.startsWith('http') ? previewImage : null;
-            if (imageFile) {
-                // For simplicity in this edit flow, let's update the API to handle the update logic including images
-                // OR just do a POST to a specialized update route.
-            }
-
-            // REVISIT: Let's use the POST route logic for PATCH too if possible.
-            // I'll update the PATCH route to handle FormData.
-
-            const updateRes = await fetch(`/api/admin/posts/${params.id}`, {
-                method: 'PATCH',
-                body: JSON.stringify({ ...formData, image: imageUrl }),
                 headers: { 'Content-Type': 'application/json' }
             });
 
@@ -316,6 +269,50 @@ export default function EditPostPage() {
                                     opacity: 0.5
                                 }}
                             />
+                        </div>
+
+                        <div style={{ paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
+                            <label style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.isHeadline}
+                                    onChange={(event) => {
+                                        const isHeadline = event.target.checked;
+                                        setFormData((current) => ({
+                                            ...current,
+                                            isHeadline,
+                                            headlineUntil: isHeadline && !current.headlineUntil
+                                                ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16)
+                                                : current.headlineUntil,
+                                        }));
+                                    }}
+                                    style={{ marginTop: '0.25rem', width: '1rem', height: '1rem', accentColor: 'var(--accent)' }}
+                                />
+                                <span>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#fff', fontWeight: 700 }}>
+                                        <CalendarClock size={16} style={{ color: 'var(--accent)' }} />
+                                        Homepage headline
+                                    </span>
+                                    <span style={{ display: 'block', marginTop: '0.35rem', color: 'var(--text-muted)', fontSize: '0.8rem', lineHeight: 1.45 }}>
+                                        Keep this story at the top of the homepage until the time below.
+                                    </span>
+                                </span>
+                            </label>
+                            <div style={{ marginTop: '0.9rem' }}>
+                                <label htmlFor="headlineUntil" style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'block', fontSize: '0.8rem' }}>
+                                    Headline expires
+                                </label>
+                                <input
+                                    id="headlineUntil"
+                                    type="datetime-local"
+                                    value={formData.headlineUntil}
+                                    min={new Date().toISOString().slice(0, 16)}
+                                    disabled={!formData.isHeadline}
+                                    required={formData.isHeadline}
+                                    onChange={(event) => setFormData({ ...formData, headlineUntil: event.target.value })}
+                                    style={{ width: '100%', backgroundColor: 'var(--bg-muted)', border: '1px solid var(--border-color)', borderRadius: '0.75rem', padding: '0.875rem 1rem', color: formData.isHeadline ? '#fff' : 'var(--text-muted)', fontSize: '0.9rem', outline: 'none', opacity: formData.isHeadline ? 1 : 0.55, cursor: formData.isHeadline ? 'text' : 'not-allowed' }}
+                                />
+                            </div>
                         </div>
 
                         {/* Image Upload Placeholder */}

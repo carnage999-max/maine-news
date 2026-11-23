@@ -1,9 +1,25 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { posts } from '@/db/schema';
 
 export const dynamic = 'force-dynamic';
+
+function getHeadlineSettings(isHeadlineValue: unknown, headlineUntilValue: unknown) {
+    const isHeadline = isHeadlineValue === true || isHeadlineValue === 'true';
+    const rawHeadlineUntil = typeof headlineUntilValue === 'string' ? headlineUntilValue : '';
+
+    if (!isHeadline) {
+        return { isHeadline: false, headlineUntil: null };
+    }
+
+    const headlineUntil = new Date(rawHeadlineUntil);
+    if (!rawHeadlineUntil || Number.isNaN(headlineUntil.getTime()) || headlineUntil <= new Date()) {
+        throw new Error('Choose a future expiry time for the homepage headline.');
+    }
+
+    return { isHeadline: true, headlineUntil };
+}
 
 export async function GET(
     request: Request,
@@ -58,11 +74,24 @@ export async function PATCH(
 
         const body = await request.json();
 
-        // Prepare data for update
-        const updateData: any = { ...body };
-        if (updateData.publishedDate) {
-            updateData.publishedDate = new Date(updateData.publishedDate);
+        const headlineSettings = getHeadlineSettings(body.isHeadline, body.headlineUntil);
+
+        if (headlineSettings.isHeadline) {
+            await db.update(posts)
+                .set({ isHeadline: false, headlineUntil: null })
+                .where(and(eq(posts.isHeadline, true), ne(posts.id, id)));
         }
+
+        const updateData = {
+            title: body.title,
+            slug: body.slug,
+            author: body.author || 'Staff',
+            category: body.category || 'local',
+            content: body.content,
+            image: body.image ?? null,
+            publishedDate: body.publishedDate ? new Date(body.publishedDate) : undefined,
+            ...headlineSettings,
+        };
 
         const updatedPost = await db.update(posts)
             .set(updateData)
@@ -72,6 +101,7 @@ export async function PATCH(
         return NextResponse.json(updatedPost[0]);
     } catch (error) {
         console.error('Failed to update post:', error);
-        return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });
+        const message = error instanceof Error ? error.message : 'Failed to update post';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }
