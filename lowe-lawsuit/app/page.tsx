@@ -294,6 +294,15 @@ export default function Page() {
                                     Official verdict form and judgment: pending upload. The verdict update on this page
                                     is based on the supplied November 19, 2026 verdict information.
                                 </p>
+                                <div className="sourceboxActions">
+                                    <a
+                                        href="https://mainenewsnow.com/article/nearly-seven-years-later-a-federal-jury-found-lowe-s-negligent"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Read Maine News Now&apos;s verdict coverage
+                                    </a>
+                                </div>
                             </div>
                             <ol>
                                 {SOURCES.map((s) => (
